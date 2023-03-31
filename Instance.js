@@ -11,8 +11,10 @@ import {RendererManager} from "./RendererManager.js";
  * Game instance.
  * This holds information about asset base paths, viewport dimensions and GUI scale.
  * 
- * @param {String} shaderPath
- * @param {String} texturePath
+ * @param {{
+ *    shaderPath: String,
+ *    texturePath: String
+ * }}
  */
 export default function Instance({shaderPath, texturePath}) {
 	const DEFAULT_WIDTH = 320;
