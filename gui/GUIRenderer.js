@@ -1,30 +1,26 @@
 import {Matrix3, Vector2} from "../math/index.js";
-import WebGLRenderer from "../WebGLRenderer.js";
-import Texture from "../Texture.js";
+import {extend} from "../utils/index.js";
+import {Texture} from "../wrappers/index.js";
+import {WebGLRenderer} from "../WebGLRenderer.js";
 
-/**
- * @todo Convert to function constructor
- */
-export class GUIRenderer extends WebGLRenderer {
+export function GUIRenderer() {
+	WebGLRenderer.call(this, {
+		offscreen: true,
+		generateMipmaps: false,
+		version: 2,
+	});
+
 	/** @type {Object<String, Number>} */
-	#attributes;
+	let attributes;
 
 	/** @type {Object<String, WebGLUniformLocation>} */
-	#uniforms;
+	let uniforms;
 
 	/** @type {Object<String, WebGLBuffer>} */
-	#buffers;
+	let buffers;
 
 	/** @type {Object<String, WebGLVertexArrayObject>} */
-	#vaos;
-
-	constructor() {
-		super({
-			offscreen: true,
-			generateMipmaps: false,
-			version: 2,
-		});
-	}
+	let vaos;
 
 	/**
 	 * @todo Rework parameters
@@ -32,8 +28,8 @@ export class GUIRenderer extends WebGLRenderer {
 	 * @param {String} shaderPath Instance shader path
 	 * @param {Matrix3} projectionMatrix
 	 */
-	async init(shaderPath, projectionMatrix) {
-		const {gl} = this;
+	this.init = async function(shaderPath, projectionMatrix) {
+		const gl = this.getContext();
 
 		/**
 		 * Load component program
@@ -51,26 +47,26 @@ export class GUIRenderer extends WebGLRenderer {
 		gl.enable(gl.BLEND);
 		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-		const attributes = this.#attributes = {
+		attributes = {
 			position: 0,
 			worldMatrix: 1,
 			textureMatrix: 4,
 			textureIndex: 7,
 		};
-		const uniforms = this.#uniforms = {
+		uniforms = {
 			projectionMatrix: gl.getUniformLocation(program.getProgram(), "u_projection"),
 		};
-		const buffers = this.#buffers = {
+		buffers = {
 			position: gl.createBuffer(),
 			worldMatrix: gl.createBuffer(),
 			textureMatrix: gl.createBuffer(),
 			textureIndex: gl.createBuffer(),
 		};
-		this.#vaos = {
+		vaos = {
 			main: gl.createVertexArray(),
 		};
 
-		gl.bindVertexArray(this.#vaos.main);
+		gl.bindVertexArray(vaos.main);
 
 	 	gl.uniformMatrix3fv(uniforms.projectionMatrix, false, new Float32Array(projectionMatrix));
 
@@ -93,11 +89,12 @@ export class GUIRenderer extends WebGLRenderer {
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureIndex);
 		gl.vertexAttribIPointer(attributes.textureIndex, 1, gl.UNSIGNED_BYTE, false, 0, 0);
 		gl.vertexAttribDivisor(attributes.textureIndex, 1);
-	}
+	};
 
-	async loadTestTextures() {
-		const {gl} = this;
-		const textureLength = Object.keys(this.textures).length;
+	this.loadTestTextures = async function() {
+		const gl = this.getContext();
+		const textures = this.getTextures();
+		const textureLength = Object.keys(textures).length;
 		const dimension = 256;
 		const imageReplacement = {
 			width: dimension,
@@ -121,9 +118,9 @@ export class GUIRenderer extends WebGLRenderer {
 
 			gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, textureLength + i, dimension, dimension, 1, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
 
-			this.textures[colorKeys[i]] = new Texture(imageReplacement, textureLength + i);
+			textures[colorKeys[i]] = new Texture(imageReplacement, textureLength + i);
 		}
-	}
+	};
 
 	/**
 	 * @todo Optimize the subcomponent part
@@ -131,8 +128,9 @@ export class GUIRenderer extends WebGLRenderer {
 	 * 
 	 * @override
 	 */
-	render(scene, camera) {
-		const {gl} = this,
+	this.render = function(scene, camera) {
+		const
+			gl = this.getContext(),
 			componentCount = scene.length,
 			bufferLength = componentCount * 9,
 			worldMatrices = new Float32Array(bufferLength),
@@ -187,11 +185,11 @@ export class GUIRenderer extends WebGLRenderer {
 
 		// Register world matrices
 		{
-			gl.bindBuffer(gl.ARRAY_BUFFER, this.#buffers.worldMatrix);
+			gl.bindBuffer(gl.ARRAY_BUFFER, buffers.worldMatrix);
 			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(subcomponentWorldMatrices), gl.STATIC_DRAW);
 
 			for (i = 0; i < 3; i++) {
-				gl.enableVertexAttribArray(loc = this.#attributes.worldMatrix + i);
+				gl.enableVertexAttribArray(loc = attributes.worldMatrix + i);
 				gl.vertexAttribPointer(loc, 3, gl.FLOAT, false, 36, i * 12);
 				gl.vertexAttribDivisor(loc, 1);
 			}
@@ -199,22 +197,22 @@ export class GUIRenderer extends WebGLRenderer {
 
 		// Register texture matrices
 		{
-			gl.bindBuffer(gl.ARRAY_BUFFER, this.#buffers.textureMatrix);
+			gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureMatrix);
 			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(subcomponentTextureMatrices), gl.STATIC_DRAW);
 
 			for (i = 0; i < 3; i++) {
-				gl.enableVertexAttribArray(loc = this.#attributes.textureMatrix + i);
+				gl.enableVertexAttribArray(loc = attributes.textureMatrix + i);
 				gl.vertexAttribPointer(loc, 3, gl.FLOAT, false, 36, i * 12);
 				gl.vertexAttribDivisor(loc, 1);
 			}
 		}
 
 		// Register texture indices
-		gl.bindBuffer(gl.ARRAY_BUFFER, this.#buffers.textureIndex);
+		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureIndex);
 		gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(subcomponentTextureIndices), gl.STATIC_DRAW);
 
 		gl.drawArraysInstanced(gl.TRIANGLE_FAN, 0, 4, subcomponentCount);
-	}
+	};
 
 	/**
 	 * Resizes the renderer viewport and updates the projection matrix uniform.
@@ -222,8 +220,9 @@ export class GUIRenderer extends WebGLRenderer {
 	 * @param {Vector2} viewport
 	 * @param {Matrix3} projectionMatrix
 	 */
-	resize(viewport, projectionMatrix) {
-		const {canvas, gl} = this;
+	this.resize = function(viewport, projectionMatrix) {
+		const canvas = this.getCanvas();
+		const gl = this.getContext();
 
 		gl.viewport(
 			0,
@@ -232,9 +231,11 @@ export class GUIRenderer extends WebGLRenderer {
 			canvas.height = viewport.y,
 		);
 	 	gl.uniformMatrix3fv(
-	 		this.#uniforms.projectionMatrix,
+	 		uniforms.projectionMatrix,
 	 		false,
 	 		new Float32Array(projectionMatrix),
 	 	);
-	}
+	};
 }
+
+extend(GUIRenderer, WebGLRenderer);

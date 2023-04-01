@@ -1,6 +1,7 @@
 import {Component, DynamicComponent, GUIRenderer, Layer, Subcomponent, StructuralComponent} from "./index.js";
 import {OrthographicCamera} from "../cameras/index.js";
 import {Matrix3, Vector2} from "../math/index.js";
+import {extend} from "../utils/index.js";
 import {RendererManager} from "../RendererManager.js";
 
 /**
@@ -44,6 +45,9 @@ export function GUI(instance, renderer) {
 
 	/** @type {Object<String, Subcomponent>} */
 	this.fontSubcomponents = {};
+
+	/** @returns {?Texture} */
+	this.getTexture = path => this.renderer.getTextures()[path];
 
 	this.init = async function() {
 		const {currentScale} = this.instance;
@@ -176,11 +180,8 @@ export function GUI(instance, renderer) {
 
 	this.render = function() {
 		this.renderer.render(this.renderQueue, this.camera);
-
-		// Clear the render queue
 		this.renderQueue.length = 0;
-
-		this.instance.updateRendererTexture(0, this.renderer.canvas);
+		this.instance.updateRendererTexture(0, this.renderer.getCanvas());
 	};
 
 	/**
@@ -278,7 +279,7 @@ export function GUI(instance, renderer) {
 		this.computeTree();
 		this.renderer.clear(); // Clear already rendered components
 		this.render();
-
-		this.instance.updateRendererTexture(0, this.renderer.canvas);
 	};
 }
+
+extend(RendererManager, GUI);

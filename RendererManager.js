@@ -1,8 +1,8 @@
-import Instance from "./Instance.js";
-import WebGLRenderer from "./WebGLRenderer.js";
+import {Instance} from "./Instance.js";
+import {WebGLRenderer} from "./WebGLRenderer.js";
 
 /**
- * @todo Review getters/setters
+ * @todo Add getters
  */
 export function RendererManager(instance, renderer) {
 	/** @type {Instance} */

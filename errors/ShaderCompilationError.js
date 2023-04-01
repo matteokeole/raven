@@ -3,11 +3,11 @@
  * `WebGLRenderingContext` fails due to a `WebGLShader` compilation error.
  * 
  * @extends Error
- * @param {String} message Shader info log
- * @param {Number} type Shader type (`gl.VERTEX_SHADER` or `gl.FRAGMENT_SHADER`)
+ * @param {String} message Error log
+ * @param {String} type Shader type
  */
 export function ShaderCompilationError(message, type) {
-	const instance = Error(`${shaderTypes[type]} SHADER ${message}`);
+	const instance = Error(`${type} ${message}`);
 
 	instance.node = document.createElement("div");
 	instance.node.classList.add("error");
@@ -20,8 +20,3 @@ export function ShaderCompilationError(message, type) {
 
 ShaderCompilationError.prototype = new Error;
 ShaderCompilationError.prototype.name = "ShaderCompilationError";
-
-const shaderTypes = {
-	35632: "FRAGMENT",
-	35633: "VERTEX",
-};
