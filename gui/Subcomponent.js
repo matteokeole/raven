@@ -2,6 +2,7 @@ import {Vector2, Vector3} from "../math/index.js";
 
 /**
  * @todo Convert `colorMask` to a `Vector4`, with the alpha value being the weight in the mix
+ * @todo See `gl.colorMask`
  * 
  * @param {Object} options
  * @param {Vector2} options.offset
