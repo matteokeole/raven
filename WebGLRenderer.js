@@ -66,16 +66,12 @@ export function WebGLRenderer({offscreen, generateMipmaps}) {
 	 * @param {Vector2} viewport
 	 * @returns {Vector2}
 	 */
-	this.setViewport = function(viewport) {
-		gl.viewport(
-			0,
-			0,
-			canvas.width = viewport.x,
-			canvas.height = viewport.y,
-		);
-
-		return viewport;
-	};
+	this.setViewport = viewport => gl.viewport(
+		0,
+		0,
+		canvas.width = viewport.x,
+		canvas.height = viewport.y,
+	);
 
 	/**
 	 * @param {String} vertexPath
@@ -148,7 +144,6 @@ export function WebGLRenderer({offscreen, generateMipmaps}) {
 
 	/**
 	 * @todo Default texture for invalid paths?
-	 * @todo Test with `gl.RGB` color format
 	 * 
 	 * Asynchronous texture loader.
 	 * Loads a list of sources in a `WebGLTexture` array.
@@ -157,11 +152,16 @@ export function WebGLRenderer({offscreen, generateMipmaps}) {
 	 * @param {String[]} paths
 	 * @param {String} basePath
 	 * @throws {RangeError}
+	 * @throws {ReferenceError}
 	 */
 	this.loadTextures = async function(paths, basePath) {
 		const {length} = paths;
 		const image = new Image();
 		let textureSize = new Vector2(0, 0);
+
+		if (gl.getParameter(gl.TEXTURE_BINDING_2D_ARRAY) === null) {
+			throw ReferenceError("No texture array bound to the context");
+		}
 
 		for (let i = 0, path; i < length; i++) {
 			path = paths[i];
@@ -177,7 +177,7 @@ export function WebGLRenderer({offscreen, generateMipmaps}) {
 			textureSize.y = image.height;
 
 			if (textureSize.x > WebGLRenderer.MAX_TEXTURE_SIZE.x || textureSize.y > WebGLRenderer.MAX_TEXTURE_SIZE.y) {
-				throw RangeError("Image size is greater than WebGLRenderer.MAX_TEXTURE_SIZE");
+				throw RangeError("Image overflowing MAX_TEXTURE_SIZE");
 			}
 
 			gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, i, image.width, image.height, 1, gl.RGBA, gl.UNSIGNED_BYTE, image);
@@ -217,6 +217,12 @@ WebGLRenderer.prototype.clear = function() {
 
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 };
+
+/**
+ * @abstract
+ * @param {Vector2} viewport
+ */
+WebGLRenderer.prototype.resize;
 
 /** @type {Vector2} */
 WebGLRenderer.MAX_TEXTURE_SIZE = new Vector2(256, 256);

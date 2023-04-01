@@ -246,20 +246,8 @@ export function GUIRenderer() {
 	 * @param {Matrix3} projectionMatrix
 	 */
 	this.resize = function(viewport, projectionMatrix) {
-		const canvas = this.getCanvas();
-		const gl = this.getContext();
-
-		gl.viewport(
-			0,
-			0,
-			canvas.width = viewport.x,
-			canvas.height = viewport.y,
-		);
-	 	gl.uniformMatrix3fv(
-	 		uniforms.projectionMatrix,
-	 		false,
-	 		new Float32Array(projectionMatrix),
-	 	);
+		this.setViewport(viewport);
+	 	this.getContext().uniformMatrix3fv(uniforms.projectionMatrix, false, new Float32Array(projectionMatrix));
 	};
 }
 

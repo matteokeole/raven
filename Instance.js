@@ -166,23 +166,20 @@ export function Instance({shaderPath, texturePath}) {
 			}, RESIZE_DELAY);
 		});
 
-		document.body.appendChild(outputRenderer.getCanvas());
+		const canvas = outputRenderer.getCanvas();
 
+		document.body.appendChild(canvas);
 		hasBeenBuilt = true;
 
 		try {
-			this.resizeObserver.observe(outputRenderer.getCanvas(), {
-				box: "device-pixel-content-box",
-			});
+			this.resizeObserver.observe(canvas, {box: "device-pixel-content-box"});
 		} catch (error) {
-			// "device-pixel-content-box" isn't defined, try with "content-box"
-			this.resizeObserver.observe(outputRenderer.getCanvas(), {
-				box: "content-box",
-			});
+			// If "device-pixel-content-box" isn't defined, try with "content-box"
+			this.resizeObserver.observe(canvas, {box: "content-box"});
 		}
 
-		outputRenderer.getCanvas().addEventListener("mousemove", mouseMoveListener.bind(this));
-		outputRenderer.getCanvas().addEventListener("mousedown", mouseDownListener.bind(this));
+		canvas.onmousemove = mouseMoveListener.bind(this);
+		canvas.onmousedown = mouseDownListener.bind(this);
 	};
 
 	this.hasBeenBuilt = () => hasBeenBuilt;
@@ -233,11 +230,17 @@ export function Instance({shaderPath, texturePath}) {
 	 * @param {Number} dpr
 	 */
 	this.resize = function(width, height, dpr) {
-		/** @type {Vector2} */
-		let newViewport = outputRenderer.setViewport(new Vector2(width, height).multiplyScalar(dpr).floor32());
-		viewport.x = newViewport.x;
-		viewport.y = newViewport.y;
-		newViewport = null;
+		{
+			/** @type {Vector2} */
+			const newViewport = new Vector2(width, height)
+				.multiplyScalar(dpr)
+				.floor32();
+
+			outputRenderer.setViewport(newViewport);
+
+			viewport.x = newViewport.x;
+			viewport.y = newViewport.y;
+		}
 
 		// Calculate scale multiplier
 		let i = 1;
@@ -246,19 +249,12 @@ export function Instance({shaderPath, texturePath}) {
 			viewport.y > DEFAULT_HEIGHT * dpr * i
 		) i++;
 
-		const currentScale = clampUp(
-			this.desiredScale,
-			this.maxScale = clampDown(i - 1, 1),
-		);
+		this.currentScale = clampUp(this.desiredScale, this.maxScale = clampDown(i - 1, 1));
 
-		this.currentScale = currentScale;
-
-		for (let i = 0; i < rendererLength; i++) this.renderers[i].resize(viewport);
+		for (i = 0; i < rendererLength; i++) this.renderers[i].resize(viewport);
 	};
 
 	/**
-	 * @todo Which color format?
-	 * 
 	 * @param {Number} index
 	 * @param {OffscreenCanvas} canvas
 	 */
@@ -267,8 +263,8 @@ export function Instance({shaderPath, texturePath}) {
 
 		gl.bindTexture(gl.TEXTURE_2D, this.rendererTextures[index]);
 		
-		/** @todo Replace by `texStorage2D` (lower memory costs in some implementations, according to {@link https://registry.khronos.org/webgl/specs/latest/2.0/#3.7.6}) */
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+		/** @todo Replace by `texStorage2D` (lower memory costs in some implementations,according to {@link https://registry.khronos.org/webgl/specs/latest/2.0/#3.7.6}) */
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, canvas);
 	};
 
 	/**
