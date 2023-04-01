@@ -2,9 +2,6 @@ import {NoWebGL2Error, ShaderCompilationError} from "./errors/index.js";
 import {Vector2} from "./math/index.js";
 import {Program, Texture} from "./wrappers/index.js";
 
-/** @type {Vector2} */
-const MAX_TEXTURE_SIZE = new Vector2(256, 256);
-
 /**
  * General-purpose renderer based on a WebGL context.
  * 
@@ -136,13 +133,13 @@ export function WebGLRenderer({offscreen, generateMipmaps}) {
 
 	/**
 	 * Binds a new texture array to the context.
-	 * The texture size is capped by `MAX_TEXTURE_SIZE`.
+	 * The texture size is capped by `WebGLRenderer.MAX_TEXTURE_SIZE`.
 	 * 
 	 * @param {Number} length
 	 */
 	this.createTextureArray = function(length) {
 		gl.bindTexture(gl.TEXTURE_2D_ARRAY, gl.createTexture());
-		gl.texStorage3D(gl.TEXTURE_2D_ARRAY, 8, gl.RGBA8, MAX_TEXTURE_SIZE.x, MAX_TEXTURE_SIZE.y, length);
+		gl.texStorage3D(gl.TEXTURE_2D_ARRAY, 8, gl.RGBA8, WebGLRenderer.MAX_TEXTURE_SIZE.x, WebGLRenderer.MAX_TEXTURE_SIZE.y, length);
 		gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 		generateMipmaps ?
 			gl.generateMipmap(gl.TEXTURE_2D_ARRAY) :
@@ -179,8 +176,8 @@ export function WebGLRenderer({offscreen, generateMipmaps}) {
 			textureSize.x = image.width;
 			textureSize.y = image.height;
 
-			if (textureSize.x > MAX_TEXTURE_SIZE.x || textureSize.y > MAX_TEXTURE_SIZE.y) {
-				throw RangeError("Image size is greater than MAX_TEXTURE_SIZE");
+			if (textureSize.x > WebGLRenderer.MAX_TEXTURE_SIZE.x || textureSize.y > WebGLRenderer.MAX_TEXTURE_SIZE.y) {
+				throw RangeError("Image size is greater than WebGLRenderer.MAX_TEXTURE_SIZE");
 			}
 
 			gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, i, image.width, image.height, 1, gl.RGBA, gl.UNSIGNED_BYTE, image);
@@ -220,3 +217,6 @@ WebGLRenderer.prototype.clear = function() {
 
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 };
+
+/** @type {Vector2} */
+WebGLRenderer.MAX_TEXTURE_SIZE = new Vector2(256, 256);
