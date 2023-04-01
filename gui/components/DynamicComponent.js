@@ -8,7 +8,7 @@ import {extend} from "../../utils/index.js";
  * @param {{
  *    onMouseEnter: ?Listener,
  *    onMouseLeave: ?Listener,
- *    onMouseDown: ?Listener
+ *    onMouseDown: ?Listener,
  * }}
  */
 export function DynamicComponent({onMouseEnter, onMouseLeave, onMouseDown}) {
