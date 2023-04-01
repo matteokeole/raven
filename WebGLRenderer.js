@@ -1,67 +1,71 @@
-import {NotImplementedError, NoWebGL2Error, ShaderCompilationError} from "./errors/index.js";
+import {NoWebGL2Error, ShaderCompilationError} from "./errors/index.js";
 import {Vector2} from "./math/index.js";
-import {Program} from "./Program.js";
-import Texture from "./Texture.js";
+import {Program, Texture} from "./wrappers/index.js";
 
 /** @type {Vector2} */
 const MAX_TEXTURE_SIZE = new Vector2(256, 256);
 
 /**
- * @todo Convert to function constructor
- * 
  * General-purpose renderer based on a WebGL context.
+ * 
+ * @param {{
+ *    offscreen: Boolean,
+ *    generateMipmaps: Boolean,
+ *    version: Number,
+ * }}
+ * @throws {TypeError}
  */
-export default class WebGLRenderer {
-	/** @type {Boolean} */
-	#offscreen;
+export function WebGLRenderer({offscreen, generateMipmaps, version}) {
+	if (typeof offscreen !== "boolean") throw TypeError(`The "offscreen" argument must be of type boolean, received ${typeof offscreen}`);
+	if (typeof generateMipmaps !== "boolean") throw TypeError(`The "generateMipmaps" argument must be of type boolean, received ${typeof generateMipmaps}`);
+	if (version !== 1 && version !== 2) throw TypeError(`Unrecognized WebGL version: ${version}`);
 
-	/** @type {Boolean} */
-	#generateMipmaps;
+	/** @type {HTMLCanvasElement|OffscreenCanvas} */
+	let canvas;
 
-	/** @type {Number} */
-	#version;
+	/** @type {WebGLRenderingContext|WebGL2RenderingContext} */
+	let gl;
+
+	/** @type {Object<String, Texture>} */
+	const textures = {};
 
 	/**
-	 * @param {{
-	 *    offscreen: Boolean,
-	 *    generateMipmaps: Boolean,
-	 *    version: Number,
-	 * }}
+	 * @returns {HTMLCanvasElement|OffscreenCanvas}
+	 * @throws {ReferenceError}
 	 */
-	constructor({offscreen, generateMipmaps, version}) {
-		if (typeof offscreen !== "boolean") throw TypeError(`The "offscreen" argument must be of type boolean, received ${typeof offscreen}`);
-		if (typeof generateMipmaps !== "boolean") throw TypeError(`The "generateMipmaps" argument must be of type boolean, received ${typeof generateMipmaps}`);
-		if (version !== 1 && version !== 2) throw TypeError(`Unrecognized WebGL version: ${version}`);
+	this.getCanvas = function() {
+		if (!(canvas instanceof HTMLCanvasElement || canvas instanceof OffscreenCanvas)) {
+			throw ReferenceError("Attempt to get an undefined canvas");
+		}
 
-		this.#offscreen = offscreen;
-		this.#generateMipmaps = generateMipmaps;
-		this.#version = version;
+		return canvas;
+	};
 
-		/**
-		 * @public
-		 * @type {HTMLCanvasElement|OffscreenCanvas|null}
-		 */
-		this.canvas = null;
+	/**
+	 * @returns {WebGLRenderingContext|WebGL2RenderingContext}
+	 * @throws {ReferenceError}
+	 */
+	this.getContext = function() {
+		if (!(gl instanceof WebGLRenderingContext || gl instanceof WebGL2RenderingContext)) {
+			throw ReferenceError("Attempt to get an undefined WebGL context");
+		}
 
-		/**
-		 * @public
-		 * @type {WebGLRenderingContext|WebGL2RenderingContext|null}
-		 */
-		this.gl = null;
+		return gl;
+	};
 
-		/**
-		 * @public
-		 * @type {Object<String, Texture>}
-		 */
-		this.textures = {};
-	}
+	/** @returns {Object<String, Texture>} */
+	this.getTextures = () => textures;
 
-	build() {
-		this.canvas = this.#offscreen ? new OffscreenCanvas(0, 0) : document.createElement("canvas");
-		this.gl = this.canvas.getContext(this.#version === 2 ? "webgl2" : "webgl");
+	/**
+	 * @throws {NoWebGL2Error}
+	 */
+	this.build = function() {
+		gl = (
+			canvas = offscreen ? new OffscreenCanvas(0, 0) : document.createElement("canvas")
+		).getContext(version === 2 ? "webgl2" : "webgl");
 
-		if (this.gl === null) throw new NoWebGL2Error();
-	}
+		if (gl === null && version === 2) throw new NoWebGL2Error();
+	};
 
 	/**
 	 * @todo Set viewport size as multiples of 2 to avoid subpixel artifacts? (This only concerns the current use of the lib)
@@ -69,20 +73,25 @@ export default class WebGLRenderer {
 	 * @param {Vector2} viewport
 	 * @returns {Vector2}
 	 */
-	setViewport(viewport) {
-		this.gl.viewport(
+	this.setViewport = function(viewport) {
+		gl.viewport(
 			0,
 			0,
-			this.canvas.width = viewport.x,
-			this.canvas.height = viewport.y,
+			canvas.width = viewport.x,
+			canvas.height = viewport.y,
 		);
 
 		return viewport;
-	}
+	};
 
-	async loadProgram(vertexPath, fragmentPath, basePath) {
+	/**
+	 * @param {String} vertexPath
+	 * @param {String} fragmentPath
+	 * @param {String} basePath
+	 * @returns {Program}
+	 */
+	this.loadProgram = async function(vertexPath, fragmentPath, basePath) {
 		const
-			{gl} = this,
 			createShader = async function(path, type) {
 				const
 					shader = gl.createShader(type),
@@ -101,7 +110,7 @@ export default class WebGLRenderer {
 		gl.attachShader(program, fragmentShader);
 
 		return new Program(program, vertexShader, fragmentShader);
-	}
+	};
 
 	/**
 	 * Links a loaded program to the WebGL context.
@@ -111,9 +120,7 @@ export default class WebGLRenderer {
 	 * @returns {Boolean}
 	 * @throws {ShaderCompilationError}
 	 */
-	linkProgram(program) {
-		const {gl} = this;
-
+	this.linkProgram = function(program) {
 		gl.linkProgram(program.getProgram());
 
 		if (gl.getProgramParameter(program.getProgram(), gl.LINK_STATUS)) return true;
@@ -121,35 +128,33 @@ export default class WebGLRenderer {
 		let log;
 
 		if ((log = gl.getShaderInfoLog(program.getVertexShader())).length !== 0) {
-			throw new ShaderCompilationError(log, gl.VERTEX_SHADER);
+			throw new ShaderCompilationError(log, "VERTEX SHADER");
 		}
 
 		if ((log = gl.getShaderInfoLog(program.getFragmentShader())).length !== 0) {
-			throw new ShaderCompilationError(log, gl.FRAGMENT_SHADER);
+			throw new ShaderCompilationError(log, "FRAGMENT SHADER");
 		}
 
 		return false;
-	}
+	};
 
 	/**
-	 * Initializes a new texture array for this renderer.
-	 * The maximum texture size is 256x256.
+	 * Binds a new texture array to the context.
+	 * The texture size is capped by `MAX_TEXTURE_SIZE`.
 	 * 
 	 * @param {Number} length
 	 */
-	createTextureArray(length) {
-		const {gl} = this;
-		const generateMipmaps = this.#generateMipmaps;
-
+	this.createTextureArray = function(length) {
 		gl.bindTexture(gl.TEXTURE_2D_ARRAY, gl.createTexture());
 		gl.texStorage3D(gl.TEXTURE_2D_ARRAY, 8, gl.RGBA8, MAX_TEXTURE_SIZE.x, MAX_TEXTURE_SIZE.y, length);
 		gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 		generateMipmaps ?
 			gl.generateMipmap(gl.TEXTURE_2D_ARRAY) :
 			gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-	}
+	};
 
 	/**
+	 * @todo Default texture for invalid paths?
 	 * @todo Test with `gl.RGB` color format
 	 * 
 	 * Asynchronous texture loader.
@@ -158,11 +163,12 @@ export default class WebGLRenderer {
 	 * 
 	 * @param {String[]} paths
 	 * @param {String} basePath
+	 * @throws {RangeError}
 	 */
-	async loadTextures(paths, basePath) {
-		const {gl} = this;
+	this.loadTextures = async function(paths, basePath) {
 		const {length} = paths;
 		const image = new Image();
+		let textureSize = new Vector2(0, 0);
 
 		for (let i = 0, path; i < length; i++) {
 			path = paths[i];
@@ -171,46 +177,50 @@ export default class WebGLRenderer {
 			try {
 				await image.decode();
 			} catch (error) {
-				/** @todo Default texture for invalid paths? */
 				continue;
+			}
+
+			textureSize.x = image.width;
+			textureSize.y = image.height;
+
+			if (textureSize.x > MAX_TEXTURE_SIZE.x || textureSize.y > MAX_TEXTURE_SIZE.y) {
+				throw RangeError("Image size is greater than MAX_TEXTURE_SIZE");
 			}
 
 			gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, i, image.width, image.height, 1, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
-			this.textures[path] = new Texture(image, i);
+			textures[path] = new Texture(image, i);
 		}
-	}
-
-	/**
-	 * Renders a frame.
-	 * 
-	 * @param {Array} scene
-	 * @param {Camera} camera
-	 */
-	render(scene, camera) {
-		throw new NotImplementedError();
-	}
-
-	clear() {
-		const {gl} = this;
-
-		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-	}
+	};
 
 	/**
 	 * @todo Unbind and delete all linked objects (buffers, textures, etc)
+	 * @todo Return value?
 	 * @see {@link https://registry.khronos.org/webgl/extensions/WEBGL_lose_context}
 	 */
-	dispose() {
-		// this.gl.deleteTexture(texture);
-		// this.gl.deleteBuffer(buffer);
-		// this.gl.deleteVertexArray(vao);
-		// this.gl.deleteShader(shader);
-		// this.gl.deleteProgram(program);
-		this.gl.getExtension("WEBGL_lose_context").loseContext();
+	this.dispose = function() {
+		// gl.deleteTexture(texture);
+		// gl.deleteBuffer(buffer);
+		// gl.deleteVertexArray(vao);
+		// gl.deleteShader(shader);
+		// gl.deleteProgram(program);
+		gl.getExtension("WEBGL_lose_context").loseContext();
 
-		this.gl = null;
-		this.canvas.remove();
-		this.canvas = null;
-	}
+		gl = null;
+		canvas.remove();
+		canvas = null;
+	};
 }
+
+/**
+ * @abstract
+ * @param {Array} scene
+ * @param {Camera} camera
+ */
+WebGLRenderer.prototype.render;
+
+WebGLRenderer.prototype.clear = function() {
+	const gl = this.getContext();
+
+	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+};

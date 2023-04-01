@@ -1,6 +1,6 @@
 import {Component} from "../index.js";
-import Texture from "../../Texture.js";
 import {extend} from "../../utils/index.js";
+import {Texture} from "../../wrappers/index.js";
 
 /**
  * @extends Component

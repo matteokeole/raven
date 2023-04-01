@@ -1,7 +1,7 @@
 import {Vector2, clampDown, clampUp, intersects} from "./math/index.js";
-import {Program} from "./Program.js";
-import WebGLRenderer from "./WebGLRenderer.js";
+import {Program} from "./wrappers/index.js";
 import {RendererManager} from "./RendererManager.js";
+import {WebGLRenderer} from "./WebGLRenderer.js";
 
 /**
  * @todo Find a better name
@@ -11,10 +11,12 @@ import {RendererManager} from "./RendererManager.js";
  * Game instance.
  * This holds information about asset base paths, viewport dimensions and GUI scale.
  * 
- * @param {String} shaderPath
- * @param {String} texturePath
+ * @param {{
+ *    shaderPath: String,
+ *    texturePath: String
+ * }}
  */
-export default function Instance({shaderPath, texturePath}) {
+export function Instance({shaderPath, texturePath}) {
 	const DEFAULT_WIDTH = 320;
 	const DEFAULT_HEIGHT = 240;
 	const RESIZE_DELAY = 50;
@@ -165,23 +167,23 @@ export default function Instance({shaderPath, texturePath}) {
 			}, RESIZE_DELAY);
 		});
 
-		document.body.appendChild(outputRenderer.canvas);
+		document.body.appendChild(outputRenderer.getCanvas());
 
 		hasBeenBuilt = true;
 
 		try {
-			this.resizeObserver.observe(outputRenderer.canvas, {
+			this.resizeObserver.observe(outputRenderer.getCanvas(), {
 				box: "device-pixel-content-box",
 			});
 		} catch (error) {
 			// "device-pixel-content-box" isn't defined, try with "content-box"
-			this.resizeObserver.observe(outputRenderer.canvas, {
+			this.resizeObserver.observe(outputRenderer.getCanvas(), {
 				box: "content-box",
 			});
 		}
 
-		outputRenderer.canvas.addEventListener("mousemove", mouseMoveListener.bind(this));
-		outputRenderer.canvas.addEventListener("mousedown", mouseDownListener.bind(this));
+		outputRenderer.getCanvas().addEventListener("mousemove", mouseMoveListener.bind(this));
+		outputRenderer.getCanvas().addEventListener("mousedown", mouseDownListener.bind(this));
 	};
 
 	this.hasBeenBuilt = () => hasBeenBuilt;
@@ -214,7 +216,7 @@ export default function Instance({shaderPath, texturePath}) {
 	 * @returns {WebGLTexture}
 	 */
 	this.createOutputTexture = function() {
-		const {gl} = outputRenderer;
+		const gl = outputRenderer.getContext();
 		let texture = gl.createTexture();
 
 		gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -262,7 +264,7 @@ export default function Instance({shaderPath, texturePath}) {
 	 * @param {OffscreenCanvas} canvas
 	 */
 	this.updateRendererTexture = function(index, canvas) {
-		const {gl} = outputRenderer;
+		const gl = outputRenderer.getContext();
 
 		gl.bindTexture(gl.TEXTURE_2D, this.rendererTextures[index]);
 		
@@ -299,7 +301,7 @@ export default function Instance({shaderPath, texturePath}) {
 	 * @todo Use `Renderer` class to avoid duplicate methods (createProgram/createShader/linkProgram)?
 	 */
 	this.initialize = async function() {
-		const {gl} = outputRenderer;
+		const gl = outputRenderer.getContext();
 
 		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 		gl.enable(gl.BLEND);
@@ -342,7 +344,7 @@ export default function Instance({shaderPath, texturePath}) {
 	 */
 	this.render = function() {
 		const {rendererTextures} = this;
-		const {gl} = outputRenderer;
+		const gl = outputRenderer.getContext();
 
 		for (let i = 0; i < rendererLength; i++) {
 			if (this.renderers[i].disabled) continue;
@@ -353,7 +355,7 @@ export default function Instance({shaderPath, texturePath}) {
 	};
 
 	this.dispose = function() {
-		const {gl} = outputRenderer;
+		const gl = outputRenderer.getContext();
 
 		if (gl === null) return console.info("This exception occurred before building the instance.");
 
