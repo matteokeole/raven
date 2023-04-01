@@ -13,7 +13,7 @@ import {WebGLRenderer} from "./WebGLRenderer.js";
  * 
  * @param {{
  *    shaderPath: String,
- *    texturePath: String
+ *    texturePath: String,
  * }}
  */
 export function Instance({shaderPath, texturePath}) {
@@ -65,7 +65,6 @@ export function Instance({shaderPath, texturePath}) {
 	const outputRenderer = new WebGLRenderer({
 		offscreen: false,
 		generateMipmaps: false,
-		version: 2,
 	});
 
 	/**

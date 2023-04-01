@@ -9,16 +9,15 @@ const MAX_TEXTURE_SIZE = new Vector2(256, 256);
  * General-purpose renderer based on a WebGL context.
  * 
  * @param {{
- *    offscreen: Boolean,
+ *    canvas: HTMLCanvasElement|OffscreenCanvas,
  *    generateMipmaps: Boolean,
- *    version: Number,
  * }}
+ * @throws {ReferenceError}
  * @throws {TypeError}
  */
-export function WebGLRenderer({offscreen, generateMipmaps, version}) {
+export function WebGLRenderer({offscreen, generateMipmaps}) {
 	if (typeof offscreen !== "boolean") throw TypeError(`The "offscreen" argument must be of type boolean, received ${typeof offscreen}`);
 	if (typeof generateMipmaps !== "boolean") throw TypeError(`The "generateMipmaps" argument must be of type boolean, received ${typeof generateMipmaps}`);
-	if (version !== 1 && version !== 2) throw TypeError(`Unrecognized WebGL version: ${version}`);
 
 	/** @type {HTMLCanvasElement|OffscreenCanvas} */
 	let canvas;
@@ -56,15 +55,12 @@ export function WebGLRenderer({offscreen, generateMipmaps, version}) {
 	/** @returns {Object<String, Texture>} */
 	this.getTextures = () => textures;
 
-	/**
-	 * @throws {NoWebGL2Error}
-	 */
+	/** @throws {NoWebGL2Error} */
 	this.build = function() {
-		gl = (
-			canvas = offscreen ? new OffscreenCanvas(0, 0) : document.createElement("canvas")
-		).getContext(version === 2 ? "webgl2" : "webgl");
+		canvas = offscreen ? new OffscreenCanvas(0, 0) : document.createElement("canvas");
+		gl = canvas.getContext("webgl2");
 
-		if (gl === null && version === 2) throw new NoWebGL2Error();
+		if (gl === null) throw new NoWebGL2Error();
 	};
 
 	/**

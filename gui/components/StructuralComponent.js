@@ -3,9 +3,7 @@ import {extend} from "../../utils/index.js";
 
 /**
  * @extends Component
- * @param {{
- *    children: Component[]
- * }}
+ * @param {{children: Component[]}}
  */
 export function StructuralComponent({children}) {
 	Component.apply(this, arguments);

@@ -7,7 +7,6 @@ export function GUIRenderer() {
 	WebGLRenderer.call(this, {
 		offscreen: true,
 		generateMipmaps: false,
-		version: 2,
 	});
 
 	/** @type {Object<String, Number>} */
