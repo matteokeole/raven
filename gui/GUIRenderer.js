@@ -48,18 +48,22 @@ export function GUIRenderer() {
 
 		attributes = {
 			position: 0,
-			worldMatrix: 1,
-			textureMatrix: 4,
-			textureIndex: 7,
+			world: 1,
+			textureIndex: 4,
+			texture: 5,
+			colorMask: 8,
+			colorMaskWeight: 9,
 		};
 		uniforms = {
-			projectionMatrix: gl.getUniformLocation(program.getProgram(), "u_projection"),
+			projection: gl.getUniformLocation(program.getProgram(), "u_projection"),
 		};
 		buffers = {
 			position: gl.createBuffer(),
-			worldMatrix: gl.createBuffer(),
-			textureMatrix: gl.createBuffer(),
+			world: gl.createBuffer(),
 			textureIndex: gl.createBuffer(),
+			texture: gl.createBuffer(),
+			colorMask: gl.createBuffer(),
+			colorMaskWeight: gl.createBuffer(),
 		};
 		vaos = {
 			main: gl.createVertexArray(),
@@ -67,15 +71,17 @@ export function GUIRenderer() {
 
 		gl.bindVertexArray(vaos.main);
 
-	 	gl.uniformMatrix3fv(uniforms.projectionMatrix, false, new Float32Array(projectionMatrix));
+	 	gl.uniformMatrix3fv(uniforms.projection, false, new Float32Array(projectionMatrix));
 
 		// Enable attributes
 		gl.enableVertexAttribArray(attributes.position);
-		gl.enableVertexAttribArray(attributes.worldMatrix);
-		gl.enableVertexAttribArray(attributes.textureMatrix);
+		gl.enableVertexAttribArray(attributes.world);
 		gl.enableVertexAttribArray(attributes.textureIndex);
+		gl.enableVertexAttribArray(attributes.texture);
+		gl.enableVertexAttribArray(attributes.colorMask);
+		gl.enableVertexAttribArray(attributes.colorMaskWeight);
 
-		// Set vertex positions
+		// Setup quad vertex positions
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
 		gl.vertexAttribPointer(attributes.position, 2, gl.FLOAT, false, 0, 0);
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
@@ -88,6 +94,14 @@ export function GUIRenderer() {
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureIndex);
 		gl.vertexAttribIPointer(attributes.textureIndex, 1, gl.UNSIGNED_BYTE, false, 0, 0);
 		gl.vertexAttribDivisor(attributes.textureIndex, 1);
+
+		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.colorMask);
+		gl.vertexAttribPointer(attributes.colorMask, 3, gl.FLOAT, false, 0, 0);
+		gl.vertexAttribDivisor(attributes.colorMask, 1);
+
+		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.colorMaskWeight);
+		gl.vertexAttribPointer(attributes.colorMaskWeight, 1, gl.FLOAT, false, 0, 0);
+		gl.vertexAttribDivisor(attributes.colorMaskWeight, 1);
 	};
 
 	this.loadTestTextures = async function() {
@@ -122,55 +136,62 @@ export function GUIRenderer() {
 	};
 
 	/**
-	 * @todo Optimize the subcomponent part
-	 * @todo Use `camera` param?
+	 * @todo Optimize subcomponent rendering
+	 * @todo Move matrix attribute divisor setup in `init`
+	 * @todo Make use of the `camera` param
 	 * 
 	 * @override
 	 */
 	this.render = function(scene, camera) {
 		const
 			gl = this.getContext(),
-			componentCount = scene.length,
-			bufferLength = componentCount * 9,
-			worldMatrices = new Float32Array(bufferLength),
-			textureMatrices = new Float32Array(bufferLength),
-			textureIndices = new Uint8Array(componentCount);
+			componentCount = scene.length;
 		let i = 0, loc;
 
 		const subcomponentWorldMatrices = [];
 		const subcomponentTextureMatrices = [];
 		const subcomponentTextureIndices = [];
+		const subcomponentColorMasks = [];
+		const subcomponentColorMaskWeights = [];
 		let subcomponentCount = 0;
 
 		for (let component; i < componentCount; i++) {
 			component = scene[i];
 
 			const subcomponents = component.getSubcomponents();
-			let subcomponent, l = subcomponents.length;
+			const l = subcomponents.length;
+
+			if (l === 0) continue;
+
 			subcomponentCount += l;
 
-			for (let j = 0; j < l; j++) {
+			for (let j = 0, subcomponent; j < l; j++) {
 				subcomponent = subcomponents[j];
 
 				const position = component.getPosition()
 					.clone()
 					.add(subcomponent.getOffset());
+				const size = subcomponent.getSize();
+				const colorMask = subcomponent.getColorMask();
 
 				// World matrix
 				subcomponentWorldMatrices.push(
 					...Matrix3
 						.translate(position)
-						.scale(subcomponent.getSize())
+						.scale(size)
 				);
 
 				// Texture matrix
 				subcomponentTextureMatrices.push(
 					...Matrix3
-						.translate(subcomponent.getUV().divide(new Vector2(256, 256)))
-						.scale(subcomponent.getSize().divide(new Vector2(256, 256)))
+						.translate(subcomponent.getUV().divide(WebGLRenderer.MAX_TEXTURE_SIZE))
+						.scale(size.clone().divide(WebGLRenderer.MAX_TEXTURE_SIZE))
 				);
 
 				subcomponentTextureIndices.push(component.getTexture().getIndex());
+
+				subcomponentColorMasks.push(colorMask.x, colorMask.y, colorMask.z);
+				subcomponentColorMaskWeights.push(subcomponent.getColorMaskWeight());
 			}
 		}
 
@@ -184,11 +205,11 @@ export function GUIRenderer() {
 
 		// Register world matrices
 		{
-			gl.bindBuffer(gl.ARRAY_BUFFER, buffers.worldMatrix);
+			gl.bindBuffer(gl.ARRAY_BUFFER, buffers.world);
 			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(subcomponentWorldMatrices), gl.STATIC_DRAW);
 
 			for (i = 0; i < 3; i++) {
-				gl.enableVertexAttribArray(loc = attributes.worldMatrix + i);
+				gl.enableVertexAttribArray(loc = attributes.world + i);
 				gl.vertexAttribPointer(loc, 3, gl.FLOAT, false, 36, i * 12);
 				gl.vertexAttribDivisor(loc, 1);
 			}
@@ -196,19 +217,24 @@ export function GUIRenderer() {
 
 		// Register texture matrices
 		{
-			gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureMatrix);
+			gl.bindBuffer(gl.ARRAY_BUFFER, buffers.texture);
 			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(subcomponentTextureMatrices), gl.STATIC_DRAW);
 
 			for (i = 0; i < 3; i++) {
-				gl.enableVertexAttribArray(loc = attributes.textureMatrix + i);
+				gl.enableVertexAttribArray(loc = attributes.texture + i);
 				gl.vertexAttribPointer(loc, 3, gl.FLOAT, false, 36, i * 12);
 				gl.vertexAttribDivisor(loc, 1);
 			}
 		}
 
-		// Register texture indices
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureIndex);
 		gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(subcomponentTextureIndices), gl.STATIC_DRAW);
+
+		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.colorMask);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(subcomponentColorMasks), gl.STATIC_DRAW);
+
+		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.colorMaskWeight);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(subcomponentColorMaskWeights), gl.STATIC_DRAW);
 
 		gl.drawArraysInstanced(gl.TRIANGLE_FAN, 0, 4, subcomponentCount);
 	};
