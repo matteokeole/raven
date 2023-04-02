@@ -2,14 +2,15 @@ import {Instance} from "./Instance.js";
 import {WebGLRenderer} from "./WebGLRenderer.js";
 
 /**
- * @todo Add getters
+ * @param {WebGLRenderer} renderer
+ * @param {Instance} instance
  */
-export function RendererManager(instance, renderer) {
-	/** @type {Instance} */
-	this.instance = instance;
+export function RendererManager(renderer, instance) {
+	/** @returns {WebGLRenderer} */
+	this.getRenderer = () => renderer;
 
-	/** @type {WebGLRenderer} */
-	this.renderer = renderer;
+	/** @returns {Instance} */
+	this.getInstance = () => instance;
 }
 
 /** @abstract */

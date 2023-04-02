@@ -195,10 +195,10 @@ export function Instance({shaderPath, texturePath}) {
 
 		for (let i = 0, rendererManager, renderer; i < rendererLength; i++) {
 			rendererManager = rendererManagers[i];
-			({renderer} = rendererManager);
-
+			renderer = rendererManager.getRenderer();
 			renderer.build();
 			renderer.setViewport(viewport);
+
 			await rendererManager.init();
 
 			this.renderers.push(rendererManager);
