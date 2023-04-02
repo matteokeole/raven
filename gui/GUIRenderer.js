@@ -247,7 +247,7 @@ export function GUIRenderer() {
 	 */
 	this.resize = function(viewport, projectionMatrix) {
 		this.setViewport(viewport);
-	 	this.getContext().uniformMatrix3fv(uniforms.projectionMatrix, false, new Float32Array(projectionMatrix));
+	 	this.getContext().uniformMatrix3fv(uniforms.projection, false, new Float32Array(projectionMatrix));
 	};
 }
 
