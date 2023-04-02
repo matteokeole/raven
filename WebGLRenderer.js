@@ -6,7 +6,7 @@ import {Program, Texture} from "./wrappers/index.js";
  * General-purpose renderer based on a WebGL context.
  * 
  * @param {{
- *    canvas: HTMLCanvasElement|OffscreenCanvas,
+ *    offscreen: Boolean,
  *    generateMipmaps: Boolean,
  * }}
  * @throws {ReferenceError}
