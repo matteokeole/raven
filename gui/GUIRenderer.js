@@ -102,6 +102,26 @@ export function GUIRenderer() {
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.colorMaskWeight);
 		gl.vertexAttribPointer(attributes.colorMaskWeight, 1, gl.FLOAT, false, 0, 0);
 		gl.vertexAttribDivisor(attributes.colorMaskWeight, 1);
+
+		{
+			let i, loc;
+
+			gl.bindBuffer(gl.ARRAY_BUFFER, buffers.world);
+
+			for (i = 0, loc = attributes.world; i < 3; i++, loc++) {
+				gl.enableVertexAttribArray(loc);
+				gl.vertexAttribPointer(loc, 3, gl.FLOAT, false, 36, i * 12);
+				gl.vertexAttribDivisor(loc, 1);
+			}
+
+			gl.bindBuffer(gl.ARRAY_BUFFER, buffers.texture);
+
+			for (i = 0, loc = attributes.texture; i < 3; i++, loc++) {
+				gl.enableVertexAttribArray(loc);
+				gl.vertexAttribPointer(loc, 3, gl.FLOAT, false, 36, i * 12);
+				gl.vertexAttribDivisor(loc, 1);
+			}
+		}
 	};
 
 	this.loadTestTextures = async function() {
@@ -136,118 +156,71 @@ export function GUIRenderer() {
 	};
 
 	/**
-	 * @todo Optimize subcomponent rendering
-	 * @todo Move matrix attribute divisor setup in `init`
-	 * @todo Make use of the `camera` param
+	 * @todo Use the `camera` param
 	 * 
 	 * @override
+	 * @param {Number} subcomponentCount
 	 */
-	this.render = function(scene, camera) {
+	this.render = function(scene, camera, subcomponentCount) {
 		const
 			gl = this.getContext(),
-			componentCount = scene.length;
-		let i = 0, loc;
+			worlds = new Float32Array(subcomponentCount * 9),
+			textureIndices = new Uint8Array(subcomponentCount),
+			textures = new Float32Array(subcomponentCount * 9),
+			colorMasks = new Float32Array(subcomponentCount * 3),
+			colorMaskWeights = new Float32Array(subcomponentCount);
 
-		const subcomponentWorldMatrices = [];
-		const subcomponentTextureMatrices = [];
-		const subcomponentTextureIndices = [];
-		const subcomponentColorMasks = [];
-		const subcomponentColorMaskWeights = [];
-		let subcomponentCount = 0;
-
-		for (let component; i < componentCount; i++) {
+		for (let i = 0, j, k = 0, cl = scene.length, component, position, textureIndex = new Uint8Array(1), subcomponents, sl, subcomponent, size, world, texture; i < cl; i++) {
 			component = scene[i];
+			position = component.getPosition();
+			subcomponents = component.getSubcomponents();
+			textureIndex[0] = component.getTexture().getIndex();
+			sl = subcomponents.length;
+			j = 0;
 
-			const subcomponents = component.getSubcomponents();
-			const l = subcomponents.length;
-
-			if (l === 0) continue;
-
-			subcomponentCount += l;
-
-			for (let j = 0, subcomponent; j < l; j++) {
+			for (; j < sl; j++, k++) {
 				subcomponent = subcomponents[j];
+				size = subcomponent.getSize();
+				world = Matrix3
+					.translate(position.add(subcomponent.getOffset()))
+					.scale(size);
+				texture = Matrix3
+					.translate(subcomponent.getUV().divide(WebGLRenderer.MAX_TEXTURE_SIZE))
+					.scale(size.divide(WebGLRenderer.MAX_TEXTURE_SIZE));
 
-				const position = component.getPosition()
-					.clone()
-					.add(subcomponent.getOffset());
-				const size = subcomponent.getSize();
-				const colorMask = subcomponent.getColorMask();
-
-				// World matrix
-				subcomponentWorldMatrices.push(
-					...Matrix3
-						.translate(position)
-						.scale(size)
-				);
-
-				// Texture matrix
-				subcomponentTextureMatrices.push(
-					...Matrix3
-						.translate(subcomponent.getUV().divide(WebGLRenderer.MAX_TEXTURE_SIZE))
-						.scale(size.clone().divide(WebGLRenderer.MAX_TEXTURE_SIZE))
-				);
-
-				subcomponentTextureIndices.push(component.getTexture().getIndex());
-
-				subcomponentColorMasks.push(colorMask.x, colorMask.y, colorMask.z);
-				subcomponentColorMaskWeights.push(subcomponent.getColorMaskWeight());
+				worlds.set(world, k * 9);
+				textureIndices.set(textureIndex, k);
+				textures.set(texture, k * 9);
+				colorMasks.set(subcomponent.getColorMask().toArray(), k * 3);
+				colorMaskWeights.set([subcomponent.getColorMaskWeight()], k);
 			}
 		}
 
-		/* for (let j = 0, component; i < componentCount; i++, j += 9) {
-			component = scene[i];
-
-			worldMatrices.set(component.getWorldMatrix(), j);
-			textureMatrices.set(component.getTextureMatrix(), j);
-			textureIndices[i] = component.getTexture().getIndex();
-		} */
-
-		// Register world matrices
-		{
-			gl.bindBuffer(gl.ARRAY_BUFFER, buffers.world);
-			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(subcomponentWorldMatrices), gl.STATIC_DRAW);
-
-			for (i = 0; i < 3; i++) {
-				gl.enableVertexAttribArray(loc = attributes.world + i);
-				gl.vertexAttribPointer(loc, 3, gl.FLOAT, false, 36, i * 12);
-				gl.vertexAttribDivisor(loc, 1);
-			}
-		}
-
-		// Register texture matrices
-		{
-			gl.bindBuffer(gl.ARRAY_BUFFER, buffers.texture);
-			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(subcomponentTextureMatrices), gl.STATIC_DRAW);
-
-			for (i = 0; i < 3; i++) {
-				gl.enableVertexAttribArray(loc = attributes.texture + i);
-				gl.vertexAttribPointer(loc, 3, gl.FLOAT, false, 36, i * 12);
-				gl.vertexAttribDivisor(loc, 1);
-			}
-		}
+		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.world);
+		gl.bufferData(gl.ARRAY_BUFFER, worlds, gl.STATIC_DRAW);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureIndex);
-		gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(subcomponentTextureIndices), gl.STATIC_DRAW);
+		gl.bufferData(gl.ARRAY_BUFFER, textureIndices, gl.STATIC_DRAW);
+
+		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.texture);
+		gl.bufferData(gl.ARRAY_BUFFER, textures, gl.STATIC_DRAW);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.colorMask);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(subcomponentColorMasks), gl.STATIC_DRAW);
+		gl.bufferData(gl.ARRAY_BUFFER, colorMasks, gl.STATIC_DRAW);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.colorMaskWeight);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(subcomponentColorMaskWeights), gl.STATIC_DRAW);
+		gl.bufferData(gl.ARRAY_BUFFER, colorMaskWeights, gl.STATIC_DRAW);
 
 		gl.drawArraysInstanced(gl.TRIANGLE_FAN, 0, 4, subcomponentCount);
 	};
 
 	/**
-	 * Resizes the renderer viewport and updates the projection matrix uniform.
-	 * 
 	 * @param {Vector2} viewport
-	 * @param {Matrix3} projectionMatrix
+	 * @param {Matrix3} projection
 	 */
-	this.resize = function(viewport, projectionMatrix) {
+	this.resize = function(viewport, projection) {
 		this.setViewport(viewport);
-	 	this.getContext().uniformMatrix3fv(uniforms.projection, false, new Float32Array(projectionMatrix));
+	 	this.getContext().uniformMatrix3fv(uniforms.projection, false, projection);
 	};
 }
 
