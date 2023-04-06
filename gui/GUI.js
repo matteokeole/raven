@@ -69,7 +69,7 @@ export function GUI(renderer, instance) {
 			[symbol, character] = fontData[i];
 
 			fontSubcomponents[symbol] = new Subcomponent({
-				size: new Vector2(character.width, 8),
+				size: new Vector2(character.width, 18),
 				offset: new Vector2(0, 0),
 				uv: new Vector2(...character.uv),
 			});

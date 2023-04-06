@@ -105,7 +105,7 @@ export function Instance({shaderPath, texturePath}) {
 	 * 
 	 * @type {?Number}
 	 */
-	this.currentScale = 2;
+	this.currentScale = 10;
 
 	/**
 	 * @todo Since this is controlled by the user, move it to a public class?
@@ -114,7 +114,7 @@ export function Instance({shaderPath, texturePath}) {
 	 * 
 	 * @type {?Number}
 	 */
-	this.desiredScale = 2;
+	this.desiredScale = 10;
 
 	/**
 	 * Maximum GUI scale multiplier appliable to the current viewport.
@@ -122,7 +122,7 @@ export function Instance({shaderPath, texturePath}) {
 	 * 
 	 * @type {?Number}
 	 */
-	this.maxScale = 4;
+	this.maxScale = 10;
 
 	/**
 	 * Current position of the pointer, used for GUI event listeners.
