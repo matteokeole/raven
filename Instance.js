@@ -1,7 +1,6 @@
 import {Vector2, clampDown, clampUp, intersects} from "./math/index.js";
 import {Program} from "./wrappers/index.js";
-import {RendererManager} from "./RendererManager.js";
-import {WebGLRenderer} from "./WebGLRenderer.js";
+import {RendererManager, WebGLRenderer} from "./index.js";
 
 /**
  * @todo Find a better name
@@ -12,11 +11,12 @@ import {WebGLRenderer} from "./WebGLRenderer.js";
  * This holds information about asset base paths, viewport dimensions and GUI scale.
  * 
  * @param {{
+ *    fontPath: String,
  *    shaderPath: String,
  *    texturePath: String,
  * }}
  */
-export function Instance({shaderPath, texturePath}) {
+export function Instance({fontPath, shaderPath, texturePath}) {
 	const DEFAULT_WIDTH = 320;
 	const DEFAULT_HEIGHT = 240;
 	const RESIZE_DELAY = 50;
@@ -82,6 +82,9 @@ export function Instance({shaderPath, texturePath}) {
 	this.rendererTextures = [];
 
 	/** @returns {String} */
+	this.getFontPath = () => fontPath;
+
+	/** @returns {String} */
 	this.getShaderPath = () => shaderPath;
 
 	/** @returns {String} */
@@ -122,7 +125,7 @@ export function Instance({shaderPath, texturePath}) {
 	 * 
 	 * @type {?Number}
 	 */
-	this.maxScale = 4;
+	this.maxScale = 2;
 
 	/**
 	 * Current position of the pointer, used for GUI event listeners.
