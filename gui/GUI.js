@@ -2,7 +2,7 @@ import {Component, DynamicComponent, GUIRenderer, Layer, Subcomponent, Structura
 import {OrthographicCamera} from "../cameras/index.js";
 import {Matrix3, Vector2} from "../math/index.js";
 import {extend} from "../utils/index.js";
-import {RendererManager} from "../RendererManager.js";
+import {Font, RendererManager} from "../index.js";
 
 /**
  * @extends RendererManager
@@ -40,14 +40,35 @@ export function GUI(renderer, instance) {
 	/** @type {Number[]} */
 	const lastInsertionIndices = [];
 
-	/** @type {Object<String, Subcomponent>} */
-	const fontSubcomponents = {};
+	/** @type {Object<String, Font>} */
+	const fonts = {};
+
+	/** @type {?Font} */
+	let mainFont;
+
+	/** @returns {Instance} */
+	this.getInstance = () => instance;
+
+	/** @returns {Object<String, Font>} */
+	this.getFonts = () => fonts;
+
+	/** @param {Font[]} value */
+	this.setFonts = value => {
+		this.setMainFont(value[0]);
+
+		for (let i = 0, l = value.length, font; i < l; i++) {
+			fonts[(font = value[i]).getName()] = font;
+		}
+	};
+
+	/** @returns {?Font} */
+	this.getMainFont = () => mainFont;
+
+	/** @param {Font} value */
+	this.setMainFont = value => void (mainFont = value);
 
 	/** @returns {?Texture} */
 	this.getTexture = path => renderer.getTextures()[path];
-
-	/** @returns {Object<String, Subcomponent>} */
-	this.getFontSubcomponents = () => fontSubcomponents;
 
 	this.init = async function() {
 		camera.projectionMatrix = Matrix3
@@ -55,25 +76,6 @@ export function GUI(renderer, instance) {
 			.scale(new Vector2(instance.currentScale, instance.currentScale));
 
 		await renderer.init(instance.getShaderPath(), camera.projectionMatrix);
-	};
-
-	/**
-	 * @todo Measure performance
-	 * 
-	 * @param {Object} fontData
-	 */
-	this.loadFontSubcomponents = function(fontData) {
-		fontData = Object.entries(fontData);
-
-		for (let i = 0, l = fontData.length, symbol, character; i < l; i++) {
-			[symbol, character] = fontData[i];
-
-			fontSubcomponents[symbol] = new Subcomponent({
-				size: new Vector2(character.width, 18),
-				offset: new Vector2(0, 0),
-				uv: new Vector2(...character.uv),
-			});
-		}
 	};
 
 	/**
@@ -285,3 +287,42 @@ export function GUI(renderer, instance) {
 }
 
 extend(GUI, RendererManager);
+
+/**
+ * @todo Measure performance
+ * 
+ * @param {Font[]} fonts
+ */
+GUI.prototype.setupFonts = async function(fonts) {
+	/** @type {String} */
+	const fontPath = this.getInstance().getFontPath();
+
+	for (let i = 0, j, fl = fonts.length, font, data, dl, letterHeight, characters, symbol, character; i < fl; i++) {
+		font = fonts[i];
+
+		await font.load(fontPath);
+
+		data = Object.entries(font.getData());
+		letterHeight = font.getLetterHeight();
+		characters = {};
+
+		for (j = 0, dl = data.length; j < dl; j++) {
+			[symbol, character] = data[j];
+
+			characters[symbol] = new Subcomponent({
+				size: new Vector2(character.width, letterHeight),
+				offset: new Vector2(0, 0),
+				uv: new Vector2(character.uv[0], character.uv[1]),
+			});
+		}
+
+		font.setCharacters(characters);
+	}
+
+	this.setFonts(fonts);
+};
+
+/** @returns {?Font} */
+GUI.prototype.getFont = function(name) {
+	return this.getFonts()[name];
+};
