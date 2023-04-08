@@ -134,15 +134,13 @@ export function GUIManager(renderer, instance) {
 	};
 
 	/**
-	 * Discards event listeners for the provided component.
+	 * Discards event listeners for the provided components.
 	 * 
 	 * @param {Component[]} components
 	 */
 	this.removeListeners = function(components) {
 		for (let i = 0, l = components.length, component, listener; i < l; i++) {
-			component = components[i];
-
-			if (!(component instanceof DynamicComponent)) continue;
+			if (!((component = components[i]) instanceof DynamicComponent)) continue;
 
 			if (listener = component.getOnMouseDown()) instance.removeMouseDownListener(listener);
 			if (listener = component.getOnMouseEnter()) instance.removeMouseEnterListener(listener);
@@ -163,8 +161,9 @@ export function GUIManager(renderer, instance) {
 		}
 	};
 
+	/** @todo Better way to update the rendered texture */
 	this.render = function() {
-		renderer.render(renderQueue, camera, subcomponentCount);
+		renderer.render(renderQueue, subcomponentCount);
 
 		renderQueue.length = subcomponentCount = 0;
 

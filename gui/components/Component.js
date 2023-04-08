@@ -1,6 +1,7 @@
 import {Matrix3, Vector2} from "../../math/index.js";
 
 /**
+ * @todo Remove `parent` property
  * @param {{
  *    align: Number,
  *    margin: Vector2,

@@ -157,12 +157,10 @@ export function GUIRenderer() {
 	};
 
 	/**
-	 * @todo Use the `camera` param
-	 * 
 	 * @override
 	 * @param {Number} subcomponentCount
 	 */
-	this.render = function(scene, camera, subcomponentCount) {
+	this.render = function(scene, subcomponentCount) {
 		const
 			gl = this.getContext(),
 			worlds = new Float32Array(subcomponentCount * 9),
