@@ -200,7 +200,6 @@ export function WebGLRenderer({offscreen, generateMipmaps}) {
 		gl.getExtension("WEBGL_lose_context").loseContext();
 
 		gl = null;
-		canvas.remove();
 		canvas = null;
 	};
 }

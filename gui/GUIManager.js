@@ -7,9 +7,9 @@ import {Font, RendererManager} from "../index.js";
 /**
  * @extends RendererManager
  * @param {GUIRenderer} renderer
- * @param {Instance} instance Reference to the current instance, used for uploading the new render onto the output texture, registering listeners and manipulating the GUI scale.
+ * @param {Instance} instance Reference to the current instance, used for updating the canvas texture, registering listeners and manipulating the GUI scale.
  */
-export function GUI(renderer, instance) {
+export function GUIManager(renderer, instance) {
 	RendererManager.call(this, renderer, instance);
 
 	/** @type {Number} */
@@ -97,28 +97,31 @@ export function GUI(renderer, instance) {
 			component = children[i];
 
 			if (parent) component.setParent(parent);
-			if (component instanceof StructuralComponent) {
-				component.computePosition(new Vector2(0, 0), viewport);
 
-				this.addChildrenToRenderQueue(component.getChildren(), {
-					parent: component,
-					addListeners,
-					addToTree,
-				});
+			renderQueue.push(component);
+
+			if (addToTree) tree.push(component);
+
+			if (!(component instanceof StructuralComponent)) {
+				subcomponentCount += component.getSubcomponents().length;
+
+				if (addListeners && component instanceof DynamicComponent) this.addListeners(component);
 
 				continue;
 			}
 
-			renderQueue.push(component);
-			subcomponentCount += component.getSubcomponents().length;
+			component.computePosition(new Vector2(0, 0), viewport);
 
-			if (addListeners && component instanceof DynamicComponent) this.addListeners(component);
-			if (addToTree) tree.push(component);
+			this.addChildrenToRenderQueue(component.getChildren(), {
+				parent: component,
+				addListeners,
+				addToTree,
+			});
 		}
 	};
 
 	/**
-	 * Initialize event listeners for the provided component.
+	 * Initializes the event listeners for the provided component.
 	 * 
 	 * @param {Component} component
 	 */
@@ -148,20 +151,16 @@ export function GUI(renderer, instance) {
 	};
 
 	/**
-	 * @todo Rework
-	 * 
 	 * Computes the absolute position for each component of the render queue.
 	 */
 	this.computeTree = function() {
-		for (
-			let i = 0,
-				l = renderQueue.length,
-				viewport = instance
-					.getViewport()
-					.divideScalar(instance.currentScale);
-			i < l;
-			i++
-		) renderQueue[i].computePosition(new Vector2(0, 0), viewport);
+		const viewport = instance
+			.getViewport()
+			.divideScalar(instance.currentScale);
+
+		for (let i = 0, l = renderQueue.length; i < l; i++) {
+			renderQueue[i].computePosition(new Vector2(0, 0), viewport);
+		}
 	};
 
 	this.render = function() {
@@ -238,7 +237,7 @@ export function GUI(renderer, instance) {
 	 * Adds [component] to the render queue.
 	 * 
 	 * @param {Component} component
-	 * @returns {GUI}
+	 * @returns {GUIManager}
 	 */
 	this.pushToRenderQueue = function(component) {
 		renderQueue.push(component);
@@ -284,16 +283,18 @@ export function GUI(renderer, instance) {
 		renderer.clear(); // Clear already rendered components
 		this.render();
 	};
+
+	this.dispose = () => renderer.dispose();
 }
 
-extend(GUI, RendererManager);
+extend(GUIManager, RendererManager);
 
 /**
  * @todo Measure performance
  * 
  * @param {Font[]} fonts
  */
-GUI.prototype.setupFonts = async function(fonts) {
+GUIManager.prototype.setupFonts = async function(fonts) {
 	/** @type {String} */
 	const fontPath = this.getInstance().getFontPath();
 
@@ -323,6 +324,6 @@ GUI.prototype.setupFonts = async function(fonts) {
 };
 
 /** @returns {?Font} */
-GUI.prototype.getFont = function(name) {
+GUIManager.prototype.getFont = function(name) {
 	return this.getFonts()[name];
 };

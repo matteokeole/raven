@@ -6,25 +6,25 @@ import {extend} from "../../utils/index.js";
 /**
  * @extends VisualComponent
  * @param {{
+ *    onMouseDown: ?Listener,
  *    onMouseEnter: ?Listener,
  *    onMouseLeave: ?Listener,
- *    onMouseDown: ?Listener,
  * }}
  */
-export function DynamicComponent({onMouseEnter, onMouseLeave, onMouseDown}) {
+export function DynamicComponent({onMouseDown, onMouseEnter, onMouseLeave}) {
 	VisualComponent.apply(this, arguments);
 
 	/** @type {Boolean} */
 	let isHovered = false;
 
 	/** @type {?Listener} */
-	onMouseEnter &&= configureListener(this, onMouseEnter);
+	onMouseDown &&= configureListener.call(this, onMouseDown);
 
 	/** @type {?Listener} */
-	onMouseLeave &&= configureListener(this, onMouseLeave);
+	onMouseEnter &&= configureListener.call(this, onMouseEnter);
 
 	/** @type {?Listener} */
-	onMouseDown &&= configureListener(this, onMouseDown);
+	onMouseLeave &&= configureListener.call(this, onMouseLeave);
 
 	/** @returns {Boolean} */
 	this.getIsHovered = () => isHovered;
@@ -33,29 +33,29 @@ export function DynamicComponent({onMouseEnter, onMouseLeave, onMouseDown}) {
 	this.setIsHovered = value => void (isHovered = value);
 
 	/** @returns {?Listener} */
+	this.getOnMouseDown = () => onMouseDown;
+
+	/** @param {Listener} value */
+	this.setOnMouseDown = value => void (onMouseDown = configureListener.call(this, value));
+
+	/** @returns {?Listener} */
 	this.getOnMouseEnter = () => onMouseEnter;
 
 	/** @param {Listener} value */
-	this.setOnMouseEnter = value => void (onMouseEnter = configureListener(this, value));
+	this.setOnMouseEnter = value => void (onMouseEnter = configureListener.call(this, value));
 
 	/** @returns {?Listener} */
 	this.getOnMouseLeave = () => onMouseLeave;
 
 	/** @param {Listener} value */
-	this.setOnMouseLeave = value => void (onMouseLeave = configureListener(this, value));
-
-	/** @returns {?Listener} */
-	this.getOnMouseDown = () => onMouseDown;
-
-	/** @param {Listener} value */
-	this.setOnMouseDown = value => void (onMouseDown = configureListener(this, value));
+	this.setOnMouseLeave = value => void (onMouseLeave = configureListener.call(this, value));
 }
 
 extend(DynamicComponent, VisualComponent);
 
-function configureListener(component, listener) {
-	listener = listener.bind(component);
-	listener.component = component;
+function configureListener(listener) {
+	listener = listener.bind(this);
+	listener.component = this;
 
 	return listener;
 }

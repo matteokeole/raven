@@ -45,7 +45,7 @@ export function Component({align, margin, size}) {
 			case Component.alignCenterTop:
 			case Component.alignCenter:
 			case Component.alignCenterBottom:
-				initial.x += o.x / 2 + m.x;
+				initial.x += o.x * .5 + m.x;
 
 				break;
 			case Component.alignRightTop:
@@ -66,7 +66,7 @@ export function Component({align, margin, size}) {
 			case Component.alignLeftCenter:
 			case Component.alignCenter:
 			case Component.alignRightCenter:
-				initial.y += o.y / 2 + m.y;
+				initial.y += o.y * .5 + m.y;
 
 				break;
 			case Component.alignLeftBottom:

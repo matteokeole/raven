@@ -1,7 +1,8 @@
+import {WebGLRenderer} from "../index.js";
+import {StructuralComponent} from "./index.js";
 import {Matrix3, Vector2} from "../math/index.js";
 import {extend} from "../utils/index.js";
 import {Texture} from "../wrappers/index.js";
-import {WebGLRenderer} from "../index.js";
 
 export function GUIRenderer() {
 	WebGLRenderer.call(this, {
@@ -173,6 +174,9 @@ export function GUIRenderer() {
 		for (let i = 0, j, k = 0, cl = scene.length, component, position, textureIndex = new Uint8Array(1), subcomponents, sl, subcomponent, size, world, texture; i < cl; i++) {
 			component = scene[i];
 			position = component.getPosition();
+
+			if (component instanceof StructuralComponent) continue;
+
 			subcomponents = component.getSubcomponents();
 			textureIndex[0] = component.getTexture().getIndex();
 			sl = subcomponents.length;
