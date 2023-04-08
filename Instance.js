@@ -13,6 +13,7 @@ const RESIZE_DELAY = 50;
 
 /**
  * @todo Find a better name
+ * @todo Add getters/setters
  * 
  * This holds information about asset base paths, viewport dimensions and GUI scale.
  * 
@@ -51,7 +52,7 @@ export function Instance({fontPath, shaderPath, texturePath}) {
 	 */
 	let hasBeenBuilt = false;
 
-	/** @todo Replace by `Set`? */
+	/** @todo Replace by Set or Map */
 	let mouseEnterListeners = [],
 		mouseEnterListenerCount = 0,
 		mouseLeaveListeners = [],
@@ -115,8 +116,6 @@ export function Instance({fontPath, shaderPath, texturePath}) {
 	this.currentScale = 2;
 
 	/**
-	 * @todo Since this is controlled by the user, move it to a public class?
-	 * 
 	 * GUI scale multiplier chosen by the user.
 	 * 
 	 * @type {?Number}
@@ -294,7 +293,6 @@ export function Instance({fontPath, shaderPath, texturePath}) {
 		animationRequestId = null;
 	};
 
-	/** @todo Use `Renderer` class to avoid duplicate methods (createProgram/createShader/linkProgram)? */
 	this.initialize = async function() {
 		const gl = outputRenderer.getContext();
 
@@ -311,7 +309,6 @@ export function Instance({fontPath, shaderPath, texturePath}) {
 
 		outputRenderer.linkProgram(program);
 
-		/** @todo Make useProgram helper in `WebGLRenderer`? */
 		gl.useProgram(program.getProgram());
 
 		gl.attribute = {
@@ -335,7 +332,7 @@ export function Instance({fontPath, shaderPath, texturePath}) {
 	};
 
 	/**
-	 * @todo Use instanced drawing
+	 * @todo Use instanced drawing with a texture array
 	 */
 	this.render = function() {
 		const {rendererTextures} = this;
@@ -396,6 +393,9 @@ export function Instance({fontPath, shaderPath, texturePath}) {
 		mouseLeaveListenerCount--;
 	};
 
+	/**
+	 * Note: only executes one listener at a time.
+	 */
 	function mouseDownListener() {
 		for (let i = 0, l = mouseDownListenerCount, listener; i < l; i++) {
 			listener = mouseDownListeners[i];
@@ -403,6 +403,8 @@ export function Instance({fontPath, shaderPath, texturePath}) {
 			if (!intersects(pointerPosition, listener.component.getPosition(), listener.component.getSize())) continue;
 
 			listener(pointerPosition);
+
+			break;
 		}
 	}
 

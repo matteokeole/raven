@@ -1,8 +1,6 @@
 import {Vector2} from "./index.js";
 
 /**
- * @todo Matrix inheritance
- * 
  * 3x3 matrix class.
  * 
  * @extends Array

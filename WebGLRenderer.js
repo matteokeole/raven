@@ -61,8 +61,6 @@ export function WebGLRenderer({offscreen, generateMipmaps}) {
 	};
 
 	/**
-	 * @todo Set viewport size as multiples of 2 to avoid subpixel artifacts? (This only concerns the current use of the lib)
-	 * 
 	 * @param {Vector2} viewport
 	 * @returns {Vector2}
 	 */
@@ -187,8 +185,8 @@ export function WebGLRenderer({offscreen, generateMipmaps}) {
 	};
 
 	/**
-	 * @todo Unbind and delete all linked objects (buffers, textures, etc)
-	 * @todo Return value?
+	 * @todo Unbind and delete all linked objects
+	 * 
 	 * @see {@link https://registry.khronos.org/webgl/extensions/WEBGL_lose_context}
 	 */
 	this.dispose = function() {
@@ -197,6 +195,7 @@ export function WebGLRenderer({offscreen, generateMipmaps}) {
 		// gl.deleteVertexArray(vao);
 		// gl.deleteShader(shader);
 		// gl.deleteProgram(program);
+
 		gl.getExtension("WEBGL_lose_context").loseContext();
 
 		gl = null;

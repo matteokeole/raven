@@ -157,6 +157,8 @@ export function GUIRenderer() {
 	};
 
 	/**
+	 * @todo Optimal render queue: only components with subcomponents
+	 * 
 	 * @override
 	 * @param {Number} subcomponentCount
 	 */

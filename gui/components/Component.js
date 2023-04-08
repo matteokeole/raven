@@ -1,7 +1,6 @@
 import {Matrix3, Vector2} from "../../math/index.js";
 
 /**
- * @todo Remove `parent` property
  * @param {{
  *    align: Number,
  *    margin: Vector2,
@@ -12,9 +11,6 @@ export function Component({align, margin, size}) {
 	/** @type {?Vector2} */
 	let position;
 
-	/** @type {?Component} */
-	let parent;
-
 	/**
 	 * Computes the absolute position of the component
 	 * by using its alignment and margin.
@@ -23,13 +19,6 @@ export function Component({align, margin, size}) {
 	 * @param {Vector2} parentSize
 	 */
 	this.computePosition = function(initial, parentSize) {
-		const parent = this.getParent();
-
-		if (parent) {
-			initial = parent.getPosition().clone();
-			parentSize = parent.getSize().clone();
-		}
-
 		const
 			m = margin,
 			o = parentSize.subtract(size);
@@ -86,12 +75,6 @@ export function Component({align, margin, size}) {
 
 	/** @param {Vector2} value */
 	this.setPosition = value => void (position = value);
-
-	/** @returns {?Component} */
-	this.getParent = () => parent;
-
-	/** @param {Component} value */
-	this.setParent = value => void (parent = value);
 
 	/** @returns {Number} */
 	this.getAlign = function() {

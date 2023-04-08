@@ -10,13 +10,6 @@ export function StructuralComponent({children}) {
 
 	/** @override */
 	this.computePosition = function(initial, parentSize) {
-		const parent = this.getParent();
-
-		if (parent) {
-			initial = parent.getPosition().clone();
-			parentSize = parent.getSize().clone();
-		}
-
 		const align = this.getAlign();
 		const size = this.getSize();
 		const m = this.getMargin();
@@ -55,6 +48,13 @@ export function StructuralComponent({children}) {
 		}
 
 		this.setPosition(initial.floor32());
+
+		const position = this.getPosition();
+		const children = this.getChildren();
+
+		for (let i = 0, l = children.length; i < l; i++) {
+			children[i].computePosition(position.clone(), size);
+		}
 	};
 
 	/** @returns {Component[]} */

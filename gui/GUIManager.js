@@ -21,8 +21,11 @@ export function GUIManager(renderer, instance) {
 	/** @type {Layer[]} */
 	const layerStack = [];
 
+	/** @type {Component[]} */
+	let rootComponents = [];
+
 	/**
-	 * @todo Replace by `builtComponents`?
+	 * @todo Rename to `builtComponents`?
 	 * 
 	 * Children of currently built layers.
 	 * 
@@ -84,11 +87,10 @@ export function GUIManager(renderer, instance) {
 	 * 
 	 * @param {Component[]} children
 	 * @param {Object} options
-	 * @param {Boolean} [options.parent]
 	 * @param {Boolean} [options.addListeners=false]
 	 * @param {Boolean} [options.addToTree=false]
 	 */
-	this.addChildrenToRenderQueue = function(children, {parent, addListeners = false, addToTree = false}) {
+	this.addChildrenToRenderQueue = function(children, {addListeners = false, addToTree = false}) {
 		const viewport = instance
 			.getViewport()
 			.divideScalar(instance.currentScale);
@@ -96,24 +98,18 @@ export function GUIManager(renderer, instance) {
 		for (let i = 0, l = children.length, component; i < l; i++) {
 			component = children[i];
 
-			if (parent) component.setParent(parent);
-
 			renderQueue.push(component);
-
-			if (addToTree) tree.push(component);
 
 			if (!(component instanceof StructuralComponent)) {
 				subcomponentCount += component.getSubcomponents().length;
 
 				if (addListeners && component instanceof DynamicComponent) this.addListeners(component);
+				if (addToTree) tree.push(component);
 
 				continue;
 			}
 
-			component.computePosition(new Vector2(0, 0), viewport);
-
 			this.addChildrenToRenderQueue(component.getChildren(), {
-				parent: component,
 				addListeners,
 				addToTree,
 			});
@@ -140,7 +136,9 @@ export function GUIManager(renderer, instance) {
 	 */
 	this.removeListeners = function(components) {
 		for (let i = 0, l = components.length, component, listener; i < l; i++) {
-			if (!((component = components[i]) instanceof DynamicComponent)) continue;
+			if (!(components[i] instanceof DynamicComponent)) continue;
+
+			component = components[i];
 
 			if (listener = component.getOnMouseDown()) instance.removeMouseDownListener(listener);
 			if (listener = component.getOnMouseEnter()) instance.removeMouseEnterListener(listener);
@@ -156,8 +154,8 @@ export function GUIManager(renderer, instance) {
 			.getViewport()
 			.divideScalar(instance.currentScale);
 
-		for (let i = 0, l = renderQueue.length; i < l; i++) {
-			renderQueue[i].computePosition(new Vector2(0, 0), viewport);
+		for (let i = 0, l = rootComponents.length; i < l; i++) {
+			rootComponents[i].computePosition(new Vector2(0, 0), viewport);
 		}
 	};
 
@@ -191,7 +189,6 @@ export function GUIManager(renderer, instance) {
 
 			if (component instanceof StructuralComponent) {
 				this.addChildrenToRenderQueue(component.getChildren(), {
-					parent: component,
 					addListeners: false,
 					addToTree: false,
 				});
@@ -223,7 +220,7 @@ export function GUIManager(renderer, instance) {
 
 		lastInsertionIndices.push(tree.length);
 		subcomponentCount = 0;
-		this.addChildrenToRenderQueue(layer.build(this), {
+		this.addChildrenToRenderQueue(rootComponents = layer.build(this), {
 			addListeners: true,
 			addToTree: true,
 		});
