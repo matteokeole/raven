@@ -350,7 +350,7 @@ export function Instance({fontPath, shaderPath, texturePath}) {
 		/** @type {?WebGL2RenderingContext} */
 		const gl = outputRenderer.getContext();
 
-		if (gl === null) return console.info("This exception occurred before building the instance.");
+		if (gl === null) return console.log("This exception occurred before building the instance.");
 
 		this.stopLoop();
 
@@ -360,7 +360,7 @@ export function Instance({fontPath, shaderPath, texturePath}) {
 
 		outputRenderer.dispose();
 
-		console.info("The instance was properly disposed after catching this exception.");
+		console.log("The instance was properly disposed after catching this exception.");
 	};
 
 	this.addMouseDownListener = function(listener) {
@@ -394,7 +394,9 @@ export function Instance({fontPath, shaderPath, texturePath}) {
 	};
 
 	/**
-	 * Note: only executes one listener at a time.
+	 * Note: Because listeners may push a new layer
+	 * (thus modifying the listener array by discarding the previous ones),
+	 * the loop will break if a listener is called.
 	 */
 	function mouseDownListener() {
 		for (let i = 0, l = mouseDownListenerCount, listener; i < l; i++) {

@@ -22,16 +22,17 @@ export function GUIManager(renderer, instance) {
 	const layerStack = [];
 
 	/** @type {Component[]} */
-	let rootComponents = [];
+	const rootComponents = [];
+
+	/** @type {DynamicComponent[]} */
+	const dynamicComponents = [];
 
 	/**
-	 * @todo Rename to `builtComponents`?
-	 * 
 	 * Children of currently built layers.
 	 * 
 	 * @type {Component[]}
 	 */
-	let tree = [];
+	const tree = [];
 
 	/**
 	 * Components registered for the next render.
@@ -91,19 +92,19 @@ export function GUIManager(renderer, instance) {
 	 * @param {Boolean} [options.addToTree=false]
 	 */
 	this.addChildrenToRenderQueue = function(children, {addListeners = false, addToTree = false}) {
-		const viewport = instance
-			.getViewport()
-			.divideScalar(instance.currentScale);
-
 		for (let i = 0, l = children.length, component; i < l; i++) {
 			component = children[i];
 
-			renderQueue.push(component);
-
 			if (!(component instanceof StructuralComponent)) {
+				renderQueue.push(component);
+
 				subcomponentCount += component.getSubcomponents().length;
 
-				if (addListeners && component instanceof DynamicComponent) this.addListeners(component);
+				if (component instanceof DynamicComponent) {
+					dynamicComponents.push(component);
+
+					if (addListeners) this.addListeners(component);
+				}
 				if (addToTree) tree.push(component);
 
 				continue;
@@ -215,12 +216,19 @@ export function GUIManager(renderer, instance) {
 	this.push = function(layer) {
 		layerStack.push(layer);
 
-		// Discard event listeners of previous layers
-		this.removeListeners(tree);
+		// Discard event listeners of `DynamicComponent` instances in the previous layers
+		this.removeListeners(dynamicComponents);
 
+		dynamicComponents.length = 0;
+
+		// Mark the tree length as the extraction index for this layer
 		lastInsertionIndices.push(tree.length);
+
 		subcomponentCount = 0;
-		this.addChildrenToRenderQueue(rootComponents = layer.build(this), {
+		const builtComponents = layer.build(this);
+		rootComponents.push(...builtComponents);
+
+		this.addChildrenToRenderQueue(builtComponents, {
 			addListeners: true,
 			addToTree: true,
 		});
@@ -230,7 +238,9 @@ export function GUIManager(renderer, instance) {
 	};
 
 	/**
-	 * Adds [component] to the render queue.
+	 * @todo Don't add groups directly to the queue
+	 * 
+	 * Adds the provided component to the render queue.
 	 * 
 	 * @param {Component} component
 	 * @returns {GUIManager}
@@ -252,19 +262,16 @@ export function GUIManager(renderer, instance) {
 	 * If the layer stack is empty or contains one layer, nothing will be done.
 	 */
 	this.pop = function() {
-		if (layerStack.length === 0 || layerStack.length === 1) return;
+		if (layerStack.length === 0) throw Error("Could not pop: no layers registered.");
+		if (layerStack.length === 1) throw Error("Could not pop the only entry of the layer stack.");
 
-		const layer = layerStack.pop();
-		layer.dispose();
+		layerStack.pop().dispose();
 
-		const lastInsertion = lastInsertionIndices.pop();
+		this.removeListeners(dynamicComponents);
+		dynamicComponents.length = 0;
 
-		/** @todo Optimize event listener discard */
-		const componentsToDiscard = [...tree].splice(lastInsertion);
-		this.removeListeners(componentsToDiscard);
-
-		/** @todo Rework component removal */
-		tree = tree.slice(0, lastInsertion);
+		// Truncate the tree (remove the components from the popped layer)
+		tree.length = lastInsertionIndices.pop();
 
 		// Clear the render queue
 		renderQueue.length = 0;
