@@ -1,26 +1,29 @@
 import {Vector2, clampDown, clampUp, intersects} from "./math/index.js";
 import {Program} from "./wrappers/index.js";
-import {RendererManager} from "./RendererManager.js";
-import {WebGLRenderer} from "./WebGLRenderer.js";
+import {RendererManager, WebGLRenderer} from "./index.js";
+
+/** @type {Number} */
+const DEFAULT_WIDTH = 320;
+
+/** @type {Number} */
+const DEFAULT_HEIGHT = 240;
+
+/** @type {Number} */
+const RESIZE_DELAY = 50;
 
 /**
  * @todo Find a better name
- * @todo Implement render pipeline here
- * @todo Apply settings
+ * @todo Add getters/setters
  * 
- * Game instance.
  * This holds information about asset base paths, viewport dimensions and GUI scale.
  * 
  * @param {{
+ *    fontPath: String,
  *    shaderPath: String,
  *    texturePath: String,
  * }}
  */
-export function Instance({shaderPath, texturePath}) {
-	const DEFAULT_WIDTH = 320;
-	const DEFAULT_HEIGHT = 240;
-	const RESIZE_DELAY = 50;
-
+export function Instance({fontPath, shaderPath, texturePath}) {
 	/**
 	 * Prevents the first `ResizeObserver` call.
 	 * 
@@ -31,16 +34,16 @@ export function Instance({shaderPath, texturePath}) {
 	/**
 	 * Timeout ID of the `ResizeObserver`, used to clear the timeout.
 	 * 
-	 * @type {Number}
+	 * @type {?Number}
 	 */
-	let resizeTimeoutID;
+	let resizeTimeoutId;
 
 	/**
 	 * Animation request ID, used to interrupt the loop.
 	 * 
-	 * @type {Number}
+	 * @type {?Number}
 	 */
-	let animationRequestID;
+	let animationRequestId;
 
 	/**
 	 * Returns `true` if the instance canvas has been added to the DOM, `false` otherwise.
@@ -49,8 +52,7 @@ export function Instance({shaderPath, texturePath}) {
 	 */
 	let hasBeenBuilt = false;
 
-	let rendererLength;
-
+	/** @todo Replace by Set or Map */
 	let mouseEnterListeners = [],
 		mouseEnterListenerCount = 0,
 		mouseLeaveListeners = [],
@@ -67,6 +69,9 @@ export function Instance({shaderPath, texturePath}) {
 		generateMipmaps: false,
 	});
 
+	/** @type {?Number} */
+	let rendererLength;
+
 	/**
 	 * Offscreen renderers.
 	 * 
@@ -80,6 +85,9 @@ export function Instance({shaderPath, texturePath}) {
 	 * @type {WebGLTexture[]}
 	 */
 	this.rendererTextures = [];
+
+	/** @returns {String} */
+	this.getFontPath = () => fontPath;
 
 	/** @returns {String} */
 	this.getShaderPath = () => shaderPath;
@@ -108,8 +116,6 @@ export function Instance({shaderPath, texturePath}) {
 	this.currentScale = 2;
 
 	/**
-	 * @todo Since this is controlled by the user, move it to a public class?
-	 * 
 	 * GUI scale multiplier chosen by the user.
 	 * 
 	 * @type {?Number}
@@ -122,7 +128,7 @@ export function Instance({shaderPath, texturePath}) {
 	 * 
 	 * @type {?Number}
 	 */
-	this.maxScale = 4;
+	this.maxScale = 2;
 
 	/**
 	 * Current position of the pointer, used for GUI event listeners.
@@ -146,8 +152,8 @@ export function Instance({shaderPath, texturePath}) {
 			// Avoid the first resize
 			if (isFirstResize) return isFirstResize = null;
 
-			clearTimeout(resizeTimeoutID);
-			resizeTimeoutID = setTimeout(() => {
+			clearTimeout(resizeTimeoutId);
+			resizeTimeoutId = setTimeout(() => {
 				let width, height, dpr = 1;
 
 				if (entry.devicePixelContentBoxSize) {
@@ -178,8 +184,12 @@ export function Instance({shaderPath, texturePath}) {
 			this.resizeObserver.observe(canvas, {box: "content-box"});
 		}
 
-		canvas.onmousemove = mouseMoveListener.bind(this);
-		canvas.onmousedown = mouseDownListener.bind(this);
+		canvas.onmousedown = mouseDownListener;
+		canvas.onmousemove = ({clientX: x, clientY: y}) => {
+			pointerPosition = new Vector2(x, y).multiplyScalar(devicePixelRatio).divideScalar(this.currentScale);
+
+			mouseMoveListener();
+		};
 	};
 
 	this.hasBeenBuilt = () => hasBeenBuilt;
@@ -263,38 +273,26 @@ export function Instance({shaderPath, texturePath}) {
 
 		gl.bindTexture(gl.TEXTURE_2D, this.rendererTextures[index]);
 		
-		/** @todo Replace by `texStorage2D` (lower memory costs in some implementations,according to {@link https://registry.khronos.org/webgl/specs/latest/2.0/#3.7.6}) */
+		/** @todo Replace by `texStorage2D` (lower memory costs in some implementations, according to {@link https://registry.khronos.org/webgl/specs/latest/2.0/#3.7.6}) */
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, canvas);
 	};
 
-	/**
-	 * @todo Better naming
-	 * 
-	 * Starts the game loop.
-	 */
+	/** @todo Find a better name */
 	this.startLoop = () => this.loop();
 
-	/**
-	 * @todo Better naming
-	 * 
-	 * Game loop.
-	 */
 	this.loop = function() {
-		animationRequestID = requestAnimationFrame(this.loop);
+		animationRequestId = requestAnimationFrame(this.loop);
 
 		this.render();
 	}.bind(this);
 
-	/**
-	 * @todo Better naming
-	 * 
-	 * Stops the game loop.
-	 */
-	this.stopLoop = () => cancelAnimationFrame(animationRequestID);
+	/** @todo Find a better name */
+	this.stopLoop = function() {
+		cancelAnimationFrame(animationRequestId);
 
-	/**
-	 * @todo Use `Renderer` class to avoid duplicate methods (createProgram/createShader/linkProgram)?
-	 */
+		animationRequestId = null;
+	};
+
 	this.initialize = async function() {
 		const gl = outputRenderer.getContext();
 
@@ -311,7 +309,6 @@ export function Instance({shaderPath, texturePath}) {
 
 		outputRenderer.linkProgram(program);
 
-		/** @todo Make useProgram helper in `WebGLRenderer`? */
 		gl.useProgram(program.getProgram());
 
 		gl.attribute = {
@@ -335,7 +332,7 @@ export function Instance({shaderPath, texturePath}) {
 	};
 
 	/**
-	 * @todo Use instanced drawing
+	 * @todo Use instanced drawing with a texture array
 	 */
 	this.render = function() {
 		const {rendererTextures} = this;
@@ -350,21 +347,20 @@ export function Instance({shaderPath, texturePath}) {
 	};
 
 	this.dispose = function() {
+		/** @type {?WebGL2RenderingContext} */
 		const gl = outputRenderer.getContext();
 
-		if (gl === null) return console.info("This exception occurred before building the instance.");
+		if (gl === null) return console.log("This exception occurred before building the instance.");
 
-		/** @todo Stop the game loop if it has started */
+		this.stopLoop();
 
-		// Dispose child renderers
 		for (let i = 0; i < rendererLength; i++) this.renderers[i].dispose();
 
-		// Remove the resize observer
-		this.resizeObserver.unobserve(outputRenderer.canvas);
+		this.resizeObserver.unobserve(outputRenderer.getCanvas());
 
 		outputRenderer.dispose();
 
-		return console.info("The instance was properly disposed after catching this exception.");
+		console.log("The instance was properly disposed after catching this exception.");
 	};
 
 	this.addMouseDownListener = function(listener) {
@@ -398,12 +394,23 @@ export function Instance({shaderPath, texturePath}) {
 	};
 
 	/**
-	 * Manager for the `mouseenter` and `mouseleave` events.
-	 * 
-	 * @param {{x: Number, y: Number}}
+	 * Note: Because listeners may push a new layer
+	 * (thus modifying the listener array by discarding the previous ones),
+	 * the loop will break if a listener is called.
 	 */
-	function mouseMoveListener({clientX: x, clientY: y}) {
-		pointerPosition = new Vector2(x, y).multiplyScalar(devicePixelRatio).divideScalar(this.currentScale);
+	function mouseDownListener() {
+		for (let i = 0, l = mouseDownListenerCount, listener; i < l; i++) {
+			listener = mouseDownListeners[i];
+
+			if (!intersects(pointerPosition, listener.component.getPosition(), listener.component.getSize())) continue;
+
+			listener(pointerPosition);
+
+			break;
+		}
+	}
+
+	function mouseMoveListener() {
 		let i, l, listener;
 
 		for (i = 0, l = mouseEnterListenerCount; i < l; i++) {
@@ -423,19 +430,6 @@ export function Instance({shaderPath, texturePath}) {
 			if (!listener.component.getIsHovered()) continue;
 
 			listener.component.setIsHovered(false);
-			listener(pointerPosition);
-		}
-	}
-
-	/**
-	 * Manager for the `mousedown` event.
-	 */
-	function mouseDownListener() {
-		for (let i = 0, l = mouseDownListenerCount, listener; i < l; i++) {
-			listener = mouseDownListeners[i];
-
-			if (!intersects(pointerPosition, listener.component.getPosition(), listener.component.getSize())) continue;
-
 			listener(pointerPosition);
 		}
 	}

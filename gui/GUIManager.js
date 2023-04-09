@@ -2,14 +2,14 @@ import {Component, DynamicComponent, GUIRenderer, Layer, Subcomponent, Structura
 import {OrthographicCamera} from "../cameras/index.js";
 import {Matrix3, Vector2} from "../math/index.js";
 import {extend} from "../utils/index.js";
-import {RendererManager} from "../RendererManager.js";
+import {Font, RendererManager} from "../index.js";
 
 /**
  * @extends RendererManager
  * @param {GUIRenderer} renderer
- * @param {Instance} instance Reference to the current instance, used for uploading the new render onto the output texture, registering listeners and manipulating the GUI scale.
+ * @param {Instance} instance Reference to the current instance, used for updating the canvas texture, registering listeners and manipulating the GUI scale.
  */
-export function GUI(renderer, instance) {
+export function GUIManager(renderer, instance) {
 	RendererManager.call(this, renderer, instance);
 
 	/** @type {Number} */
@@ -21,14 +21,18 @@ export function GUI(renderer, instance) {
 	/** @type {Layer[]} */
 	const layerStack = [];
 
+	/** @type {Component[]} */
+	const rootComponents = [];
+
+	/** @type {DynamicComponent[]} */
+	const dynamicComponents = [];
+
 	/**
-	 * @todo Replace by `builtComponents`?
-	 * 
 	 * Children of currently built layers.
 	 * 
 	 * @type {Component[]}
 	 */
-	let tree = [];
+	const tree = [];
 
 	/**
 	 * Components registered for the next render.
@@ -40,14 +44,35 @@ export function GUI(renderer, instance) {
 	/** @type {Number[]} */
 	const lastInsertionIndices = [];
 
-	/** @type {Object<String, Subcomponent>} */
-	const fontSubcomponents = {};
+	/** @type {Object<String, Font>} */
+	const fonts = {};
+
+	/** @type {?Font} */
+	let mainFont;
+
+	/** @returns {Instance} */
+	this.getInstance = () => instance;
+
+	/** @returns {Object<String, Font>} */
+	this.getFonts = () => fonts;
+
+	/** @param {Font[]} value */
+	this.setFonts = value => {
+		this.setMainFont(value[0]);
+
+		for (let i = 0, l = value.length, font; i < l; i++) {
+			fonts[(font = value[i]).getName()] = font;
+		}
+	};
+
+	/** @returns {?Font} */
+	this.getMainFont = () => mainFont;
+
+	/** @param {Font} value */
+	this.setMainFont = value => void (mainFont = value);
 
 	/** @returns {?Texture} */
 	this.getTexture = path => renderer.getTextures()[path];
-
-	/** @returns {Object<String, Subcomponent>} */
-	this.getFontSubcomponents = () => fontSubcomponents;
 
 	this.init = async function() {
 		camera.projectionMatrix = Matrix3
@@ -58,65 +83,42 @@ export function GUI(renderer, instance) {
 	};
 
 	/**
-	 * @todo Measure performance
-	 * 
-	 * @param {Object} fontData
-	 */
-	this.loadFontSubcomponents = function(fontData) {
-		fontData = Object.entries(fontData);
-
-		for (let i = 0, l = fontData.length, symbol, character; i < l; i++) {
-			[symbol, character] = fontData[i];
-
-			fontSubcomponents[symbol] = new Subcomponent({
-				size: new Vector2(character.width, 8),
-				offset: new Vector2(0, 0),
-				uv: new Vector2(...character.uv),
-			});
-		}
-	};
-
-	/**
 	 * Populates the component tree.
 	 * NOTE: Recursive.
 	 * 
 	 * @param {Component[]} children
 	 * @param {Object} options
-	 * @param {Boolean} [options.parent]
 	 * @param {Boolean} [options.addListeners=false]
 	 * @param {Boolean} [options.addToTree=false]
 	 */
-	this.addChildrenToRenderQueue = function(children, {parent, addListeners = false, addToTree = false}) {
-		const viewport = instance
-			.getViewport()
-			.divideScalar(instance.currentScale);
-
+	this.addChildrenToRenderQueue = function(children, {addListeners = false, addToTree = false}) {
 		for (let i = 0, l = children.length, component; i < l; i++) {
 			component = children[i];
 
-			if (parent) component.setParent(parent);
-			if (component instanceof StructuralComponent) {
-				component.computePosition(new Vector2(0, 0), viewport);
+			if (!(component instanceof StructuralComponent)) {
+				renderQueue.push(component);
 
-				this.addChildrenToRenderQueue(component.getChildren(), {
-					parent: component,
-					addListeners,
-					addToTree,
-				});
+				subcomponentCount += component.getSubcomponents().length;
+
+				if (component instanceof DynamicComponent) {
+					dynamicComponents.push(component);
+
+					if (addListeners) this.addListeners(component);
+				}
+				if (addToTree) tree.push(component);
 
 				continue;
 			}
 
-			renderQueue.push(component);
-			subcomponentCount += component.getSubcomponents().length;
-
-			if (addListeners && component instanceof DynamicComponent) this.addListeners(component);
-			if (addToTree) tree.push(component);
+			this.addChildrenToRenderQueue(component.getChildren(), {
+				addListeners,
+				addToTree,
+			});
 		}
 	};
 
 	/**
-	 * Initialize event listeners for the provided component.
+	 * Initializes the event listeners for the provided component.
 	 * 
 	 * @param {Component} component
 	 */
@@ -129,15 +131,15 @@ export function GUI(renderer, instance) {
 	};
 
 	/**
-	 * Discards event listeners for the provided component.
+	 * Discards event listeners for the provided components.
 	 * 
 	 * @param {Component[]} components
 	 */
 	this.removeListeners = function(components) {
 		for (let i = 0, l = components.length, component, listener; i < l; i++) {
-			component = components[i];
+			if (!(components[i] instanceof DynamicComponent)) continue;
 
-			if (!(component instanceof DynamicComponent)) continue;
+			component = components[i];
 
 			if (listener = component.getOnMouseDown()) instance.removeMouseDownListener(listener);
 			if (listener = component.getOnMouseEnter()) instance.removeMouseEnterListener(listener);
@@ -146,24 +148,21 @@ export function GUI(renderer, instance) {
 	};
 
 	/**
-	 * @todo Rework
-	 * 
 	 * Computes the absolute position for each component of the render queue.
 	 */
 	this.computeTree = function() {
-		for (
-			let i = 0,
-				l = renderQueue.length,
-				viewport = instance
-					.getViewport()
-					.divideScalar(instance.currentScale);
-			i < l;
-			i++
-		) renderQueue[i].computePosition(new Vector2(0, 0), viewport);
+		const viewport = instance
+			.getViewport()
+			.divideScalar(instance.currentScale);
+
+		for (let i = 0, l = rootComponents.length; i < l; i++) {
+			rootComponents[i].computePosition(new Vector2(0, 0), viewport);
+		}
 	};
 
+	/** @todo Better way to update the rendered texture */
 	this.render = function() {
-		renderer.render(renderQueue, camera, subcomponentCount);
+		renderer.render(renderQueue, subcomponentCount);
 
 		renderQueue.length = subcomponentCount = 0;
 
@@ -191,7 +190,6 @@ export function GUI(renderer, instance) {
 
 			if (component instanceof StructuralComponent) {
 				this.addChildrenToRenderQueue(component.getChildren(), {
-					parent: component,
 					addListeners: false,
 					addToTree: false,
 				});
@@ -218,12 +216,19 @@ export function GUI(renderer, instance) {
 	this.push = function(layer) {
 		layerStack.push(layer);
 
-		// Discard event listeners of previous layers
-		this.removeListeners(tree);
+		// Discard event listeners of `DynamicComponent` instances in the previous layers
+		this.removeListeners(dynamicComponents);
 
+		dynamicComponents.length = 0;
+
+		// Mark the tree length as the extraction index for this layer
 		lastInsertionIndices.push(tree.length);
+
 		subcomponentCount = 0;
-		this.addChildrenToRenderQueue(layer.build(this), {
+		const builtComponents = layer.build(this);
+		rootComponents.push(...builtComponents);
+
+		this.addChildrenToRenderQueue(builtComponents, {
 			addListeners: true,
 			addToTree: true,
 		});
@@ -233,10 +238,12 @@ export function GUI(renderer, instance) {
 	};
 
 	/**
-	 * Adds [component] to the render queue.
+	 * @todo Don't add groups directly to the queue
+	 * 
+	 * Adds the provided component to the render queue.
 	 * 
 	 * @param {Component} component
-	 * @returns {GUI}
+	 * @returns {GUIManager}
 	 */
 	this.pushToRenderQueue = function(component) {
 		renderQueue.push(component);
@@ -255,19 +262,16 @@ export function GUI(renderer, instance) {
 	 * If the layer stack is empty or contains one layer, nothing will be done.
 	 */
 	this.pop = function() {
-		if (layerStack.length === 0 || layerStack.length === 1) return;
+		if (layerStack.length === 0) throw Error("Could not pop: no layers registered.");
+		if (layerStack.length === 1) throw Error("Could not pop the only entry of the layer stack.");
 
-		const layer = layerStack.pop();
-		layer.dispose();
+		layerStack.pop().dispose();
 
-		const lastInsertion = lastInsertionIndices.pop();
+		this.removeListeners(dynamicComponents);
+		dynamicComponents.length = 0;
 
-		/** @todo Optimize event listener discard */
-		const componentsToDiscard = [...tree].splice(lastInsertion);
-		this.removeListeners(componentsToDiscard);
-
-		/** @todo Rework component removal */
-		tree = tree.slice(0, lastInsertion);
+		// Truncate the tree (remove the components from the popped layer)
+		tree.length = lastInsertionIndices.pop();
 
 		// Clear the render queue
 		renderQueue.length = 0;
@@ -282,6 +286,47 @@ export function GUI(renderer, instance) {
 		renderer.clear(); // Clear already rendered components
 		this.render();
 	};
+
+	this.dispose = () => renderer.dispose();
 }
 
-extend(GUI, RendererManager);
+extend(GUIManager, RendererManager);
+
+/**
+ * @todo Measure performance
+ * 
+ * @param {Font[]} fonts
+ */
+GUIManager.prototype.setupFonts = async function(fonts) {
+	/** @type {String} */
+	const fontPath = this.getInstance().getFontPath();
+
+	for (let i = 0, j, fl = fonts.length, font, data, dl, letterHeight, characters, symbol, character; i < fl; i++) {
+		font = fonts[i];
+
+		await font.load(fontPath);
+
+		data = Object.entries(font.getData());
+		letterHeight = font.getLetterHeight();
+		characters = {};
+
+		for (j = 0, dl = data.length; j < dl; j++) {
+			[symbol, character] = data[j];
+
+			characters[symbol] = new Subcomponent({
+				size: new Vector2(character.width, letterHeight),
+				offset: new Vector2(0, 0),
+				uv: new Vector2(character.uv[0], character.uv[1]),
+			});
+		}
+
+		font.setCharacters(characters);
+	}
+
+	this.setFonts(fonts);
+};
+
+/** @returns {?Font} */
+GUIManager.prototype.getFont = function(name) {
+	return this.getFonts()[name];
+};

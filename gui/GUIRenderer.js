@@ -1,7 +1,7 @@
+import {WebGLRenderer} from "../index.js";
 import {Matrix3, Vector2} from "../math/index.js";
 import {extend} from "../utils/index.js";
 import {Texture} from "../wrappers/index.js";
-import {WebGLRenderer} from "../WebGLRenderer.js";
 
 export function GUIRenderer() {
 	WebGLRenderer.call(this, {
@@ -103,24 +103,22 @@ export function GUIRenderer() {
 		gl.vertexAttribPointer(attributes.colorMaskWeight, 1, gl.FLOAT, false, 0, 0);
 		gl.vertexAttribDivisor(attributes.colorMaskWeight, 1);
 
-		{
-			let i, loc;
+		let i, loc;
 
-			gl.bindBuffer(gl.ARRAY_BUFFER, buffers.world);
+		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.world);
 
-			for (i = 0, loc = attributes.world; i < 3; i++, loc++) {
-				gl.enableVertexAttribArray(loc);
-				gl.vertexAttribPointer(loc, 3, gl.FLOAT, false, 36, i * 12);
-				gl.vertexAttribDivisor(loc, 1);
-			}
+		for (i = 0, loc = attributes.world; i < 3; i++, loc++) {
+			gl.enableVertexAttribArray(loc);
+			gl.vertexAttribPointer(loc, 3, gl.FLOAT, false, 36, i * 12);
+			gl.vertexAttribDivisor(loc, 1);
+		}
 
-			gl.bindBuffer(gl.ARRAY_BUFFER, buffers.texture);
+		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.texture);
 
-			for (i = 0, loc = attributes.texture; i < 3; i++, loc++) {
-				gl.enableVertexAttribArray(loc);
-				gl.vertexAttribPointer(loc, 3, gl.FLOAT, false, 36, i * 12);
-				gl.vertexAttribDivisor(loc, 1);
-			}
+		for (i = 0, loc = attributes.texture; i < 3; i++, loc++) {
+			gl.enableVertexAttribArray(loc);
+			gl.vertexAttribPointer(loc, 3, gl.FLOAT, false, 36, i * 12);
+			gl.vertexAttribDivisor(loc, 1);
 		}
 	};
 
@@ -156,12 +154,10 @@ export function GUIRenderer() {
 	};
 
 	/**
-	 * @todo Use the `camera` param
-	 * 
 	 * @override
 	 * @param {Number} subcomponentCount
 	 */
-	this.render = function(scene, camera, subcomponentCount) {
+	this.render = function(scene, subcomponentCount) {
 		const
 			gl = this.getContext(),
 			worlds = new Float32Array(subcomponentCount * 9),
@@ -173,6 +169,7 @@ export function GUIRenderer() {
 		for (let i = 0, j, k = 0, cl = scene.length, component, position, textureIndex = new Uint8Array(1), subcomponents, sl, subcomponent, size, world, texture; i < cl; i++) {
 			component = scene[i];
 			position = component.getPosition();
+
 			subcomponents = component.getSubcomponents();
 			textureIndex[0] = component.getTexture().getIndex();
 			sl = subcomponents.length;
