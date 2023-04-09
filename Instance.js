@@ -311,24 +311,14 @@ export function Instance({fontPath, shaderPath, texturePath}) {
 
 		gl.useProgram(program.getProgram());
 
-		gl.attribute = {
-			position: 0,
-		};
-		gl.buffer = {
-			position: gl.createBuffer(),
-		};
-		gl.uniform = {};
+		gl.attribute = {position: 0};
+		gl.buffer = {position: gl.createBuffer()};
 
 		gl.enableVertexAttribArray(gl.attribute.position);
 		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buffer.position);
 		gl.vertexAttribPointer(gl.attribute.position, 2, gl.FLOAT, false, 0, 0);
 
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-			1,  1,
-		   -1,  1,
-		   -1, -1,
-			1, -1,
-		]), gl.STATIC_DRAW);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([1, 1, -1, 1, -1, -1, 1, -1]), gl.STATIC_DRAW);
 	};
 
 	/**

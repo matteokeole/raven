@@ -133,11 +133,11 @@ export function WebGLRenderer({offscreen, generateMipmaps}) {
 	 */
 	this.createTextureArray = function(length) {
 		gl.bindTexture(gl.TEXTURE_2D_ARRAY, gl.createTexture());
-		gl.texStorage3D(gl.TEXTURE_2D_ARRAY, 8, gl.RGBA8, WebGLRenderer.MAX_TEXTURE_SIZE.x, WebGLRenderer.MAX_TEXTURE_SIZE.y, length);
 		gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 		generateMipmaps ?
 			gl.generateMipmap(gl.TEXTURE_2D_ARRAY) :
 			gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+		gl.texStorage3D(gl.TEXTURE_2D_ARRAY, 1, gl.RGBA8, WebGLRenderer.MAX_TEXTURE_SIZE.x, WebGLRenderer.MAX_TEXTURE_SIZE.y, length);
 	};
 
 	/**
@@ -153,16 +153,13 @@ export function WebGLRenderer({offscreen, generateMipmaps}) {
 	 * @throws {ReferenceError}
 	 */
 	this.loadTextures = async function(paths, basePath) {
-		const {length} = paths;
-		const image = new Image();
-		let textureSize = new Vector2(0, 0);
-
 		if (gl.getParameter(gl.TEXTURE_BINDING_2D_ARRAY) === null) {
 			throw ReferenceError("No texture array bound to the context");
 		}
 
-		for (let i = 0, path; i < length; i++) {
+		for (let i = 0, l = paths.length, path, image; i < l; i++) {
 			path = paths[i];
+			image = new Image();
 			image.src = `${basePath}${path}`;
 
 			try {
@@ -171,11 +168,8 @@ export function WebGLRenderer({offscreen, generateMipmaps}) {
 				continue;
 			}
 
-			textureSize.x = image.width;
-			textureSize.y = image.height;
-
-			if (textureSize.x > WebGLRenderer.MAX_TEXTURE_SIZE.x || textureSize.y > WebGLRenderer.MAX_TEXTURE_SIZE.y) {
-				throw RangeError("Image overflowing MAX_TEXTURE_SIZE");
+			if (image.width > WebGLRenderer.MAX_TEXTURE_SIZE.x || image.height > WebGLRenderer.MAX_TEXTURE_SIZE.y) {
+				throw RangeError(`Could not load '${path}': dimensions are overflowing MAX_TEXTURE_SIZE`);
 			}
 
 			gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, i, image.width, image.height, 1, gl.RGBA, gl.UNSIGNED_BYTE, image);
