@@ -1,12 +1,8 @@
-import {WebGLRenderer} from "./index.js";
+import {WebGLRenderer} from "../index.js";
+import {Vector2} from "../math/index.js";
 
-export function AbstractInstance() {
-	/**
-	 * @private
-	 * @type {?WebGLRenderer}
-	 */
-	let renderer;
-
+/** @param {WebGLRenderer} renderer */
+export function AbstractInstance(renderer) {
 	/**
 	 * @private
 	 * @type {?WebGL2RenderingContext}
@@ -24,23 +20,32 @@ export function AbstractInstance() {
 
 	/**
 	 * @private
+	 * @type {RendererComposite[]}
+	 */
+	const composites = [];
+
+	/**
+	 * @private
+	 * @type {Number}
+	 */
+	let compositeCount = 0;
+
+	/**
+	 * @private
 	 * @type {?Number}
 	 */
 	let animationFrameRequestId;
 
+	let a = 0;
+
 	/** @private */
-	function loop() {
+	const loop = function() {
 		animationFrameRequestId = requestAnimationFrame(loop);
 
-		render();
-	}
+		/** @todo `renderer.update()`? */
 
-	/** @private */
-	function render() {
-		/** @todo Get the number of canvas textures */
-
-		gl.drawArraysInstanced(gl.TRIANGLE_FAN, 0, 4, _);
-	}
+		renderer.render();
+	}.bind(this);
 
 	/** @returns {?WebGLRenderer} */
 	this.getRenderer = () => renderer;
@@ -57,19 +62,31 @@ export function AbstractInstance() {
 	 */
 	this.setParameter = (name, value) => void (parameters[name] = value);
 
-	this.build = function() {
-		renderer = new WebGLRenderer();
-		renderer.build();
+	/** @param {RendererComposite[]} rendererComposites */
+	this.setComposites = function(rendererComposites) {
+		compositeCount = rendererComposites.length;
 
-		gl = renderer.getContext();
-		// gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-		// gl.enable(gl.BLEND);
-		// gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+		for (let i = 0; i < compositeCount; i++) composites.push(rendererComposites[i]);
+	};
 
-		/** @todo Set renderer viewport */
+	this.build = async function() {
+		await renderer.build(this.getParameter("shader_path"));
+
+		const viewport = new Vector2(innerWidth, innerHeight).multiplyScalar(devicePixelRatio);
+
+		renderer.setViewport(viewport);
+
+		for (let i = 0, renderer; i < compositeCount; i++) {
+			renderer = composites[i].getRenderer();
+
+			renderer.build();
+			renderer.setViewport(viewport);
+		}
+
 		/** @todo Set event listeners on canvas */
 	};
 
+	/** @todo Start the loop with `requestAnimationFrame` */
 	this.run = loop;
 
 	this.pause = function() {
@@ -83,7 +100,8 @@ export function AbstractInstance() {
 
 		/** @todo Dispose renderer composites */
 
+		gl = null;
+
 		renderer.dispose();
-		renderer = gl = null;
 	};
 }

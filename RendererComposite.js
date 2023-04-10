@@ -4,7 +4,7 @@ import {Instance, WebGLRenderer} from "./index.js";
  * @param {WebGLRenderer} renderer
  * @param {Instance} instance
  */
-export function RendererManager(renderer, instance) {
+export function RendererComposite(renderer, instance) {
 	/** @returns {WebGLRenderer} */
 	this.getRenderer = () => renderer;
 
@@ -13,10 +13,10 @@ export function RendererManager(renderer, instance) {
 }
 
 /** @abstract */
-RendererManager.prototype.init;
+RendererComposite.prototype.init;
 
 /** @abstract */
-RendererManager.prototype.render;
+RendererComposite.prototype.render;
 
 /** @abstract */
-RendererManager.prototype.resize;
+RendererComposite.prototype.resize;

@@ -9,17 +9,17 @@ export function GUIRenderer() {
 		generateMipmaps: false,
 	});
 
-	/** @type {Object<String, Number>} */
-	let attributes;
+	/** @type {Object.<String, Number>} */
+	const attributes = {};
 
-	/** @type {Object<String, WebGLUniformLocation>} */
-	let uniforms;
+	/** @type {Object.<String, WebGLUniformLocation>} */
+	const uniforms = {};
 
-	/** @type {Object<String, WebGLBuffer>} */
-	let buffers;
+	/** @type {Object.<String, WebGLBuffer>} */
+	const buffers = {};
 
-	/** @type {Object<String, WebGLVertexArrayObject>} */
-	let vaos;
+	/** @type {Object.<String, WebGLVertexArrayObject>} */
+	const vaos = {};
 
 	/**
 	 * @todo Rework parameters
@@ -30,44 +30,28 @@ export function GUIRenderer() {
 	this.init = async function(shaderPath, projectionMatrix) {
 		const gl = this.getContext();
 
-		/**
-		 * Load component program
-		 * 
-		 * @type {Program}
-		 */
-		const program = await this.loadProgram(
-			"subcomponent.vert",
-			"subcomponent.frag",
-			shaderPath,
-		);
+		/** @type {Program} */
+		const program = await this.loadProgram("subcomponent.vert", "subcomponent.frag", shaderPath);
 
 		this.linkProgram(program);
 		gl.useProgram(program.getProgram());
 		gl.enable(gl.BLEND);
 		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-		attributes = {
-			position: 0,
-			world: 1,
-			textureIndex: 4,
-			texture: 5,
-			colorMask: 8,
-			colorMaskWeight: 9,
-		};
-		uniforms = {
-			projection: gl.getUniformLocation(program.getProgram(), "u_projection"),
-		};
-		buffers = {
-			position: gl.createBuffer(),
-			world: gl.createBuffer(),
-			textureIndex: gl.createBuffer(),
-			texture: gl.createBuffer(),
-			colorMask: gl.createBuffer(),
-			colorMaskWeight: gl.createBuffer(),
-		};
-		vaos = {
-			main: gl.createVertexArray(),
-		};
+		attributes.position = 0;
+		attributes.world = 1;
+		attributes.textureIndex = 4;
+		attributes.texture = 5;
+		attributes.colorMask = 8;
+		attributes.colorMaskWeight = 9;
+		uniforms.projection = gl.getUniformLocation(program.getProgram(), "u_projection");
+		buffers.position = gl.createBuffer();
+		buffers.world = gl.createBuffer();
+		buffers.textureIndex = gl.createBuffer();
+		buffers.texture = gl.createBuffer();
+		buffers.colorMask = gl.createBuffer();
+		buffers.colorMaskWeight = gl.createBuffer();
+		vaos.main = gl.createVertexArray();
 
 		gl.bindVertexArray(vaos.main);
 

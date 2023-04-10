@@ -2,21 +2,21 @@ import {Component, DynamicComponent, GUIRenderer, Layer, Subcomponent, Structura
 import {OrthographicCamera} from "../cameras/index.js";
 import {Matrix3, Vector2} from "../math/index.js";
 import {extend} from "../utils/index.js";
-import {Font, RendererManager} from "../index.js";
+import {Font, RendererComposite} from "../index.js";
 
 /**
- * @extends RendererManager
+ * @extends RendererComposite
  * @param {GUIRenderer} renderer
  * @param {Instance} instance Reference to the current instance, used for updating the canvas texture, registering listeners and manipulating the GUI scale.
  */
-export function GUIManager(renderer, instance) {
-	RendererManager.call(this, renderer, instance);
+export function GUIComposite(renderer, instance) {
+	RendererComposite.call(this, renderer, instance);
 
 	/** @type {Number} */
 	let subcomponentCount = 0;
 
 	/** @type {Camera} */
-	const camera = new OrthographicCamera(instance.getViewport());
+	const camera = new OrthographicCamera(instance.getRenderer().getViewport());
 
 	/** @type {Layer[]} */
 	const layerStack = [];
@@ -44,7 +44,7 @@ export function GUIManager(renderer, instance) {
 	/** @type {Number[]} */
 	const lastInsertionIndices = [];
 
-	/** @type {Object<String, Font>} */
+	/** @type {Object.<String, Font>} */
 	const fonts = {};
 
 	/** @type {?Font} */
@@ -53,7 +53,7 @@ export function GUIManager(renderer, instance) {
 	/** @returns {Instance} */
 	this.getInstance = () => instance;
 
-	/** @returns {Object<String, Font>} */
+	/** @returns {Object.<String, Font>} */
 	this.getFonts = () => fonts;
 
 	/** @param {Font[]} value */
@@ -243,7 +243,7 @@ export function GUIManager(renderer, instance) {
 	 * Adds the provided component to the render queue.
 	 * 
 	 * @param {Component} component
-	 * @returns {GUIManager}
+	 * @returns {GUIComposite}
 	 */
 	this.pushToRenderQueue = function(component) {
 		renderQueue.push(component);
@@ -290,14 +290,14 @@ export function GUIManager(renderer, instance) {
 	this.dispose = () => renderer.dispose();
 }
 
-extend(GUIManager, RendererManager);
+extend(GUIComposite, RendererComposite);
 
 /**
  * @todo Measure performance
  * 
  * @param {Font[]} fonts
  */
-GUIManager.prototype.setupFonts = async function(fonts) {
+GUIComposite.prototype.setupFonts = async function(fonts) {
 	/** @type {String} */
 	const fontPath = this.getInstance().getFontPath();
 
@@ -327,6 +327,6 @@ GUIManager.prototype.setupFonts = async function(fonts) {
 };
 
 /** @returns {?Font} */
-GUIManager.prototype.getFont = function(name) {
+GUIComposite.prototype.getFont = function(name) {
 	return this.getFonts()[name];
 };
