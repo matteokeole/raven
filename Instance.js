@@ -45,13 +45,6 @@ export function Instance({fontPath, shaderPath, texturePath}) {
 	 */
 	let animationRequestId;
 
-	/**
-	 * Returns `true` if the instance canvas has been added to the DOM, `false` otherwise.
-	 * 
-	 * @type {Boolean}
-	 */
-	let hasBeenBuilt = false;
-
 	/** @todo Replace by Set or Map */
 	let mouseEnterListeners = [],
 		mouseEnterListenerCount = 0,
@@ -175,7 +168,6 @@ export function Instance({fontPath, shaderPath, texturePath}) {
 		const canvas = outputRenderer.getCanvas();
 
 		document.body.appendChild(canvas);
-		hasBeenBuilt = true;
 
 		try {
 			this.resizeObserver.observe(canvas, {box: "device-pixel-content-box"});
@@ -191,8 +183,6 @@ export function Instance({fontPath, shaderPath, texturePath}) {
 			mouseMoveListener();
 		};
 	};
-
-	this.hasBeenBuilt = () => hasBeenBuilt;
 
 	/**
 	 * Setups the instance renderer managers.
