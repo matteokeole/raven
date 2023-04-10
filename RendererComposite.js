@@ -5,11 +5,23 @@ import {Instance, WebGLRenderer} from "./index.js";
  * @param {Instance} instance
  */
 export function RendererComposite(renderer, instance) {
+	/**
+	 * @private
+	 * @type {?Number}
+	 */
+	let index;
+
 	/** @returns {WebGLRenderer} */
 	this.getRenderer = () => renderer;
 
 	/** @returns {Instance} */
 	this.getInstance = () => instance;
+
+	/** @returns {?Number} */
+	this.getIndex = () => index;
+
+	/** @param {Number} value */
+	this.setIndex = value => void (index = value);
 }
 
 /** @abstract */

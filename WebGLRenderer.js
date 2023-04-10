@@ -181,7 +181,6 @@ WebGLRenderer.prototype.createTextureArray = function(length) {
  * 
  * Asynchronous texture loader.
  * Loads a list of sources in a `WebGLTexture` array.
- * Uses `gl.RGBA` color format.
  * 
  * @param {String[]} paths
  * @param {String} basePath

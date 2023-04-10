@@ -30,13 +30,19 @@ export function AbstractInstance(renderer) {
 	 */
 	let compositeCount = 0;
 
+	const compositeTextures = [];
+
 	/**
 	 * @private
 	 * @type {?Number}
 	 */
 	let animationFrameRequestId;
 
-	let a = 0;
+	/**
+	 * @private
+	 * @type {Boolean}
+	 */
+	let running = false;
 
 	/** @private */
 	const loop = function() {
@@ -66,8 +72,23 @@ export function AbstractInstance(renderer) {
 	this.setComposites = function(rendererComposites) {
 		compositeCount = rendererComposites.length;
 
-		for (let i = 0; i < compositeCount; i++) composites.push(rendererComposites[i]);
+		for (let i = 0, composite; i < compositeCount; i++) {
+			composite = rendererComposites[i];
+			composite.setIndex(i);
+
+			composites.push(composite);
+		}
 	};
+
+	/**
+	 * @param {Number} index
+	 * @param {OffscreenCanvas} texture
+	 */
+	this.setCompositeTexture = function(index, texture) {
+		const gl = renderer.getContext();
+
+		// gl.texSubImage3D();
+	}
 
 	this.build = async function() {
 		await renderer.build(this.getParameter("shader_path"));
@@ -86,21 +107,35 @@ export function AbstractInstance(renderer) {
 		/** @todo Set event listeners on canvas */
 	};
 
-	/** @todo Start the loop with `requestAnimationFrame` */
-	this.run = loop;
+	/**
+	 * @todo Start the loop with `requestAnimationFrame`
+	 * 
+	 * @throws {Error}
+	 */
+	this.run = function() {
+		if (running) throw Error("This instance is already running.");
 
+		running = true;
+
+		loop();
+	};
+
+	/** @throws {Error} */
 	this.pause = function() {
+		if (!running) throw Error("This instance is already paused.");
+
 		cancelAnimationFrame(animationFrameRequestId);
 
 		animationFrameRequestId = null;
+		running = false;
 	};
 
 	this.dispose = function() {
-		this.pause();
-
-		/** @todo Dispose renderer composites */
+		if (running) this.pause();
 
 		gl = null;
+
+		for (let i = 0; i < compositeCount; i++) composites[i].getRenderer().dispose();
 
 		renderer.dispose();
 	};
