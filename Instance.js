@@ -130,9 +130,6 @@ export function Instance({fontPath, shaderPath, texturePath}) {
 	 */
 	let pointerPosition = new Vector2(0, 0);
 
-	/**
-	 * @throws {NoWebGL2Error}
-	 */
 	this.build = function() {
 		outputRenderer.build();
 		const dpr = devicePixelRatio;
@@ -199,7 +196,7 @@ export function Instance({fontPath, shaderPath, texturePath}) {
 			renderer.build();
 			renderer.setViewport(viewport);
 
-			await rendererComposite.init();
+			await rendererComposite.build();
 
 			this.renderers.push(rendererComposite);
 			rendererTextures.push(this.createOutputTexture());

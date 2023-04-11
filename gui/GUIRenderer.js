@@ -9,25 +9,19 @@ export function GUIRenderer() {
 		generateMipmaps: false,
 	});
 
-	/** @type {Object.<String, Number>} */
+	const _build = this.build;
 	const attributes = {};
-
-	/** @type {Object.<String, WebGLUniformLocation>} */
 	const uniforms = {};
-
-	/** @type {Object.<String, WebGLBuffer>} */
 	const buffers = {};
-
-	/** @type {Object.<String, WebGLVertexArrayObject>} */
 	const vaos = {};
 
 	/**
-	 * @todo Rework parameters
-	 * 
 	 * @param {String} shaderPath Instance shader path
 	 * @param {Matrix3} projectionMatrix
 	 */
-	this.init = async function(shaderPath, projectionMatrix) {
+	this.build = async function(shaderPath, projectionMatrix) {
+		_build();
+
 		const gl = this.getContext();
 
 		/** @type {Program} */
@@ -68,12 +62,7 @@ export function GUIRenderer() {
 		// Setup quad vertex positions
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
 		gl.vertexAttribPointer(attributes.position, 2, gl.FLOAT, false, 0, 0);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-			0, 0,
-			1, 0,
-			1, 1,
-			0, 1,
-		]), gl.STATIC_DRAW);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 1, 0, 1, 1, 0, 1]), gl.STATIC_DRAW);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureIndex);
 		gl.vertexAttribIPointer(attributes.textureIndex, 1, gl.UNSIGNED_BYTE, false, 0, 0);

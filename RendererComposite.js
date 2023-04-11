@@ -25,7 +25,7 @@ export function RendererComposite(renderer, instance) {
 }
 
 /** @abstract */
-RendererComposite.prototype.init;
+RendererComposite.prototype.build;
 
 /** @abstract */
 RendererComposite.prototype.render;

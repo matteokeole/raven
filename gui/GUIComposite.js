@@ -74,12 +74,14 @@ export function GUIComposite(renderer, instance) {
 	/** @returns {?Texture} */
 	this.getTexture = path => renderer.getTextures()[path];
 
-	this.init = async function() {
-		camera.projectionMatrix = Matrix3
-			.projection(instance.getViewport())
-			.scale(new Vector2(instance.currentScale, instance.currentScale));
+	this.build = async function() {
+		const scale = instance.getParameter("current_scale");
 
-		await renderer.init(instance.getShaderPath(), camera.projectionMatrix);
+		camera.projectionMatrix = Matrix3
+			.projection(instance.getRenderer().getViewport())
+			.scale(new Vector2(scale, scale));
+
+		await renderer.build(instance.getParameter("shader_path"), camera.projectionMatrix);
 	};
 
 	/**
@@ -125,9 +127,9 @@ export function GUIComposite(renderer, instance) {
 	this.addListeners = function(component) {
 		let listener;
 
-		if (listener = component.getOnMouseDown()) instance.addMouseDownListener(listener);
-		if (listener = component.getOnMouseEnter()) instance.addMouseEnterListener(listener);
-		if (listener = component.getOnMouseLeave()) instance.addMouseLeaveListener(listener);
+		// if (listener = component.getOnMouseDown()) instance.addMouseDownListener(listener);
+		// if (listener = component.getOnMouseEnter()) instance.addMouseEnterListener(listener);
+		// if (listener = component.getOnMouseLeave()) instance.addMouseLeaveListener(listener);
 	};
 
 	/**
@@ -152,6 +154,7 @@ export function GUIComposite(renderer, instance) {
 	 */
 	this.computeTree = function() {
 		const viewport = instance
+			.getRenderer()
 			.getViewport()
 			.divideScalar(instance.currentScale);
 
@@ -166,7 +169,7 @@ export function GUIComposite(renderer, instance) {
 
 		renderQueue.length = subcomponentCount = 0;
 
-		instance.setCompositeTexture(this.getIndex(), renderer.getCanvas());
+		instance.updateCompositeTexture(this.getIndex(), renderer.getCanvas());
 	};
 
 	/**
@@ -176,10 +179,12 @@ export function GUIComposite(renderer, instance) {
 	 * @param {Vector2} viewport
 	 */
 	this.resize = function(viewport) {
+		const scale = instance.getParameter("current_scale");
+
 		/** @todo Replace by `OrthographicCamera.updateProjectionMatrix` */
 		camera.projectionMatrix = Matrix3
 			.projection(viewport)
-			.scale(new Vector2(instance.currentScale, instance.currentScale));
+			.scale(new Vector2(scale, scale));
 
 		renderer.resize(viewport, camera.projectionMatrix);
 		subcomponentCount = 0;

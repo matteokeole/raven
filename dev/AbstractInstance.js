@@ -52,7 +52,7 @@ export function AbstractInstance(renderer) {
 
 		/** @todo `renderer.update()`? */
 
-		renderer.render();
+		renderer.render(compositeCount);
 	}.bind(this);
 
 	/** @returns {?WebGLRenderer} */
@@ -86,7 +86,7 @@ export function AbstractInstance(renderer) {
 	 * @param {Number} index
 	 * @param {OffscreenCanvas} texture
 	 */
-	this.setCompositeTexture = function(index, texture) {
+	this.updateCompositeTexture = function(index, texture) {
 		const gl = renderer.getContext();
 
 		gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, index, texture.clientWidth, texture.clientHeight, 1, gl.RGBA, gl.UNSIGNED_BYTE, texture);
@@ -103,11 +103,11 @@ export function AbstractInstance(renderer) {
 
 		renderer.setViewport(viewport);
 
-		for (let i = 0, renderer; i < compositeCount; i++) {
-			renderer = composites[i].getRenderer();
+		for (let i = 0, composite; i < compositeCount; i++) {
+			composite = composites[i];
 
-			renderer.build();
-			renderer.setViewport(viewport);
+			composite.build();
+			composite.getRenderer().setViewport(viewport);
 		}
 
 		/** @todo Set event listeners on canvas */
@@ -137,6 +137,7 @@ export function AbstractInstance(renderer) {
 	};
 
 	this.dispose = function() {
+		if (gl === null) return console.log("This exception occurred before building the instance.");
 		if (running) this.pause();
 
 		gl = null;

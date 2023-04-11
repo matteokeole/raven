@@ -239,5 +239,9 @@ WebGLRenderer.prototype.clear = function() {
  */
 WebGLRenderer.prototype.resize;
 
-/** @type {Vector2} */
+/**
+ * @todo Rework
+ * 
+ * @type {Vector2}
+ */
 WebGLRenderer.MAX_TEXTURE_SIZE = new Vector2(256, 256);
