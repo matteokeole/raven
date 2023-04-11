@@ -152,16 +152,16 @@ export function GUIRenderer() {
 				subcomponent = subcomponents[j];
 				size = subcomponent.getSize();
 				world = Matrix3
-					.translate(position.add(subcomponent.getOffset()))
-					.scale(size);
+					.translation(position.add(subcomponent.getOffset()))
+					.multiply(Matrix3.scale(size));
 				texture = Matrix3
-					.translate(subcomponent.getUV().divide(WebGLRenderer.MAX_TEXTURE_SIZE))
-					.scale(size.divide(WebGLRenderer.MAX_TEXTURE_SIZE));
+					.translation(subcomponent.getUV().divide(WebGLRenderer.MAX_TEXTURE_SIZE))
+					.multiply(Matrix3.scale(size.divide(WebGLRenderer.MAX_TEXTURE_SIZE)));
 
 				worlds.set(world, k * 9);
 				textureIndices.set(textureIndex, k);
 				textures.set(texture, k * 9);
-				colorMasks.set(subcomponent.getColorMask().toArray(), k * 3);
+				colorMasks.set(subcomponent.getColorMask(), k * 3);
 				colorMaskWeights.set([subcomponent.getColorMaskWeight()], k);
 			}
 		}

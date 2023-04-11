@@ -77,10 +77,12 @@ export function WebGLRenderer({offscreen, generateMipmaps}) {
 
 	/** @param {Vector2} newViewport */
 	this.setViewport = function(newViewport) {
-		canvas.width = viewport.x = newViewport.x;
-		canvas.height = viewport.y = newViewport.y;
+		viewport.set(newViewport);
 
-		gl.viewport(0, 0, viewport.x, viewport.y);
+		canvas.width = viewport[0];
+		canvas.height = viewport[1];
+
+		gl.viewport(0, 0, viewport[0], viewport[1]);
 	};
 
 	/**
@@ -173,7 +175,7 @@ WebGLRenderer.prototype.createTextureArray = function(length) {
 	this.generateMipmaps ?
 		gl.generateMipmap(gl.TEXTURE_2D_ARRAY) :
 		gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-	gl.texStorage3D(gl.TEXTURE_2D_ARRAY, 1, gl.RGBA8, WebGLRenderer.MAX_TEXTURE_SIZE.x, WebGLRenderer.MAX_TEXTURE_SIZE.y, length);
+	gl.texStorage3D(gl.TEXTURE_2D_ARRAY, 1, gl.RGBA8, WebGLRenderer.MAX_TEXTURE_SIZE[0], WebGLRenderer.MAX_TEXTURE_SIZE[1], length);
 };
 
 /**
@@ -208,7 +210,7 @@ WebGLRenderer.prototype.loadTextures = async function(paths, basePath) {
 			continue;
 		}
 
-		if (image.width > WebGLRenderer.MAX_TEXTURE_SIZE.x || image.height > WebGLRenderer.MAX_TEXTURE_SIZE.y) {
+		if (image.width > WebGLRenderer.MAX_TEXTURE_SIZE[0] || image.height > WebGLRenderer.MAX_TEXTURE_SIZE[1]) {
 			throw RangeError(`Could not load '${path}': dimensions are overflowing MAX_TEXTURE_SIZE`);
 		}
 

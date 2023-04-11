@@ -78,8 +78,8 @@ export function GUIComposite(renderer, instance) {
 		const scale = instance.getParameter("current_scale");
 
 		camera.projectionMatrix = Matrix3
-			.projection(instance.getRenderer().getViewport())
-			.scale(new Vector2(scale, scale));
+			.orthographic(instance.getRenderer().getViewport())
+			.multiply(Matrix3.scale(new Vector2(scale, scale)));
 
 		await renderer.build(instance.getParameter("shader_path"), camera.projectionMatrix);
 	};

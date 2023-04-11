@@ -21,13 +21,13 @@ export function StructuralComponent({children}) {
 			case Component.alignCenterTop:
 			case Component.alignCenter:
 			case Component.alignCenterBottom:
-				initial.x += o.x * .5;
+				initial[0] += o[0] * .5;
 
 				break;
 			case Component.alignRightTop:
 			case Component.alignRightCenter:
 			case Component.alignRightBottom:
-				initial.x = o.x - m.x;
+				initial[0] = o[0] - m[0];
 
 				break;
 		}
@@ -36,18 +36,18 @@ export function StructuralComponent({children}) {
 			case Component.alignLeftCenter:
 			case Component.alignCenter:
 			case Component.alignRightCenter:
-				initial.y += o.y * .5;
+				initial[1] += o[1] * .5;
 
 				break;
 			case Component.alignLeftBottom:
 			case Component.alignCenterBottom:
 			case Component.alignRightBottom:
-				initial.y = o.y - m.y;
+				initial[1] = o[1] - m[1];
 
 				break;
 		}
 
-		this.setPosition(initial.floor32());
+		this.setPosition(initial.floor());
 
 		const position = this.getPosition();
 		const children = this.getChildren();

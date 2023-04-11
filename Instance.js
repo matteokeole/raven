@@ -88,12 +88,8 @@ export function Instance({fontPath, shaderPath, texturePath}) {
 	/** @returns {String} */
 	this.getTexturePath = () => texturePath;
 
-	/**
-	 * Cached values of `window.innerWidth` and `window.innerHeight`.
-	 * 
-	 * @type {Vector2}
-	 */
-	let viewport = new Vector2(0, 0);
+	/** @type {Vector2} */
+	const viewport = new Vector2();
 
 	/**
 	 * @returns {Vector2}
@@ -132,10 +128,8 @@ export function Instance({fontPath, shaderPath, texturePath}) {
 
 	this.build = function() {
 		outputRenderer.build();
-		const dpr = devicePixelRatio;
-		viewport.x = innerWidth * dpr;
-		viewport.y = innerHeight * dpr;
-		viewport = viewport.floor32();
+		viewport.set([innerWidth, innerHeight]);
+		viewport.multiplyScalar(devicePixelRatio).floor();
 		outputRenderer.setViewport(viewport);
 
 		this.resizeObserver = new ResizeObserver(([entry]) => {
@@ -210,7 +204,7 @@ export function Instance({fontPath, shaderPath, texturePath}) {
 	 */
 	this.createOutputTexture = function() {
 		const gl = outputRenderer.getContext();
-		let texture = gl.createTexture();
+		const texture = gl.createTexture();
 
 		gl.bindTexture(gl.TEXTURE_2D, texture);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); // No mipmaps
@@ -231,19 +225,17 @@ export function Instance({fontPath, shaderPath, texturePath}) {
 			/** @type {Vector2} */
 			const newViewport = new Vector2(width, height)
 				.multiplyScalar(dpr)
-				.floor32();
+				.floor();
 
-			outputRenderer.setViewport(newViewport);
-
-			viewport.x = newViewport.x;
-			viewport.y = newViewport.y;
+			viewport.set(newViewport);
+			outputRenderer.setViewport(viewport);
 		}
 
 		// Calculate scale multiplier
 		let i = 1;
 		while (
-			viewport.x > DEFAULT_WIDTH * dpr * i &&
-			viewport.y > DEFAULT_HEIGHT * dpr * i
+			viewport[0] > DEFAULT_WIDTH * dpr * i &&
+			viewport[1] > DEFAULT_HEIGHT * dpr * i
 		) i++;
 
 		this.currentScale = clampUp(this.desiredScale, this.maxScale = clampDown(i - 1, 1));

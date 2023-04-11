@@ -1,3 +1,4 @@
+export {AbstractInstance} from "./AbstractInstance.js";
 export {Font} from "./Font.js";
 export {Instance} from "./Instance.js";
 export {RendererComposite} from "./RendererComposite.js";

@@ -1,5 +1,5 @@
-import {WebGLRenderer} from "../index.js";
-import {Vector2} from "../math/index.js";
+import {WebGLRenderer} from "./index.js";
+import {Vector2} from "./math/index.js";
 
 /** @param {WebGLRenderer} renderer */
 export function AbstractInstance(renderer) {
@@ -8,15 +8,6 @@ export function AbstractInstance(renderer) {
 	 * @type {?WebGL2RenderingContext}
 	 */
 	let gl;
-
-	/**
-	 * @private
-	 * @type {Object.<String, *>}
-	 */
-	const parameters = {
-		frames_per_second: 60,
-		resize_delay: 50,
-	};
 
 	/**
 	 * @private
@@ -30,9 +21,14 @@ export function AbstractInstance(renderer) {
 	 */
 	let compositeCount = 0;
 
-	const compositeTextures = [];
-
-	const compositeTextureIndices = new Uint8Array();
+	/**
+	 * @private
+	 * @type {Object.<String, *>}
+	 */
+	const parameters = {
+		frames_per_second: 60,
+		resize_delay: 50,
+	};
 
 	/**
 	 * @private
@@ -46,14 +42,11 @@ export function AbstractInstance(renderer) {
 	 */
 	let running = false;
 
-	/** @private */
-	const loop = function() {
+	function loop() {
 		animationFrameRequestId = requestAnimationFrame(loop);
 
-		/** @todo `renderer.update()`? */
-
-		renderer.render(compositeCount);
-	}.bind(this);
+		renderer.render();
+	}
 
 	/** @returns {?WebGLRenderer} */
 	this.getRenderer = () => renderer;
@@ -86,18 +79,11 @@ export function AbstractInstance(renderer) {
 	 * @param {Number} index
 	 * @param {OffscreenCanvas} texture
 	 */
-	this.updateCompositeTexture = function(index, texture) {
-		const gl = renderer.getContext();
-
-		gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, index, texture.clientWidth, texture.clientHeight, 1, gl.RGBA, gl.UNSIGNED_BYTE, texture);
-	}
+	this.updateCompositeTexture = (index, texture) => renderer.setTexture(index, texture);
 
 	this.build = async function() {
-		await renderer.build(
-			this.getParameter("shader_path"),
-			new Vector2(screen.width, screen.height),
-			compositeCount,
-		);
+		renderer.setCompositeCount(compositeCount);
+		await renderer.build(this.getParameter("shader_path"));
 
 		const viewport = new Vector2(innerWidth, innerHeight).multiplyScalar(devicePixelRatio);
 
@@ -106,7 +92,7 @@ export function AbstractInstance(renderer) {
 		for (let i = 0, composite; i < compositeCount; i++) {
 			composite = composites[i];
 
-			composite.build();
+			await composite.build();
 			composite.getRenderer().setViewport(viewport);
 		}
 
