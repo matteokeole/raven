@@ -79,10 +79,12 @@ export function WebGLRenderer({offscreen, generateMipmaps}) {
 	this.setViewport = function(newViewport) {
 		viewport.set(newViewport);
 
-		canvas.width = viewport[0];
-		canvas.height = viewport[1];
-
-		gl.viewport(0, 0, viewport[0], viewport[1]);
+		gl.viewport(
+			0,
+			0,
+			canvas.width = viewport[0],
+			canvas.height = viewport[1],
+		);
 	};
 
 	/**
@@ -234,12 +236,6 @@ WebGLRenderer.prototype.clear = function() {
 
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 };
-
-/**
- * @abstract
- * @param {Vector2} viewport
- */
-WebGLRenderer.prototype.resize;
 
 /**
  * @todo Rework

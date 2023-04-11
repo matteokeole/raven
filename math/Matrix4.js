@@ -176,7 +176,7 @@ Matrix4.orthographic = function(v) {
 
 	return new Matrix4(
 		2 / v[0], 0, 0, 0,
-		0, 2 / v[1], 0, 0,
+		0, -2 / v[1], 0, 0,
 		0, 0, 2 / v[2], 0,
 		-1, 1, 0, 1,
 	);

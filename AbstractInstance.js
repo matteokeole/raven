@@ -17,12 +17,15 @@ export function AbstractInstance(renderer) {
 
 	/**
 	 * @private
+	 * @type {?ResizeObserver}
+	 */
+	let resizeObserver;
+
+	/**
+	 * @private
 	 * @type {Object.<String, *>}
 	 */
-	const parameters = {
-		// frames_per_second: 60,
-		// resize_delay: 50,
-	};
+	const parameters = {};
 
 	/**
 	 * @private
@@ -34,10 +37,16 @@ export function AbstractInstance(renderer) {
 	 * @private
 	 * @type {Boolean}
 	 */
+	let isFirstResize = true;
+
+	/**
+	 * @private
+	 * @type {Boolean}
+	 */
 	let running = false;
 
 	function loop() {
-		// animationFrameRequestId = requestAnimationFrame(loop);
+		animationFrameRequestId = requestAnimationFrame(loop);
 
 		renderer.render();
 	}
@@ -45,17 +54,8 @@ export function AbstractInstance(renderer) {
 	/** @returns {WebGLRenderer} */
 	this.getRenderer = () => renderer;
 
-	/**
-	 * @param {String} name
-	 * @returns {*}
-	 */
-	this.getParameter = name => parameters[name];
-
-	/**
-	 * @param {String} name
-	 * @param {*} value
-	 */
-	this.setParameter = (name, value) => void (parameters[name] = value);
+	/** @returns {RendererComposite[]} */
+	this.getComposites = () => composites;
 
 	/** @param {RendererComposite[]} _composites */
 	this.setComposites = function(_composites) {
@@ -69,11 +69,26 @@ export function AbstractInstance(renderer) {
 		}
 	};
 
+	/** @param {ResizeObserver} value */
+	this.setResizeObserver = value => void (resizeObserver = value);
+
 	/**
-	 * @param {Number} index
-	 * @param {OffscreenCanvas} texture
+	 * @param {String} name
+	 * @returns {*}
 	 */
-	this.updateCompositeTexture = (index, texture) => renderer.setTexture(index, texture);
+	this.getParameter = name => parameters[name];
+
+	/**
+	 * @param {String} name
+	 * @param {*} value
+	 */
+	this.setParameter = (name, value) => void (parameters[name] = value);
+
+	/** @returns {Boolean} */
+	this.getIsFirstResize = () => isFirstResize;
+
+	/** @param {Boolean} value */
+	this.setIsFirstResize = value => void (isFirstResize = value);
 
 	this.build = async function() {
 		renderer.setCompositeCount(compositeCount);
@@ -88,6 +103,15 @@ export function AbstractInstance(renderer) {
 
 			await composite.build();
 			composite.getRenderer().setViewport(viewport);
+		}
+
+		if (resizeObserver) {
+			try {
+				resizeObserver.observe(renderer.getCanvas(), {box: "device-pixel-content-box"});
+			} catch (error) {
+				// Try again with "content-box" if "device-pixel-content-box" isn't defined
+				resizeObserver.observe(renderer.getCanvas(), {box: "content-box"});
+			}
 		}
 
 		/** @todo Set event listeners on canvas */
@@ -115,6 +139,12 @@ export function AbstractInstance(renderer) {
 		animationFrameRequestId = null;
 		running = false;
 	};
+
+	/**
+	 * @param {Number} index
+	 * @param {OffscreenCanvas} texture
+	 */
+	this.updateCompositeTexture = (index, texture) => renderer.setTexture(index, texture);
 
 	this.dispose = function() {
 		if (running) this.pause();
