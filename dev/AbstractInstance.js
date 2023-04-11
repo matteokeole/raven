@@ -32,6 +32,8 @@ export function AbstractInstance(renderer) {
 
 	const compositeTextures = [];
 
+	const compositeTextureIndices = new Uint8Array();
+
 	/**
 	 * @private
 	 * @type {?Number}
@@ -87,11 +89,15 @@ export function AbstractInstance(renderer) {
 	this.setCompositeTexture = function(index, texture) {
 		const gl = renderer.getContext();
 
-		// gl.texSubImage3D();
+		gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, index, texture.clientWidth, texture.clientHeight, 1, gl.RGBA, gl.UNSIGNED_BYTE, texture);
 	}
 
 	this.build = async function() {
-		await renderer.build(this.getParameter("shader_path"));
+		await renderer.build(
+			this.getParameter("shader_path"),
+			new Vector2(screen.width, screen.height),
+			compositeCount,
+		);
 
 		const viewport = new Vector2(innerWidth, innerHeight).multiplyScalar(devicePixelRatio);
 

@@ -299,7 +299,7 @@ extend(GUIComposite, RendererComposite);
  */
 GUIComposite.prototype.setupFonts = async function(fonts) {
 	/** @type {String} */
-	const fontPath = this.getInstance().getFontPath();
+	const fontPath = this.getInstance().getParameter("font_path");
 
 	for (let i = 0, j, fl = fonts.length, font, data, dl, letterHeight, characters, symbol, character; i < fl; i++) {
 		font = fonts[i];
