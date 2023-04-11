@@ -3,6 +3,7 @@ import {Vector2, Vector3} from "../math/index.js";
 /**
  * @todo Convert `colorMask` to a `Vector4`, with the alpha value being the weight in the mix
  * @todo See `gl.colorMask`
+ * @todo Remove Vector.clone calls if useless
  * 
  * @param {Object} options
  * @param {Vector2} options.offset
@@ -43,10 +44,10 @@ export function Subcomponent({offset, size, uv, colorMask = new Vector3(0, 0, 0)
 /** @returns {Subcomponent} */
 Subcomponent.prototype.clone = function() {
 	return new Subcomponent({
-		offset: this.getOffset(),
-		size: this.getSize(),
-		uv: this.getUV(),
-		colorMask: this.getColorMask(),
+		offset: this.getOffset().clone(),
+		size: this.getSize().clone(),
+		uv: this.getUV().clone(),
+		colorMask: this.getColorMask().clone(),
 		colorMaskWeight: this.getColorMaskWeight(),
 	});
 }

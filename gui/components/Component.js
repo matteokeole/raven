@@ -18,7 +18,7 @@ export function Component({align, margin, size}) {
 	 * @param {Vector2} initial
 	 * @param {Vector2} parentSize
 	 */
-	this.computePosition = function(initial, parentSize) {
+	this.compute = function(initial, parentSize) {
 		const
 			m = margin,
 			o = parentSize.subtract(size);

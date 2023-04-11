@@ -151,16 +151,20 @@ export function GUIComposite(renderer, instance) {
 
 	/**
 	 * Computes the absolute position for each component of the render queue.
+	 * 
+	 * @returns {GUIComposite}
 	 */
-	this.computeTree = function() {
+	this.compute = function() {
 		const viewport = instance
 			.getRenderer()
 			.getViewport()
-			.divideScalar(instance.currentScale);
+			.divideScalar(instance.getParameter("current_scale"));
 
 		for (let i = 0, l = rootComponents.length; i < l; i++) {
-			rootComponents[i].computePosition(new Vector2(0, 0), viewport);
+			rootComponents[i].compute(new Vector2(0, 0), viewport.clone());
 		}
+
+		return this;
 	};
 
 	/** @todo Better way to update the rendered texture */
@@ -183,8 +187,8 @@ export function GUIComposite(renderer, instance) {
 
 		/** @todo Replace by `OrthographicCamera.updateProjectionMatrix` */
 		camera.projectionMatrix = Matrix3
-			.projection(viewport)
-			.scale(new Vector2(scale, scale));
+			.orthographic(viewport)
+			.multiply(Matrix3.scale(new Vector2(scale, scale)));
 
 		renderer.resize(viewport, camera.projectionMatrix);
 		subcomponentCount = 0;
@@ -206,8 +210,7 @@ export function GUIComposite(renderer, instance) {
 			subcomponentCount += component.getSubcomponents().length;
 		}
 
-		this.computeTree();
-		this.render();
+		this.compute().render();
 	};
 
 	/**
@@ -238,8 +241,7 @@ export function GUIComposite(renderer, instance) {
 			addToTree: true,
 		});
 
-		this.computeTree();
-		this.render();
+		this.compute().render();
 	};
 
 	/**
@@ -287,9 +289,10 @@ export function GUIComposite(renderer, instance) {
 			addToTree: false,
 		});
 
-		this.computeTree();
-		renderer.clear(); // Clear already rendered components
-		this.render();
+		// Clear already rendered components
+		renderer.clear();
+
+		this.compute().render();
 	};
 
 	this.dispose = () => renderer.dispose();

@@ -9,13 +9,13 @@ export function StructuralComponent({children}) {
 	Component.apply(this, arguments);
 
 	/** @override */
-	this.computePosition = function(initial, parentSize) {
+	this.compute = function(initial, parentSize) {
 		const align = this.getAlign();
 		const size = this.getSize();
 		const m = this.getMargin();
 		const o = parentSize.subtract(size);
 
-		initial = initial.add(m);
+		initial.add(m);
 
 		switch (align) {
 			case Component.alignCenterTop:
@@ -53,7 +53,7 @@ export function StructuralComponent({children}) {
 		const children = this.getChildren();
 
 		for (let i = 0, l = children.length; i < l; i++) {
-			children[i].computePosition(position.clone(), size);
+			children[i].compute(position.clone(), size.clone());
 		}
 	};
 

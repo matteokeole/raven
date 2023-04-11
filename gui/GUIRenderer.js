@@ -17,17 +17,16 @@ export function GUIRenderer() {
 
 	/**
 	 * @param {String} shaderPath Instance shader path
-	 * @param {Matrix3} projectionMatrix
+	 * @param {Matrix3} projection
 	 */
-	this.build = async function(shaderPath, projectionMatrix) {
+	this.build = async function(shaderPath, projection) {
 		_build();
-
-		const gl = this.getContext();
 
 		/** @type {Program} */
 		const program = await this.loadProgram("subcomponent.vert", "subcomponent.frag", shaderPath);
-
 		this.linkProgram(program);
+
+		const gl = this.getContext();
 		gl.useProgram(program.getProgram());
 		gl.enable(gl.BLEND);
 		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -49,7 +48,7 @@ export function GUIRenderer() {
 
 		gl.bindVertexArray(vaos.main);
 
-	 	gl.uniformMatrix3fv(uniforms.projection, false, new Float32Array(projectionMatrix));
+	 	gl.uniformMatrix3fv(uniforms.projection, false, projection);
 
 		// Enable attributes
 		gl.enableVertexAttribArray(attributes.position);
@@ -76,10 +75,10 @@ export function GUIRenderer() {
 		gl.vertexAttribPointer(attributes.colorMaskWeight, 1, gl.FLOAT, false, 0, 0);
 		gl.vertexAttribDivisor(attributes.colorMaskWeight, 1);
 
-		let i, loc;
-
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.world);
 
+		/** @todo Refactor: remove either `i` or `loc` */
+		let i, loc;
 		for (i = 0, loc = attributes.world; i < 3; i++, loc++) {
 			gl.enableVertexAttribArray(loc);
 			gl.vertexAttribPointer(loc, 3, gl.FLOAT, false, 36, i * 12);
@@ -152,7 +151,7 @@ export function GUIRenderer() {
 				subcomponent = subcomponents[j];
 				size = subcomponent.getSize();
 				world = Matrix3
-					.translation(position.add(subcomponent.getOffset()))
+					.translation(position.clone().add(subcomponent.getOffset()))
 					.multiply(Matrix3.scale(size));
 				texture = Matrix3
 					.translation(subcomponent.getUV().divide(WebGLRenderer.MAX_TEXTURE_SIZE))

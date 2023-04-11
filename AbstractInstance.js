@@ -1,14 +1,8 @@
-import {WebGLRenderer} from "./index.js";
+import {RendererComposite, WebGLRenderer} from "./index.js";
 import {Vector2} from "./math/index.js";
 
 /** @param {WebGLRenderer} renderer */
 export function AbstractInstance(renderer) {
-	/**
-	 * @private
-	 * @type {?WebGL2RenderingContext}
-	 */
-	let gl;
-
 	/**
 	 * @private
 	 * @type {RendererComposite[]}
@@ -26,8 +20,8 @@ export function AbstractInstance(renderer) {
 	 * @type {Object.<String, *>}
 	 */
 	const parameters = {
-		frames_per_second: 60,
-		resize_delay: 50,
+		// frames_per_second: 60,
+		// resize_delay: 50,
 	};
 
 	/**
@@ -43,12 +37,12 @@ export function AbstractInstance(renderer) {
 	let running = false;
 
 	function loop() {
-		animationFrameRequestId = requestAnimationFrame(loop);
+		// animationFrameRequestId = requestAnimationFrame(loop);
 
 		renderer.render();
 	}
 
-	/** @returns {?WebGLRenderer} */
+	/** @returns {WebGLRenderer} */
 	this.getRenderer = () => renderer;
 
 	/**
@@ -63,12 +57,12 @@ export function AbstractInstance(renderer) {
 	 */
 	this.setParameter = (name, value) => void (parameters[name] = value);
 
-	/** @param {RendererComposite[]} rendererComposites */
-	this.setComposites = function(rendererComposites) {
-		compositeCount = rendererComposites.length;
+	/** @param {RendererComposite[]} _composites */
+	this.setComposites = function(_composites) {
+		compositeCount = _composites.length;
 
 		for (let i = 0, composite; i < compositeCount; i++) {
-			composite = rendererComposites[i];
+			composite = _composites[i];
 			composite.setIndex(i);
 
 			composites.push(composite);
@@ -123,10 +117,7 @@ export function AbstractInstance(renderer) {
 	};
 
 	this.dispose = function() {
-		if (gl === null) return console.log("This exception occurred before building the instance.");
 		if (running) this.pause();
-
-		gl = null;
 
 		for (let i = 0; i < compositeCount; i++) composites[i].getRenderer().dispose();
 
