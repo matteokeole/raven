@@ -123,7 +123,7 @@ Matrix3.orthographic = function(v) {
 
 	return new Matrix3(
 		2 / v[0], 0, 0,
-		0, 2 / v[1], 0,
+		0, -2 / v[1], 0,
 		-1, 1, 1,
 	);
 };

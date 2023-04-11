@@ -20,7 +20,7 @@ Matrix.prototype.clone;
 
 /**
  * @abstract
- * @returns {Matrix3}
+ * @returns {Matrix}
  */
 Matrix.prototype.invert;
 
@@ -40,7 +40,7 @@ Matrix.prototype.multiplyScalar;
 
 /**
  * @abstract
- * @returns {Matrix3}
+ * @returns {Matrix}
  */
 Matrix.prototype.transpose;
 
