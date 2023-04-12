@@ -262,7 +262,7 @@ export function GUIComposite(renderer, instance) {
 	};
 
 	/**
-	 * Disposes the last layer from the layer stack.
+	 * Removes the last layer from the layer stack.
 	 * Calling this method will result in all the children of all the stacked layers
 	 * being registered into the render queue.
 	 * If the layer stack is empty or contains one layer, nothing will be done.
@@ -270,8 +270,6 @@ export function GUIComposite(renderer, instance) {
 	this.pop = function() {
 		if (layerStack.length === 0) throw Error("Could not pop: no layers registered.");
 		if (layerStack.length === 1) throw Error("Could not pop the only entry of the layer stack.");
-
-		layerStack.pop().dispose();
 
 		this.removeListeners(dynamicComponents);
 		dynamicComponents.length = 0;
@@ -294,7 +292,7 @@ export function GUIComposite(renderer, instance) {
 		this.compute().render();
 	};
 
-	this.dispose = () => renderer.dispose();
+	this.dispose = renderer.dispose;
 }
 
 extend(GUIComposite, RendererComposite);

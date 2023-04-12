@@ -147,6 +147,7 @@ export function AbstractInstance(renderer) {
 
 		for (let i = 0; i < compositeCount; i++) composites[i].getRenderer().dispose();
 
+		renderer.getCanvas().remove();
 		renderer.dispose();
 	};
 }
