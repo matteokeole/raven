@@ -154,8 +154,8 @@ export function GUIRenderer() {
 					.translation(position.clone().add(subcomponent.getOffset()))
 					.multiply(Matrix3.scale(size));
 				texture = Matrix3
-					.translation(subcomponent.getUV().divide(WebGLRenderer.MAX_TEXTURE_SIZE))
-					.multiply(Matrix3.scale(size.divide(WebGLRenderer.MAX_TEXTURE_SIZE)));
+					.translation(subcomponent.getUV().clone().divide(WebGLRenderer.MAX_TEXTURE_SIZE))
+					.multiply(Matrix3.scale(size.clone().divide(WebGLRenderer.MAX_TEXTURE_SIZE)));
 
 				worlds.set(world, k * 9);
 				textureIndices.set(textureIndex, k);

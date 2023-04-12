@@ -16,6 +16,7 @@ export function WebGLRenderer({offscreen, generateMipmaps}) {
 	if (typeof offscreen !== "boolean") throw TypeError(`The "offscreen" argument must be of type boolean, received ${typeof offscreen}`);
 	if (typeof generateMipmaps !== "boolean") throw TypeError(`The "generateMipmaps" argument must be of type boolean, received ${typeof generateMipmaps}`);
 
+	/** @todo Make private */
 	this.generateMipmaps = generateMipmaps;
 
 	/** @type {HTMLCanvasElement|OffscreenCanvas} */
@@ -25,7 +26,7 @@ export function WebGLRenderer({offscreen, generateMipmaps}) {
 	let gl;
 
 	/**
-	 * @todo Transform to a `Vector4`
+	 * @todo Switch to `Vector4`
 	 * 
 	 * @type {Vector2}
 	 */
@@ -227,7 +228,6 @@ WebGLRenderer.prototype.loadTextures = async function(paths, basePath) {
 /**
  * @abstract
  * @param {Array} scene
- * @param {Camera} camera
  */
 WebGLRenderer.prototype.render;
 

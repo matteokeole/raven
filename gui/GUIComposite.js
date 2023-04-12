@@ -167,7 +167,6 @@ export function GUIComposite(renderer, instance) {
 		return this;
 	};
 
-	/** @todo Better way to update the rendered texture */
 	this.render = function() {
 		renderer.render(renderQueue, subcomponentCount);
 

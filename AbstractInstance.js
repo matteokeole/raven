@@ -69,6 +69,9 @@ export function AbstractInstance(renderer) {
 		}
 	};
 
+	/** @returns {?ResizeObserver} */
+	this.getResizeObserver = () => resizeObserver;
+
 	/** @param {ResizeObserver} value */
 	this.setResizeObserver = value => void (resizeObserver = value);
 
@@ -94,7 +97,9 @@ export function AbstractInstance(renderer) {
 		renderer.setCompositeCount(compositeCount);
 		await renderer.build(this.getParameter("shader_path"));
 
-		const viewport = new Vector2(innerWidth, innerHeight).multiplyScalar(devicePixelRatio);
+		const viewport = new Vector2(innerWidth, innerHeight)
+			.multiplyScalar(devicePixelRatio)
+			.floor();
 
 		renderer.setViewport(viewport);
 
@@ -103,15 +108,6 @@ export function AbstractInstance(renderer) {
 
 			await composite.build();
 			composite.getRenderer().setViewport(viewport);
-		}
-
-		if (resizeObserver) {
-			try {
-				resizeObserver.observe(renderer.getCanvas(), {box: "device-pixel-content-box"});
-			} catch (error) {
-				// Try again with "content-box" if "device-pixel-content-box" isn't defined
-				resizeObserver.observe(renderer.getCanvas(), {box: "content-box"});
-			}
 		}
 
 		/** @todo Set event listeners on canvas */
