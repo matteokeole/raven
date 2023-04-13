@@ -12,7 +12,10 @@ import {Font, Composite} from "../index.js";
 export function GUIComposite(renderer, instance) {
 	Composite.call(this, renderer, instance);
 
-	/** @type {Number} */
+	/**
+	 * @private
+	 * @type {Number}
+	 */
 	let subcomponentCount = 0;
 
 	/** @type {Camera} */
@@ -86,7 +89,7 @@ export function GUIComposite(renderer, instance) {
 
 	/**
 	 * Populates the component tree.
-	 * NOTE: Recursive.
+	 * Recursive.
 	 * 
 	 * @param {Component[]} children
 	 * @param {Object} options
@@ -112,10 +115,7 @@ export function GUIComposite(renderer, instance) {
 				continue;
 			}
 
-			this.addChildrenToRenderQueue(component.getChildren(), {
-				addListeners,
-				addToTree,
-			});
+			this.addChildrenToRenderQueue(component.getChildren(), {addListeners, addToTree});
 		}
 	};
 
@@ -127,9 +127,9 @@ export function GUIComposite(renderer, instance) {
 	this.addListeners = function(component) {
 		let listener;
 
-		// if (listener = component.getOnMouseDown()) instance.addMouseDownListener(listener);
-		// if (listener = component.getOnMouseEnter()) instance.addMouseEnterListener(listener);
-		// if (listener = component.getOnMouseLeave()) instance.addMouseLeaveListener(listener);
+		if (listener = component.getOnMouseDown()) instance.addListener("mouse_down", listener);
+		if (listener = component.getOnMouseEnter()) instance.addListener("mouse_enter", listener);
+		if (listener = component.getOnMouseLeave()) instance.addListener("mouse_leave", listener);
 	};
 
 	/**
@@ -143,9 +143,9 @@ export function GUIComposite(renderer, instance) {
 
 			component = components[i];
 
-			if (listener = component.getOnMouseDown()) instance.removeMouseDownListener(listener);
-			if (listener = component.getOnMouseEnter()) instance.removeMouseEnterListener(listener);
-			if (listener = component.getOnMouseLeave()) instance.removeMouseLeaveListener(listener);
+			if (listener = component.getOnMouseDown()) instance.removeListener("mouse_down", listener);
+			if (listener = component.getOnMouseEnter()) instance.removeListener("mouse_enter", listener);
+			if (listener = component.getOnMouseLeave()) instance.removeListener("mouse_leave", listener);
 		}
 	};
 
@@ -158,10 +158,11 @@ export function GUIComposite(renderer, instance) {
 		const viewport = instance
 			.getRenderer()
 			.getViewport()
+			.clone()
 			.divideScalar(instance.getParameter("current_scale"));
 
 		for (let i = 0, l = rootComponents.length; i < l; i++) {
-			rootComponents[i].compute(new Vector2(0, 0), viewport.clone());
+			rootComponents[i].compute(new Vector2(), viewport.clone());
 		}
 
 		return this;
@@ -226,12 +227,11 @@ export function GUIComposite(renderer, instance) {
 		// Discard event listeners of `DynamicComponent` instances in the previous layers
 		this.removeListeners(dynamicComponents);
 
-		dynamicComponents.length = 0;
+		dynamicComponents.length = subcomponentCount = 0;
 
 		// Mark the tree length as the extraction index for this layer
 		lastInsertionIndices.push(tree.length);
 
-		subcomponentCount = 0;
 		const builtComponents = layer.build(this);
 		rootComponents.push(...builtComponents);
 
@@ -278,15 +278,11 @@ export function GUIComposite(renderer, instance) {
 		if (layerStack.length === 1) throw Error("Could not pop the only entry of the layer stack.");
 
 		this.removeListeners(dynamicComponents);
-		dynamicComponents.length = 0;
 
 		// Truncate the tree (remove the components from the popped layer)
 		tree.length = lastInsertionIndices.pop();
 
-		// Clear the render queue
-		renderQueue.length = 0;
-
-		subcomponentCount = 0;
+		dynamicComponents.length = renderQueue.length = subcomponentCount = 0;
 		this.addChildrenToRenderQueue(tree, {
 			addListeners: true,
 			addToTree: false,
@@ -322,7 +318,7 @@ GUIComposite.prototype.setupFonts = async function(fonts) {
 
 			characters[symbol] = new Subcomponent({
 				size: new Vector2(character.width, letterHeight),
-				offset: new Vector2(0, 0),
+				offset: new Vector2(),
 				uv: new Vector2(character.uv[0], character.uv[1]),
 			});
 		}

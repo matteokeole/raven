@@ -21,7 +21,7 @@ export function WebGLRenderer({offscreen}) {
 	 * 
 	 * @type {Vector2}
 	 */
-	const viewport = new Vector2(0, 0);
+	const viewport = new Vector2();
 
 	/**
 	 * @private

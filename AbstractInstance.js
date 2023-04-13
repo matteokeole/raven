@@ -1,5 +1,5 @@
 import {Composite, WebGLRenderer} from "./index.js";
-import {Vector2} from "./math/index.js";
+import {Vector2, intersects} from "./math/index.js";
 
 /**
  * @abstract
@@ -23,6 +23,25 @@ export function AbstractInstance(renderer) {
 	 * @type {?ResizeObserver}
 	 */
 	let resizeObserver;
+
+	/**
+	 * @private
+	 * @type {Vector2}
+	 */
+	const pointer = new Vector2();
+
+	/**
+	 * @private
+	 * @type {Object}
+	 */
+	const listeners = {
+		mouse_down: [],
+		mouse_down_count: 0,
+		mouse_enter: [],
+		mouse_enter_count: 0,
+		mouse_leave: [],
+		mouse_leave_count: 0,
+	};
 
 	/**
 	 * @private
@@ -52,6 +71,53 @@ export function AbstractInstance(renderer) {
 		animationFrameRequestId = requestAnimationFrame(loop);
 
 		renderer.render();
+	}
+
+	function onMouseDown() {
+		for (let i = 0, l = listeners.mouse_down_count, listener; i < l; i++) {
+			listener = listeners.mouse_down[i];
+
+			if (!intersects(pointer, listener.component.getPosition(), listener.component.getSize())) continue;
+
+			listener(pointer);
+
+			break;
+		}
+	}
+
+	/**
+	 * @param {Object} event
+	 * @param {Number} event.clientX
+	 * @param {Number} event.clientY
+	 */
+	function onMouseMove({clientX, clientY}) {
+		pointer[0] = clientX;
+		pointer[1] = clientY;
+		pointer
+			.multiplyScalar(devicePixelRatio)
+			.divideScalar(parameters["current_scale"]);
+
+		let i, l, listener;
+
+		for (i = 0, l = listeners.mouse_enter_count; i < l; i++) {
+			listener = listeners.mouse_enter[i];
+
+			if (!intersects(pointer, listener.component.getPosition(), listener.component.getSize())) continue;
+			if (listener.component.getIsHovered()) continue;
+
+			listener.component.setIsHovered(true);
+			listener(pointer);
+		}
+
+		for (i = 0, l = listeners.mouse_leave_count; i < l; i++) {
+			listener = listeners.mouse_leave[i];
+
+			if (intersects(pointer, listener.component.getPosition(), listener.component.getSize())) continue;
+			if (!listener.component.getIsHovered()) continue;
+
+			listener.component.setIsHovered(false);
+			listener(pointer);
+		}
 	}
 
 	/** @returns {WebGLRenderer} */
@@ -113,7 +179,26 @@ export function AbstractInstance(renderer) {
 			composite.getRenderer().setViewport(viewport);
 		}
 
-		/** @todo Set event listeners on canvas */
+		renderer.getCanvas().onmousedown = onMouseDown;
+		renderer.getCanvas().onmousemove = onMouseMove;
+	};
+
+	/**
+	 * @param {String} event
+	 * @param {Function} listener
+	 */
+	this.addListener = function(event, listener) {
+		listeners[event].push(listener);
+		listeners[`${event}_count`]++;
+	};
+
+	/**
+	 * @param {String} event
+	 * @param {Function} listener
+	 */
+	this.removeListener = function(event, listener) {
+		listeners[event].splice(listeners[event].indexOf(listener), 1);
+		listeners[`${event}_count`]--;
 	};
 
 	/** @throws {Error} */
