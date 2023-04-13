@@ -33,14 +33,12 @@ export function GUIRenderer() {
 		attributes.textureIndex = 4;
 		attributes.texture = 5;
 		attributes.colorMask = 8;
-		attributes.colorMaskWeight = 9;
 		uniforms.projection = gl.getUniformLocation(program.getProgram(), "u_projection");
 		buffers.position = gl.createBuffer();
 		buffers.world = gl.createBuffer();
 		buffers.textureIndex = gl.createBuffer();
 		buffers.texture = gl.createBuffer();
 		buffers.colorMask = gl.createBuffer();
-		buffers.colorMaskWeight = gl.createBuffer();
 		vaos.main = gl.createVertexArray();
 
 		gl.bindVertexArray(vaos.main);
@@ -53,7 +51,6 @@ export function GUIRenderer() {
 		gl.enableVertexAttribArray(attributes.textureIndex);
 		gl.enableVertexAttribArray(attributes.texture);
 		gl.enableVertexAttribArray(attributes.colorMask);
-		gl.enableVertexAttribArray(attributes.colorMaskWeight);
 
 		// Setup quad vertex positions
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
@@ -65,12 +62,8 @@ export function GUIRenderer() {
 		gl.vertexAttribDivisor(attributes.textureIndex, 1);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.colorMask);
-		gl.vertexAttribPointer(attributes.colorMask, 3, gl.FLOAT, false, 0, 0);
+		gl.vertexAttribPointer(attributes.colorMask, 4, gl.FLOAT, false, 0, 0);
 		gl.vertexAttribDivisor(attributes.colorMask, 1);
-
-		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.colorMaskWeight);
-		gl.vertexAttribPointer(attributes.colorMaskWeight, 1, gl.FLOAT, false, 0, 0);
-		gl.vertexAttribDivisor(attributes.colorMaskWeight, 1);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.world);
 
@@ -132,8 +125,7 @@ export function GUIRenderer() {
 			worlds = new Float32Array(subcomponentCount * 9),
 			textureIndices = new Uint8Array(subcomponentCount),
 			textures = new Float32Array(subcomponentCount * 9),
-			colorMasks = new Float32Array(subcomponentCount * 3),
-			colorMaskWeights = new Float32Array(subcomponentCount);
+			colorMasks = new Float32Array(subcomponentCount * 4);
 
 		for (let i = 0, j, k = 0, cl = scene.length, component, position, textureIndex = new Uint8Array(1), subcomponents, sl, subcomponent, size, world, texture; i < cl; i++) {
 			component = scene[i];
@@ -157,8 +149,7 @@ export function GUIRenderer() {
 				worlds.set(world, k * 9);
 				textureIndices.set(textureIndex, k);
 				textures.set(texture, k * 9);
-				colorMasks.set(subcomponent.getColorMask(), k * 3);
-				colorMaskWeights.set([subcomponent.getColorMaskWeight()], k);
+				colorMasks.set(subcomponent.getColorMask(), k * 4);
 			}
 		}
 
@@ -173,9 +164,6 @@ export function GUIRenderer() {
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.colorMask);
 		gl.bufferData(gl.ARRAY_BUFFER, colorMasks, gl.STATIC_DRAW);
-
-		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.colorMaskWeight);
-		gl.bufferData(gl.ARRAY_BUFFER, colorMaskWeights, gl.STATIC_DRAW);
 
 		gl.drawArraysInstanced(gl.TRIANGLE_FAN, 0, 4, subcomponentCount);
 	};
