@@ -2,21 +2,24 @@ import {Component, DynamicComponent, GUIRenderer, Layer, Subcomponent, Structura
 import {OrthographicCamera} from "../cameras/index.js";
 import {Matrix3, Vector2} from "../math/index.js";
 import {extend} from "../utils/index.js";
-import {Font, RendererManager} from "../index.js";
+import {AbstractInstance, Font, Composite} from "../index.js";
 
 /**
- * @extends RendererManager
+ * @extends Composite
  * @param {GUIRenderer} renderer
- * @param {Instance} instance Reference to the current instance, used for updating the canvas texture, registering listeners and manipulating the GUI scale.
+ * @param {AbstractInstance} instance Reference to the current instance, used for updating the canvas texture, registering listeners and manipulating the GUI scale.
  */
-export function GUIManager(renderer, instance) {
-	RendererManager.call(this, renderer, instance);
+export function GUIComposite(renderer, instance) {
+	Composite.call(this, renderer, instance);
 
-	/** @type {Number} */
+	/**
+	 * @private
+	 * @type {Number}
+	 */
 	let subcomponentCount = 0;
 
 	/** @type {Camera} */
-	const camera = new OrthographicCamera(instance.getViewport());
+	const camera = new OrthographicCamera(instance.getRenderer().getViewport());
 
 	/** @type {Layer[]} */
 	const layerStack = [];
@@ -44,16 +47,16 @@ export function GUIManager(renderer, instance) {
 	/** @type {Number[]} */
 	const lastInsertionIndices = [];
 
-	/** @type {Object<String, Font>} */
+	/** @type {Object.<String, Font>} */
 	const fonts = {};
 
 	/** @type {?Font} */
 	let mainFont;
 
-	/** @returns {Instance} */
+	/** @returns {AbstractInstance} */
 	this.getInstance = () => instance;
 
-	/** @returns {Object<String, Font>} */
+	/** @returns {Object.<String, Font>} */
 	this.getFonts = () => fonts;
 
 	/** @param {Font[]} value */
@@ -72,19 +75,21 @@ export function GUIManager(renderer, instance) {
 	this.setMainFont = value => void (mainFont = value);
 
 	/** @returns {?Texture} */
-	this.getTexture = path => renderer.getTextures()[path];
+	this.getTexture = path => renderer.getUserTextures()[path];
 
-	this.init = async function() {
+	this.build = async function() {
+		const scale = instance.getParameter("current_scale");
+
 		camera.projectionMatrix = Matrix3
-			.projection(instance.getViewport())
-			.scale(new Vector2(instance.currentScale, instance.currentScale));
+			.orthographic(instance.getRenderer().getViewport())
+			.multiply(Matrix3.scale(new Vector2(scale, scale)));
 
-		await renderer.init(instance.getShaderPath(), camera.projectionMatrix);
+		await renderer.build(instance.getParameter("shader_path"), camera.projectionMatrix);
 	};
 
 	/**
 	 * Populates the component tree.
-	 * NOTE: Recursive.
+	 * Recursive.
 	 * 
 	 * @param {Component[]} children
 	 * @param {Object} options
@@ -110,10 +115,7 @@ export function GUIManager(renderer, instance) {
 				continue;
 			}
 
-			this.addChildrenToRenderQueue(component.getChildren(), {
-				addListeners,
-				addToTree,
-			});
+			this.addChildrenToRenderQueue(component.getChildren(), {addListeners, addToTree});
 		}
 	};
 
@@ -125,9 +127,9 @@ export function GUIManager(renderer, instance) {
 	this.addListeners = function(component) {
 		let listener;
 
-		if (listener = component.getOnMouseDown()) instance.addMouseDownListener(listener);
-		if (listener = component.getOnMouseEnter()) instance.addMouseEnterListener(listener);
-		if (listener = component.getOnMouseLeave()) instance.addMouseLeaveListener(listener);
+		if (listener = component.getOnMouseDown()) instance.addListener("mouse_down", listener);
+		if (listener = component.getOnMouseEnter()) instance.addListener("mouse_enter", listener);
+		if (listener = component.getOnMouseLeave()) instance.addListener("mouse_leave", listener);
 	};
 
 	/**
@@ -141,32 +143,37 @@ export function GUIManager(renderer, instance) {
 
 			component = components[i];
 
-			if (listener = component.getOnMouseDown()) instance.removeMouseDownListener(listener);
-			if (listener = component.getOnMouseEnter()) instance.removeMouseEnterListener(listener);
-			if (listener = component.getOnMouseLeave()) instance.removeMouseLeaveListener(listener);
+			if (listener = component.getOnMouseDown()) instance.removeListener("mouse_down", listener);
+			if (listener = component.getOnMouseEnter()) instance.removeListener("mouse_enter", listener);
+			if (listener = component.getOnMouseLeave()) instance.removeListener("mouse_leave", listener);
 		}
 	};
 
 	/**
 	 * Computes the absolute position for each component of the render queue.
+	 * 
+	 * @returns {GUIComposite}
 	 */
-	this.computeTree = function() {
+	this.compute = function() {
 		const viewport = instance
+			.getRenderer()
 			.getViewport()
-			.divideScalar(instance.currentScale);
+			.clone()
+			.divideScalar(instance.getParameter("current_scale"));
 
 		for (let i = 0, l = rootComponents.length; i < l; i++) {
-			rootComponents[i].computePosition(new Vector2(0, 0), viewport);
+			rootComponents[i].compute(new Vector2(), viewport.clone());
 		}
+
+		return this;
 	};
 
-	/** @todo Better way to update the rendered texture */
 	this.render = function() {
 		renderer.render(renderQueue, subcomponentCount);
 
 		renderQueue.length = subcomponentCount = 0;
 
-		instance.updateRendererTexture(0, renderer.getCanvas());
+		instance.getRenderer().updateCompositeTexture(this.getIndex(), renderer.getCanvas());
 	};
 
 	/**
@@ -176,10 +183,12 @@ export function GUIManager(renderer, instance) {
 	 * @param {Vector2} viewport
 	 */
 	this.resize = function(viewport) {
+		const scale = instance.getParameter("current_scale");
+
 		/** @todo Replace by `OrthographicCamera.updateProjectionMatrix` */
 		camera.projectionMatrix = Matrix3
-			.projection(viewport)
-			.scale(new Vector2(instance.currentScale, instance.currentScale));
+			.orthographic(viewport)
+			.multiply(Matrix3.scale(new Vector2(scale, scale)));
 
 		renderer.resize(viewport, camera.projectionMatrix);
 		subcomponentCount = 0;
@@ -201,8 +210,7 @@ export function GUIManager(renderer, instance) {
 			subcomponentCount += component.getSubcomponents().length;
 		}
 
-		this.computeTree();
-		this.render();
+		this.compute().render();
 	};
 
 	/**
@@ -219,12 +227,11 @@ export function GUIManager(renderer, instance) {
 		// Discard event listeners of `DynamicComponent` instances in the previous layers
 		this.removeListeners(dynamicComponents);
 
-		dynamicComponents.length = 0;
+		dynamicComponents.length = subcomponentCount = 0;
 
 		// Mark the tree length as the extraction index for this layer
 		lastInsertionIndices.push(tree.length);
 
-		subcomponentCount = 0;
 		const builtComponents = layer.build(this);
 		rootComponents.push(...builtComponents);
 
@@ -233,22 +240,27 @@ export function GUIManager(renderer, instance) {
 			addToTree: true,
 		});
 
-		this.computeTree();
-		this.render();
+		this.compute().render();
 	};
 
 	/**
-	 * @todo Don't add groups directly to the queue
+	 * @todo Render queue unique check
 	 * 
 	 * Adds the provided component to the render queue.
 	 * 
 	 * @param {Component} component
-	 * @returns {GUIManager}
+	 * @returns {GUIComposite}
 	 */
 	this.pushToRenderQueue = function(component) {
-		renderQueue.push(component);
+		if (component instanceof StructuralComponent) {
+			const children = component.getChildren();
 
-		if (component instanceof StructuralComponent) return;
+			for (let i = 0, l = children.length; i < l; i++) this.pushToRenderQueue(children[i]);
+
+			return this;
+		}
+
+		renderQueue.push(component);
 
 		subcomponentCount += component.getSubcomponents().length;
 
@@ -256,7 +268,7 @@ export function GUIManager(renderer, instance) {
 	};
 
 	/**
-	 * Disposes the last layer from the layer stack.
+	 * Removes the last layer from the layer stack.
 	 * Calling this method will result in all the children of all the stacked layers
 	 * being registered into the render queue.
 	 * If the layer stack is empty or contains one layer, nothing will be done.
@@ -265,41 +277,32 @@ export function GUIManager(renderer, instance) {
 		if (layerStack.length === 0) throw Error("Could not pop: no layers registered.");
 		if (layerStack.length === 1) throw Error("Could not pop the only entry of the layer stack.");
 
-		layerStack.pop().dispose();
-
 		this.removeListeners(dynamicComponents);
-		dynamicComponents.length = 0;
 
 		// Truncate the tree (remove the components from the popped layer)
 		tree.length = lastInsertionIndices.pop();
 
-		// Clear the render queue
-		renderQueue.length = 0;
-
-		subcomponentCount = 0;
+		dynamicComponents.length = renderQueue.length = subcomponentCount = 0;
 		this.addChildrenToRenderQueue(tree, {
 			addListeners: true,
 			addToTree: false,
 		});
 
-		this.computeTree();
-		renderer.clear(); // Clear already rendered components
-		this.render();
+		// Clear already rendered components
+		renderer.clear();
+
+		this.compute().render();
 	};
 
-	this.dispose = () => renderer.dispose();
+	this.dispose = renderer.dispose;
 }
 
-extend(GUIManager, RendererManager);
+extend(GUIComposite, Composite);
 
-/**
- * @todo Measure performance
- * 
- * @param {Font[]} fonts
- */
-GUIManager.prototype.setupFonts = async function(fonts) {
+/** @param {Font[]} fonts */
+GUIComposite.prototype.setupFonts = async function(fonts) {
 	/** @type {String} */
-	const fontPath = this.getInstance().getFontPath();
+	const fontPath = this.getInstance().getParameter("font_path");
 
 	for (let i = 0, j, fl = fonts.length, font, data, dl, letterHeight, characters, symbol, character; i < fl; i++) {
 		font = fonts[i];
@@ -315,7 +318,7 @@ GUIManager.prototype.setupFonts = async function(fonts) {
 
 			characters[symbol] = new Subcomponent({
 				size: new Vector2(character.width, letterHeight),
-				offset: new Vector2(0, 0),
+				offset: new Vector2(),
 				uv: new Vector2(character.uv[0], character.uv[1]),
 			});
 		}
@@ -327,6 +330,6 @@ GUIManager.prototype.setupFonts = async function(fonts) {
 };
 
 /** @returns {?Font} */
-GUIManager.prototype.getFont = function(name) {
+GUIComposite.prototype.getFont = function(name) {
 	return this.getFonts()[name];
 };

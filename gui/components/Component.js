@@ -1,11 +1,11 @@
 import {Matrix3, Vector2} from "../../math/index.js";
 
 /**
- * @param {{
- *    align: Number,
- *    margin: Vector2,
- *    size: Vector2,
- * }}
+ * @abstract
+ * @param {Object} options
+ * @param {Number} align
+ * @param {Vector2} margin
+ * @param {Vector2} size
  */
 export function Component({align, margin, size}) {
 	/** @type {?Vector2} */
@@ -18,7 +18,7 @@ export function Component({align, margin, size}) {
 	 * @param {Vector2} initial
 	 * @param {Vector2} parentSize
 	 */
-	this.computePosition = function(initial, parentSize) {
+	this.compute = function(initial, parentSize) {
 		const
 			m = margin,
 			o = parentSize.subtract(size);
@@ -29,19 +29,19 @@ export function Component({align, margin, size}) {
 			case Component.alignLeftTop:
 			case Component.alignLeftCenter:
 			case Component.alignLeftBottom:
-				initial.x += m.x;
+				initial[0] += m[0];
 
 				break;
 			case Component.alignCenterTop:
 			case Component.alignCenter:
 			case Component.alignCenterBottom:
-				initial.x += o.x * .5 + m.x;
+				initial[0] += o[0] * .5 + m[0];
 
 				break;
 			case Component.alignRightTop:
 			case Component.alignRightCenter:
 			case Component.alignRightBottom:
-				initial.x += o.x - m.x;
+				initial[0] += o[0] - m[0];
 
 				break;
 		}
@@ -50,24 +50,24 @@ export function Component({align, margin, size}) {
 			case Component.alignLeftTop:
 			case Component.alignCenterTop:
 			case Component.alignRightTop:
-				initial.y += m.y;
+				initial[1] += m[1];
 
 				break;
 			case Component.alignLeftCenter:
 			case Component.alignCenter:
 			case Component.alignRightCenter:
-				initial.y += o.y * .5 + m.y;
+				initial[1] += o[1] * .5 + m[1];
 
 				break;
 			case Component.alignLeftBottom:
 			case Component.alignCenterBottom:
 			case Component.alignRightBottom:
-				initial.y += o.y - m.y;
+				initial[1] += o[1] - m[1];
 
 				break;
 		}
 
-		position = initial.floor32();
+		position = initial.floor();
 	};
 
 	/** @returns {?Vector2} */
@@ -94,8 +94,8 @@ export function Component({align, margin, size}) {
 
 	/** @returns {Matrix3} */
 	this.getWorldMatrix = () => Matrix3
-		.translate(position)
-		.scale(this.getSize());
+		.translation(position)
+		.multiply(Matrix3.scale(this.getSize()));
 }
 
 Component.alignLeftTop = 0;

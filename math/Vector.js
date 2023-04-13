@@ -1,11 +1,15 @@
 /**
- * Generic vector class.
- * 
  * @abstract
- * @throws {TypeError}
+ * @extends Float32Array
  */
-export function Vector(argLength, currentArgLength) {
-	if (currentArgLength < argLength) throw TypeError(`Failed to construct '${this.constructor.name}': ${argLength} arguments required, but only ${currentArgLength} present.`);
+export class Vector extends Float32Array {
+	/**
+	 * @param {Number} dimension
+	 * @param {Object} elements
+	 */
+	constructor(dimension, elements) {
+		super(dimension).set(elements);
+	}
 }
 
 /**
@@ -26,20 +30,7 @@ Vector.prototype.addScalar;
  * @abstract
  * @returns {Vector}
  */
-Vector.prototype.ceil;
-
-/**
- * @abstract
- * @returns {Vector}
- */
 Vector.prototype.clone;
-
-/**
- * @abstract
- * @param {Vector} v
- * @returns {Number}
- */
-Vector.prototype.distanceTo;
 
 /**
  * @abstract
@@ -51,6 +42,7 @@ Vector.prototype.divide;
 
 /**
  * @param {Number} n
+ * @returns {Vector}
  * @throws {RangeError}
  */
 Vector.prototype.divideScalar = function(n) {
@@ -73,39 +65,6 @@ Vector.prototype.dot;
 Vector.prototype.floor;
 
 /**
- * Only for 32-bit signed integers.
- * 
- * @abstract
- * @returns {Vector}
- */
-Vector.prototype.floor32;
-
-Vector.prototype.invert = function() {
-	return this.multiplyScalar(-1);
-};
-
-Vector.prototype.length = function() {
-	return Math.sqrt(this.lengthSquared());
-};
-
-/**
- * @abstract
- * @returns {Number}
- */
-Vector.prototype.lengthSquared;
-
-/**
- * @param {Vector} v
- * @param {Number} n
- */
-Vector.prototype.lerp = function(v, n) {
-	const a = this.multiplyScalar(1 - n);
-	const b = v.multiplyScalar(n);
-
-	return a.add(b);
-};
-
-/**
  * @abstract
  * @param {Vector} v
  * @returns {Vector}
@@ -119,16 +78,6 @@ Vector.prototype.multiply;
  */
 Vector.prototype.multiplyScalar;
 
-Vector.prototype.normalize = function() {
-	return this.divideScalar(this.length());
-};
-
-/**
- * @abstract
- * @returns {Vector}
- */
-Vector.prototype.round;
-
 /**
  * @abstract
  * @param {Vector} v
@@ -138,13 +87,8 @@ Vector.prototype.subtract;
 
 /**
  * @param {Number} n
+ * @returns {Vector}
  */
 Vector.prototype.subtractScalar = function(n) {
 	return this.addScalar(-n);
 };
-
-/**
- * @abstract
- * @returns {Number[]}
- */
-Vector.prototype.toArray;

@@ -6,8 +6,8 @@ import {Vector2} from "../index.js";
  * @param {Vector2} boxSize
  */
 export const intersects = (point, boxPosition, boxSize) => (
-	point.x >= boxPosition.x &&
-	point.x < boxPosition.x + boxSize.x &&
-	point.y >= boxPosition.y &&
-	point.y < boxPosition.y + boxSize.y
+	point[0] >= boxPosition[0] &&
+	point[0] < boxPosition[0] + boxSize[0] &&
+	point[1] >= boxPosition[1] &&
+	point[1] < boxPosition[1] + boxSize[1]
 );

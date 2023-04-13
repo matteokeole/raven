@@ -20,5 +20,5 @@ extend(OrthographicCamera, Camera);
 
 /** @override */
 OrthographicCamera.prototype.updateProjectionMatrix = function() {
-	this.setProjectionMatrix(Matrix3.projection(this.getViewport()));
+	this.setProjectionMatrix(Matrix3.orthographic(this.getViewport()));
 };

@@ -1,5 +1,6 @@
 import {Matrix3, Vector3} from "../math/index.js";
 
+/** @abstract */
 export function Camera() {
 	/** @type {Vector3} */
 	let position = new Vector3(0, 0, 0);

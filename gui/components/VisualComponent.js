@@ -2,7 +2,10 @@ import {Component} from "../index.js";
 import {extend} from "../../utils/index.js";
 import {Texture} from "../../wrappers/index.js";
 
-/** @extends Component */
+/**
+ * @abstract
+ * @extends Component
+ */
 export function VisualComponent() {
 	Component.apply(this, arguments);
 
