@@ -1,6 +1,6 @@
 import {Vector2, clampDown, clampUp, intersects} from "./math/index.js";
 import {Program} from "./wrappers/index.js";
-import {RendererComposite, WebGLRenderer} from "./index.js";
+import {Composite, WebGLRenderer} from "./index.js";
 
 /** @type {Number} */
 const DEFAULT_WIDTH = 320;
@@ -66,7 +66,7 @@ export function Instance({fontPath, shaderPath, texturePath}) {
 	/**
 	 * Offscreen renderers.
 	 * 
-	 * @type {RendererComposites[]}
+	 * @type {Composites[]}
 	 */
 	this.renderers = [];
 
@@ -176,21 +176,21 @@ export function Instance({fontPath, shaderPath, texturePath}) {
 	/**
 	 * Setups the instance renderer managers.
 	 * 
-	 * @param {RendererComposite[]} rendererComposites
+	 * @param {Composite[]} composites
 	 */
-	this.setupRenderers = async function(rendererComposites) {
+	this.setupRenderers = async function(composites) {
 		const {rendererTextures} = this;
-		rendererLength = rendererComposites.length;
+		rendererLength = composites.length;
 
-		for (let i = 0, rendererComposite, renderer; i < rendererLength; i++) {
-			rendererComposite = rendererComposites[i];
-			renderer = rendererComposite.getRenderer();
+		for (let i = 0, composite, renderer; i < rendererLength; i++) {
+			composite = composites[i];
+			renderer = composite.getRenderer();
 			renderer.build();
 			renderer.setViewport(viewport);
 
-			await rendererComposite.build();
+			await composite.build();
 
-			this.renderers.push(rendererComposite);
+			this.renderers.push(composite);
 			rendererTextures.push(this.createOutputTexture());
 		}
 	};

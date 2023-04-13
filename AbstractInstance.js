@@ -1,11 +1,11 @@
-import {RendererComposite, WebGLRenderer} from "./index.js";
+import {Composite, WebGLRenderer} from "./index.js";
 import {Vector2} from "./math/index.js";
 
 /** @param {WebGLRenderer} renderer */
 export function AbstractInstance(renderer) {
 	/**
 	 * @private
-	 * @type {RendererComposite[]}
+	 * @type {Composite[]}
 	 */
 	const composites = [];
 
@@ -54,10 +54,10 @@ export function AbstractInstance(renderer) {
 	/** @returns {WebGLRenderer} */
 	this.getRenderer = () => renderer;
 
-	/** @returns {RendererComposite[]} */
+	/** @returns {Composite[]} */
 	this.getComposites = () => composites;
 
-	/** @param {RendererComposite[]} _composites */
+	/** @param {Composite[]} _composites */
 	this.setComposites = function(_composites) {
 		compositeCount = _composites.length;
 

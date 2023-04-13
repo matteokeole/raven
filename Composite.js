@@ -4,7 +4,7 @@ import {Instance, WebGLRenderer} from "./index.js";
  * @param {WebGLRenderer} renderer
  * @param {Instance} instance
  */
-export function RendererComposite(renderer, instance) {
+export function Composite(renderer, instance) {
 	/**
 	 * @private
 	 * @type {?Number}
@@ -25,10 +25,10 @@ export function RendererComposite(renderer, instance) {
 }
 
 /** @abstract */
-RendererComposite.prototype.build;
+Composite.prototype.build;
 
 /** @abstract */
-RendererComposite.prototype.render;
+Composite.prototype.render;
 
 /** @abstract */
-RendererComposite.prototype.resize;
+Composite.prototype.resize;
