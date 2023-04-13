@@ -244,7 +244,7 @@ export function GUIComposite(renderer, instance) {
 	};
 
 	/**
-	 * @todo Don't add groups directly to the queue
+	 * @todo Render queue unique check
 	 * 
 	 * Adds the provided component to the render queue.
 	 * 
@@ -252,9 +252,15 @@ export function GUIComposite(renderer, instance) {
 	 * @returns {GUIComposite}
 	 */
 	this.pushToRenderQueue = function(component) {
-		renderQueue.push(component);
+		if (component instanceof StructuralComponent) {
+			const children = component.getChildren();
 
-		if (component instanceof StructuralComponent) return;
+			for (let i = 0, l = children.length; i < l; i++) this.pushToRenderQueue(children[i]);
+
+			return this;
+		}
+
+		renderQueue.push(component);
 
 		subcomponentCount += component.getSubcomponents().length;
 
@@ -297,11 +303,7 @@ export function GUIComposite(renderer, instance) {
 
 extend(GUIComposite, RendererComposite);
 
-/**
- * @todo Measure performance
- * 
- * @param {Font[]} fonts
- */
+/** @param {Font[]} fonts */
 GUIComposite.prototype.setupFonts = async function(fonts) {
 	/** @type {String} */
 	const fontPath = this.getInstance().getParameter("font_path");

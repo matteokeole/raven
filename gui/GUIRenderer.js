@@ -10,7 +10,6 @@ export function GUIRenderer() {
 	const attributes = {};
 	const uniforms = {};
 	const buffers = {};
-	const vaos = {};
 
 	/**
 	 * @param {String} shaderPath Instance shader path
@@ -24,38 +23,34 @@ export function GUIRenderer() {
 		this.linkProgram(program);
 
 		const gl = this.getContext();
-		gl.useProgram(program.getProgram());
 		gl.enable(gl.BLEND);
 		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+		gl.useProgram(program.getProgram());
 
-		attributes.position = 0;
+		attributes.vertex = 0;
 		attributes.world = 1;
 		attributes.textureIndex = 4;
 		attributes.texture = 5;
 		attributes.colorMask = 8;
 		uniforms.projection = gl.getUniformLocation(program.getProgram(), "u_projection");
-		buffers.position = gl.createBuffer();
+		buffers.vertex = gl.createBuffer();
 		buffers.world = gl.createBuffer();
 		buffers.textureIndex = gl.createBuffer();
 		buffers.texture = gl.createBuffer();
 		buffers.colorMask = gl.createBuffer();
-		vaos.main = gl.createVertexArray();
-
-		gl.bindVertexArray(vaos.main);
 
 	 	gl.uniformMatrix3fv(uniforms.projection, false, projection);
 
 		// Enable attributes
-		gl.enableVertexAttribArray(attributes.position);
+		gl.enableVertexAttribArray(attributes.vertex);
 		gl.enableVertexAttribArray(attributes.world);
 		gl.enableVertexAttribArray(attributes.textureIndex);
 		gl.enableVertexAttribArray(attributes.texture);
 		gl.enableVertexAttribArray(attributes.colorMask);
 
-		// Setup quad vertex positions
-		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
-		gl.vertexAttribPointer(attributes.position, 2, gl.FLOAT, false, 0, 0);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0, 0, 1, 0, 1, 1, 0, 1]), gl.STATIC_DRAW);
+		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.vertex);
+		gl.vertexAttribPointer(attributes.vertex, 2, gl.FLOAT, false, 0, 0);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([1, 1, 0, 1, 0, 0, 1, 0]), gl.STATIC_DRAW);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureIndex);
 		gl.vertexAttribIPointer(attributes.textureIndex, 1, gl.UNSIGNED_BYTE, false, 0, 0);
@@ -67,20 +62,19 @@ export function GUIRenderer() {
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.world);
 
-		/** @todo Refactor: remove either `i` or `loc` */
-		let i, loc;
-		for (i = 0, loc = attributes.world; i < 3; i++, loc++) {
-			gl.enableVertexAttribArray(loc);
-			gl.vertexAttribPointer(loc, 3, gl.FLOAT, false, 36, i * 12);
-			gl.vertexAttribDivisor(loc, 1);
+		let i;
+		for (i = attributes.world + 2; i >= attributes.world; i--) {
+			gl.enableVertexAttribArray(i);
+			gl.vertexAttribPointer(i, 3, gl.FLOAT, false, 36, (i - 1) * 12);
+			gl.vertexAttribDivisor(i, 1);
 		}
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.texture);
 
-		for (i = 0, loc = attributes.texture; i < 3; i++, loc++) {
-			gl.enableVertexAttribArray(loc);
-			gl.vertexAttribPointer(loc, 3, gl.FLOAT, false, 36, i * 12);
-			gl.vertexAttribDivisor(loc, 1);
+		for (i = attributes.texture + 2; i >= attributes.texture; i--) {
+			gl.enableVertexAttribArray(i);
+			gl.vertexAttribPointer(i, 3, gl.FLOAT, false, 36, (i - 5) * 12);
+			gl.vertexAttribDivisor(i, 1);
 		}
 	};
 

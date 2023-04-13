@@ -90,7 +90,6 @@ export function WebGLRenderer({offscreen}) {
 	this.dispose = function() {
 		// gl.deleteTexture(texture);
 		// gl.deleteBuffer(buffer);
-		// gl.deleteVertexArray(vao);
 		// gl.deleteShader(shader);
 		// gl.deleteProgram(program);
 
