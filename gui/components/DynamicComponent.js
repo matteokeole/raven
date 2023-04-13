@@ -4,12 +4,11 @@ import {extend} from "../../utils/index.js";
 /** @typedef {(position: Vector2) => void} Listener */
 
 /**
+ * @abstract
  * @extends VisualComponent
- * @param {{
- *    onMouseDown: ?Listener,
- *    onMouseEnter: ?Listener,
- *    onMouseLeave: ?Listener,
- * }}
+ * @param {?Listener} onMouseDown
+ * @param {?Listener} onMouseEnter
+ * @param {?Listener} onMouseLeave
  */
 export function DynamicComponent({onMouseDown, onMouseEnter, onMouseLeave}) {
 	VisualComponent.apply(this, arguments);

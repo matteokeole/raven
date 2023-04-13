@@ -11,7 +11,7 @@ export function Font({name, texturePath, letterHeight, letterSpacing}) {
 	/** @param {?Object} */
 	let data;
 
-	/** @param {?Object<String, Subcomponent>} */
+	/** @param {?Object.<String, Subcomponent>} */
 	let characters;
 
 	texturePath = `${texturePath}${name}.png`;
@@ -22,10 +22,10 @@ export function Font({name, texturePath, letterHeight, letterSpacing}) {
 	/** @param {Object} value */
 	this.setData = value => void (data = value);
 
-	/** @returns {?Object<String, Subcomponent>} */
+	/** @returns {?Object.<String, Subcomponent>} */
 	this.getCharacters = () => characters;
 
-	/** @param {Object<String, Subcomponent>} value */
+	/** @param {Object.<String, Subcomponent>} value */
 	this.setCharacters = value => void (characters = value);
 
 	/** @returns {String} */

@@ -1,17 +1,17 @@
-import {Vector2, Vector3} from "../math/index.js";
+import {Vector2, Vector4} from "../math/index.js";
 
 /**
- * @todo Convert `colorMask` to a `Vector4`, with the alpha value being the weight in the mix
  * @todo See `gl.colorMask`
  * 
  * @param {Object} options
  * @param {Vector2} options.offset
  * @param {Vector2} options.size
  * @param {Vector2} options.uv
- * @param {Vector3} [options.colorMask=new Vector3(0, 0, 0)]
- * @param {Number} [options.colorMaskWeight=0]
+ * @param {Vector4} [options.colorMask]
  */
-export function Subcomponent({offset, size, uv, colorMask = new Vector3(0, 0, 0), colorMaskWeight = 0}) {
+export function Subcomponent({offset, size, uv, colorMask}) {
+	colorMask ??= new Vector4();
+
 	/** @returns {Vector2} */
 	this.getOffset = () => offset;
 
@@ -27,17 +27,11 @@ export function Subcomponent({offset, size, uv, colorMask = new Vector3(0, 0, 0)
 	/** @param {Vector2} value */
 	this.setUV = value => void (uv = value);
 
-	/** @returns {Vector3} */
+	/** @returns {Vector4} */
 	this.getColorMask = () => colorMask;
 
-	/** @param {Vector3} value */
+	/** @param {Vector4} value */
 	this.setColorMask = value => void (colorMask = value);
-
-	/** @returns {Number} */
-	this.getColorMaskWeight = () => colorMaskWeight;
-
-	/** @param {Number} value */
-	this.setColorMaskWeight = value => void (colorMaskWeight = value);
 }
 
 /** @returns {Subcomponent} */
@@ -47,6 +41,5 @@ Subcomponent.prototype.clone = function() {
 		size: this.getSize(),
 		uv: this.getUV(),
 		colorMask: this.getColorMask(),
-		colorMaskWeight: this.getColorMaskWeight(),
 	});
 }

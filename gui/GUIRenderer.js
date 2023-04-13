@@ -4,127 +4,84 @@ import {extend} from "../utils/index.js";
 import {Texture} from "../wrappers/index.js";
 
 export function GUIRenderer() {
-	WebGLRenderer.call(this, {
-		offscreen: true,
-		generateMipmaps: false,
-	});
+	WebGLRenderer.call(this, {offscreen: true});
 
-	/** @type {Object<String, Number>} */
-	let attributes;
-
-	/** @type {Object<String, WebGLUniformLocation>} */
-	let uniforms;
-
-	/** @type {Object<String, WebGLBuffer>} */
-	let buffers;
-
-	/** @type {Object<String, WebGLVertexArrayObject>} */
-	let vaos;
+	const _build = this.build;
 
 	/**
-	 * @todo Rework parameters
-	 * 
 	 * @param {String} shaderPath Instance shader path
-	 * @param {Matrix3} projectionMatrix
+	 * @param {Matrix3} projection
 	 */
-	this.init = async function(shaderPath, projectionMatrix) {
-		const gl = this.getContext();
+	this.build = async function(shaderPath, projection) {
+		_build();
 
-		/**
-		 * Load component program
-		 * 
-		 * @type {Program}
-		 */
-		const program = await this.loadProgram(
-			"subcomponent.vert",
-			"subcomponent.frag",
-			shaderPath,
-		);
+		const program = await this.loadProgram("subcomponent.vert", "subcomponent.frag", shaderPath);
 
 		this.linkProgram(program);
-		gl.useProgram(program.getProgram());
+
+		const gl = this.getContext();
+
 		gl.enable(gl.BLEND);
 		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+		gl.useProgram(program.getProgram());
 
-		attributes = {
-			position: 0,
-			world: 1,
-			textureIndex: 4,
-			texture: 5,
-			colorMask: 8,
-			colorMaskWeight: 9,
-		};
-		uniforms = {
-			projection: gl.getUniformLocation(program.getProgram(), "u_projection"),
-		};
-		buffers = {
-			position: gl.createBuffer(),
-			world: gl.createBuffer(),
-			textureIndex: gl.createBuffer(),
-			texture: gl.createBuffer(),
-			colorMask: gl.createBuffer(),
-			colorMaskWeight: gl.createBuffer(),
-		};
-		vaos = {
-			main: gl.createVertexArray(),
-		};
+		const attributes = this.getAttributes();
+		const uniforms = this.getUniforms();
+		const buffers = this.getBuffers();
 
-		gl.bindVertexArray(vaos.main);
+		attributes.vertex = 0;
+		attributes.world = 1;
+		attributes.textureIndex = 4;
+		attributes.texture = 5;
+		attributes.colorMask = 8;
+		uniforms.projection = gl.getUniformLocation(program.getProgram(), "u_projection");
+		buffers.vertex = gl.createBuffer();
+		buffers.world = gl.createBuffer();
+		buffers.textureIndex = gl.createBuffer();
+		buffers.texture = gl.createBuffer();
+		buffers.colorMask = gl.createBuffer();
 
-	 	gl.uniformMatrix3fv(uniforms.projection, false, new Float32Array(projectionMatrix));
+	 	gl.uniformMatrix3fv(uniforms.projection, false, projection);
 
-		// Enable attributes
-		gl.enableVertexAttribArray(attributes.position);
+		gl.enableVertexAttribArray(attributes.vertex);
 		gl.enableVertexAttribArray(attributes.world);
 		gl.enableVertexAttribArray(attributes.textureIndex);
 		gl.enableVertexAttribArray(attributes.texture);
 		gl.enableVertexAttribArray(attributes.colorMask);
-		gl.enableVertexAttribArray(attributes.colorMaskWeight);
 
-		// Setup quad vertex positions
-		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
-		gl.vertexAttribPointer(attributes.position, 2, gl.FLOAT, false, 0, 0);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-			0, 0,
-			1, 0,
-			1, 1,
-			0, 1,
-		]), gl.STATIC_DRAW);
+		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.vertex);
+		gl.vertexAttribPointer(attributes.vertex, 2, gl.FLOAT, false, 0, 0);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([1, 1, 0, 1, 0, 0, 1, 0]), gl.STATIC_DRAW);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureIndex);
 		gl.vertexAttribIPointer(attributes.textureIndex, 1, gl.UNSIGNED_BYTE, false, 0, 0);
 		gl.vertexAttribDivisor(attributes.textureIndex, 1);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.colorMask);
-		gl.vertexAttribPointer(attributes.colorMask, 3, gl.FLOAT, false, 0, 0);
+		gl.vertexAttribPointer(attributes.colorMask, 4, gl.FLOAT, false, 0, 0);
 		gl.vertexAttribDivisor(attributes.colorMask, 1);
-
-		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.colorMaskWeight);
-		gl.vertexAttribPointer(attributes.colorMaskWeight, 1, gl.FLOAT, false, 0, 0);
-		gl.vertexAttribDivisor(attributes.colorMaskWeight, 1);
-
-		let i, loc;
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.world);
 
-		for (i = 0, loc = attributes.world; i < 3; i++, loc++) {
-			gl.enableVertexAttribArray(loc);
-			gl.vertexAttribPointer(loc, 3, gl.FLOAT, false, 36, i * 12);
-			gl.vertexAttribDivisor(loc, 1);
+		let i;
+		for (i = attributes.world + 2; i >= attributes.world; i--) {
+			gl.enableVertexAttribArray(i);
+			gl.vertexAttribPointer(i, 3, gl.FLOAT, false, 36, (i - 1) * 12);
+			gl.vertexAttribDivisor(i, 1);
 		}
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.texture);
 
-		for (i = 0, loc = attributes.texture; i < 3; i++, loc++) {
-			gl.enableVertexAttribArray(loc);
-			gl.vertexAttribPointer(loc, 3, gl.FLOAT, false, 36, i * 12);
-			gl.vertexAttribDivisor(loc, 1);
+		for (i = attributes.texture + 2; i >= attributes.texture; i--) {
+			gl.enableVertexAttribArray(i);
+			gl.vertexAttribPointer(i, 3, gl.FLOAT, false, 36, (i - 5) * 12);
+			gl.vertexAttribDivisor(i, 1);
 		}
 	};
 
 	this.loadTestTextures = async function() {
 		const gl = this.getContext();
-		const textures = this.getTextures();
+		const textures = this.getUserTextures();
 		const textureLength = Object.keys(textures).length;
 		const dimension = 256;
 		const imageReplacement = {
@@ -160,11 +117,11 @@ export function GUIRenderer() {
 	this.render = function(scene, subcomponentCount) {
 		const
 			gl = this.getContext(),
+			buffers = this.getBuffers(),
 			worlds = new Float32Array(subcomponentCount * 9),
 			textureIndices = new Uint8Array(subcomponentCount),
 			textures = new Float32Array(subcomponentCount * 9),
-			colorMasks = new Float32Array(subcomponentCount * 3),
-			colorMaskWeights = new Float32Array(subcomponentCount);
+			colorMasks = new Float32Array(subcomponentCount * 4);
 
 		for (let i = 0, j, k = 0, cl = scene.length, component, position, textureIndex = new Uint8Array(1), subcomponents, sl, subcomponent, size, world, texture; i < cl; i++) {
 			component = scene[i];
@@ -179,17 +136,16 @@ export function GUIRenderer() {
 				subcomponent = subcomponents[j];
 				size = subcomponent.getSize();
 				world = Matrix3
-					.translate(position.add(subcomponent.getOffset()))
-					.scale(size);
+					.translation(position.clone().add(subcomponent.getOffset()))
+					.multiply(Matrix3.scale(size));
 				texture = Matrix3
-					.translate(subcomponent.getUV().divide(WebGLRenderer.MAX_TEXTURE_SIZE))
-					.scale(size.divide(WebGLRenderer.MAX_TEXTURE_SIZE));
+					.translation(subcomponent.getUV().clone().divide(WebGLRenderer.MAX_TEXTURE_SIZE))
+					.multiply(Matrix3.scale(size.clone().divide(WebGLRenderer.MAX_TEXTURE_SIZE)));
 
 				worlds.set(world, k * 9);
 				textureIndices.set(textureIndex, k);
 				textures.set(texture, k * 9);
-				colorMasks.set(subcomponent.getColorMask().toArray(), k * 3);
-				colorMaskWeights.set([subcomponent.getColorMaskWeight()], k);
+				colorMasks.set(subcomponent.getColorMask(), k * 4);
 			}
 		}
 
@@ -205,9 +161,6 @@ export function GUIRenderer() {
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.colorMask);
 		gl.bufferData(gl.ARRAY_BUFFER, colorMasks, gl.STATIC_DRAW);
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.colorMaskWeight);
-		gl.bufferData(gl.ARRAY_BUFFER, colorMaskWeights, gl.STATIC_DRAW);
-
 		gl.drawArraysInstanced(gl.TRIANGLE_FAN, 0, 4, subcomponentCount);
 	};
 
@@ -217,7 +170,7 @@ export function GUIRenderer() {
 	 */
 	this.resize = function(viewport, projection) {
 		this.setViewport(viewport);
-	 	this.getContext().uniformMatrix3fv(uniforms.projection, false, projection);
+	 	this.getContext().uniformMatrix3fv(this.getUniforms().projection, false, projection);
 	};
 }
 
