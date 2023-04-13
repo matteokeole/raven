@@ -7,16 +7,12 @@ import {Program, Texture} from "./wrappers/index.js";
  * 
  * @param {Object} options
  * @param {Boolean} options.offscreen
- * @throws {ReferenceError}
- * @throws {TypeError}
  */
 export function WebGLRenderer({offscreen}) {
-	if (typeof offscreen !== "boolean") throw TypeError(`The "offscreen" argument must be of type boolean, received ${typeof offscreen}`);
-
-	/** @type {HTMLCanvasElement|OffscreenCanvas} */
+	/** @type {HTMLCanvasElement|OffscreenCanvas|null} */
 	let canvas;
 
-	/** @type {WebGLRenderingContext|WebGL2RenderingContext} */
+	/** @type {WebGLRenderingContext|WebGL2RenderingContext|null} */
 	let gl;
 
 	/**
@@ -26,8 +22,41 @@ export function WebGLRenderer({offscreen}) {
 	 */
 	const viewport = new Vector2(0, 0);
 
-	/** @type {?Object.<String, Texture>} */
-	let textures;
+	/**
+	 * @private
+	 * @type {WebGLProgram[]}
+	 */
+	const programs = [];
+
+	/**
+	 * @private
+	 * @type {Object.<String, Number>}
+	 */
+	const attributes = {};
+
+	/**
+	 * @private
+	 * @type {Object.<String, WebGLUniformLocation>}
+	 */
+	const uniforms = {};
+
+	/**
+	 * @private
+	 * @type {Object.<String, WebGLBuffer>}
+	 */
+	const buffers = {};
+
+	/**
+	 * @private
+	 * @type {Object.<String, WebGLTexture>}
+	 */
+	const textures = {};
+
+	/**
+	 * @private
+	 * @type {Object.<String, Texture>}
+	 */
+	const userTextures = {};
 
 	/**
 	 * @returns {HTMLCanvasElement|OffscreenCanvas}
@@ -53,20 +82,6 @@ export function WebGLRenderer({offscreen}) {
 		return gl;
 	};
 
-	/** @returns {?Object.<String, Texture>} */
-	this.getTextures = () => textures;
-
-	/** @param {?Object.<String, Texture>} value */
-	this.setTextures = value => void (textures = value);
-
-	/** @throws {NoWebGL2Error} */
-	this.build = function() {
-		canvas = offscreen ? new OffscreenCanvas(0, 0) : document.createElement("canvas");
-		gl = canvas.getContext("webgl2");
-
-		if (gl === null) throw new NoWebGL2Error();
-	};
-
 	/** @returns {Vector2} */
 	this.getViewport = () => viewport;
 
@@ -82,19 +97,54 @@ export function WebGLRenderer({offscreen}) {
 		);
 	};
 
-	/**
-	 * @todo Unbind and delete all linked objects
-	 * 
-	 * @see {@link https://registry.khronos.org/webgl/extensions/WEBGL_lose_context}
-	 */
+	/** @returns {Object.<String, WebGLProgram>} */
+	this.getPrograms = () => programs;
+
+	/** @returns {Object.<String, Number>} */
+	this.getAttributes = () => attributes;
+
+	/** @returns {Object.<String, WebGLUniformLocation>} */
+	this.getUniforms = () => uniforms;
+
+	/** @returns {Object.<String, WebGLBuffer>} */
+	this.getBuffers = () => buffers;
+
+	/** @returns {Object.<String, WebGLTexture>} */
+	this.getTextures = () => textures;
+
+	/** @returns {Object.<String, Texture>} */
+	this.getUserTextures = () => userTextures;
+
+	/** @throws {NoWebGL2Error} */
+	this.build = function() {
+		canvas = offscreen ? new OffscreenCanvas(0, 0) : document.createElement("canvas");
+		gl = canvas.getContext("webgl2");
+
+		if (gl === null) throw new NoWebGL2Error();
+	};
+
+	/** @see {@link https://registry.khronos.org/webgl/extensions/WEBGL_lose_context} */
 	this.dispose = function() {
-		// gl.deleteTexture(texture);
-		// gl.deleteBuffer(buffer);
-		// gl.deleteShader(shader);
-		// gl.deleteProgram(program);
+		let i, l;
+
+		for (i = 0, l = programs.length; i < l; i++) gl.deleteProgram(programs[i]);
+		programs.length = 0;
+
+		for (i in attributes) delete attributes[i];
+
+		for (i in uniforms) delete uniforms[i];
+
+		for (i in buffers) {
+			gl.deleteBuffer(buffers[i]);
+			delete buffers[i];
+		}
+
+		for (i in textures) {
+			gl.deleteTexture(textures[i]);
+			delete textures[i];
+		}
 
 		gl.getExtension("WEBGL_lose_context").loseContext();
-
 		gl = null;
 		canvas = null;
 	};
@@ -125,6 +175,8 @@ WebGLRenderer.prototype.loadProgram = async function(vertexPath, fragmentPath, b
 
 	gl.attachShader(program, vertexShader);
 	gl.attachShader(program, fragmentShader);
+
+	this.getPrograms().push(program);
 
 	return new Program(program, vertexShader, fragmentShader);
 };
@@ -158,24 +210,6 @@ WebGLRenderer.prototype.linkProgram = function(program) {
 };
 
 /**
- * Binds a new texture array to the context.
- * The texture size is capped by `WebGLRenderer.MAX_TEXTURE_SIZE`.
- * 
- * @param {Number} length
- * @param {Boolean} [generateMipmaps=false]
- */
-WebGLRenderer.prototype.createTextureArray = function(length, generateMipmaps = false) {
-	const gl = this.getContext();
-
-	gl.bindTexture(gl.TEXTURE_2D_ARRAY, gl.createTexture());
-	gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-	generateMipmaps ?
-		gl.generateMipmap(gl.TEXTURE_2D_ARRAY) :
-		gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-	gl.texStorage3D(gl.TEXTURE_2D_ARRAY, 1, gl.RGBA8, WebGLRenderer.MAX_TEXTURE_SIZE[0], WebGLRenderer.MAX_TEXTURE_SIZE[1], length);
-};
-
-/**
  * @todo Default texture for invalid paths?
  * 
  * Asynchronous texture loader.
@@ -193,8 +227,7 @@ WebGLRenderer.prototype.loadTextures = async function(paths, basePath) {
 		throw ReferenceError("No texture array bound to the context");
 	}
 
-	/** @type {Object.<String, Texture>} */
-	const textures = {};
+	const textures = this.getUserTextures();
 
 	for (let i = 0, l = paths.length, path, image; i < l; i++) {
 		path = paths[i];
@@ -215,8 +248,24 @@ WebGLRenderer.prototype.loadTextures = async function(paths, basePath) {
 
 		textures[path] = new Texture(image, i);
 	}
+};
 
-	this.setTextures(textures);
+/**
+ * Binds a new texture array to the context.
+ * The texture size is capped by `WebGLRenderer.MAX_TEXTURE_SIZE`.
+ * 
+ * @param {Number} length
+ * @param {Boolean} [generateMipmaps=false]
+ */
+WebGLRenderer.prototype.createTextureArray = function(length, generateMipmaps = false) {
+	const gl = this.getContext();
+
+	gl.bindTexture(gl.TEXTURE_2D_ARRAY, gl.createTexture());
+	gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+	generateMipmaps ?
+		gl.generateMipmap(gl.TEXTURE_2D_ARRAY) :
+		gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	gl.texStorage3D(gl.TEXTURE_2D_ARRAY, 1, gl.RGBA8, WebGLRenderer.MAX_TEXTURE_SIZE[0], WebGLRenderer.MAX_TEXTURE_SIZE[1], length);
 };
 
 /**

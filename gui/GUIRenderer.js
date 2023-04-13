@@ -7,9 +7,6 @@ export function GUIRenderer() {
 	WebGLRenderer.call(this, {offscreen: true});
 
 	const _build = this.build;
-	const attributes = {};
-	const uniforms = {};
-	const buffers = {};
 
 	/**
 	 * @param {String} shaderPath Instance shader path
@@ -18,14 +15,19 @@ export function GUIRenderer() {
 	this.build = async function(shaderPath, projection) {
 		_build();
 
-		/** @type {Program} */
 		const program = await this.loadProgram("subcomponent.vert", "subcomponent.frag", shaderPath);
+
 		this.linkProgram(program);
 
 		const gl = this.getContext();
+
 		gl.enable(gl.BLEND);
 		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 		gl.useProgram(program.getProgram());
+
+		const attributes = this.getAttributes();
+		const uniforms = this.getUniforms();
+		const buffers = this.getBuffers();
 
 		attributes.vertex = 0;
 		attributes.world = 1;
@@ -41,7 +43,6 @@ export function GUIRenderer() {
 
 	 	gl.uniformMatrix3fv(uniforms.projection, false, projection);
 
-		// Enable attributes
 		gl.enableVertexAttribArray(attributes.vertex);
 		gl.enableVertexAttribArray(attributes.world);
 		gl.enableVertexAttribArray(attributes.textureIndex);
@@ -80,7 +81,7 @@ export function GUIRenderer() {
 
 	this.loadTestTextures = async function() {
 		const gl = this.getContext();
-		const textures = this.getTextures();
+		const textures = this.getUserTextures();
 		const textureLength = Object.keys(textures).length;
 		const dimension = 256;
 		const imageReplacement = {
@@ -116,6 +117,7 @@ export function GUIRenderer() {
 	this.render = function(scene, subcomponentCount) {
 		const
 			gl = this.getContext(),
+			buffers = this.getBuffers(),
 			worlds = new Float32Array(subcomponentCount * 9),
 			textureIndices = new Uint8Array(subcomponentCount),
 			textures = new Float32Array(subcomponentCount * 9),
@@ -168,7 +170,7 @@ export function GUIRenderer() {
 	 */
 	this.resize = function(viewport, projection) {
 		this.setViewport(viewport);
-	 	this.getContext().uniformMatrix3fv(uniforms.projection, false, projection);
+	 	this.getContext().uniformMatrix3fv(this.getUniforms().projection, false, projection);
 	};
 }
 

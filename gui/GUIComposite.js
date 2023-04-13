@@ -72,7 +72,7 @@ export function GUIComposite(renderer, instance) {
 	this.setMainFont = value => void (mainFont = value);
 
 	/** @returns {?Texture} */
-	this.getTexture = path => renderer.getTextures()[path];
+	this.getTexture = path => renderer.getUserTextures()[path];
 
 	this.build = async function() {
 		const scale = instance.getParameter("current_scale");
