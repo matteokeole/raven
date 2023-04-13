@@ -5,19 +5,13 @@ import {Program, Texture} from "./wrappers/index.js";
 /**
  * General-purpose renderer based on a WebGL context.
  * 
- * @param {{
- *    offscreen: Boolean,
- *    generateMipmaps: Boolean,
- * }}
+ * @param {Object} options
+ * @param {Boolean} options.offscreen
  * @throws {ReferenceError}
  * @throws {TypeError}
  */
-export function WebGLRenderer({offscreen, generateMipmaps}) {
+export function WebGLRenderer({offscreen}) {
 	if (typeof offscreen !== "boolean") throw TypeError(`The "offscreen" argument must be of type boolean, received ${typeof offscreen}`);
-	if (typeof generateMipmaps !== "boolean") throw TypeError(`The "generateMipmaps" argument must be of type boolean, received ${typeof generateMipmaps}`);
-
-	/** @todo Make private */
-	this.generateMipmaps = generateMipmaps;
 
 	/** @type {HTMLCanvasElement|OffscreenCanvas} */
 	let canvas;
@@ -169,13 +163,14 @@ WebGLRenderer.prototype.linkProgram = function(program) {
  * The texture size is capped by `WebGLRenderer.MAX_TEXTURE_SIZE`.
  * 
  * @param {Number} length
+ * @param {Boolean} [generateMipmaps=false]
  */
-WebGLRenderer.prototype.createTextureArray = function(length) {
+WebGLRenderer.prototype.createTextureArray = function(length, generateMipmaps = false) {
 	const gl = this.getContext();
 
 	gl.bindTexture(gl.TEXTURE_2D_ARRAY, gl.createTexture());
 	gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-	this.generateMipmaps ?
+	generateMipmaps ?
 		gl.generateMipmap(gl.TEXTURE_2D_ARRAY) :
 		gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 	gl.texStorage3D(gl.TEXTURE_2D_ARRAY, 1, gl.RGBA8, WebGLRenderer.MAX_TEXTURE_SIZE[0], WebGLRenderer.MAX_TEXTURE_SIZE[1], length);

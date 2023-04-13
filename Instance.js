@@ -12,6 +12,7 @@ const DEFAULT_HEIGHT = 240;
 const RESIZE_DELAY = 50;
 
 /**
+ * @deprecated
  * @todo Find a better name
  * @todo Add getters/setters
  * 
@@ -57,10 +58,7 @@ export function Instance({fontPath, shaderPath, texturePath}) {
 	 * @private
 	 * @type {WebGLRenderer}
 	 */
-	const outputRenderer = new WebGLRenderer({
-		offscreen: false,
-		generateMipmaps: false,
-	});
+	const outputRenderer = new WebGLRenderer({offscreen: false});
 
 	/** @type {?Number} */
 	let rendererLength;

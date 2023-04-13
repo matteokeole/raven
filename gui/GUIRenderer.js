@@ -4,10 +4,7 @@ import {extend} from "../utils/index.js";
 import {Texture} from "../wrappers/index.js";
 
 export function GUIRenderer() {
-	WebGLRenderer.call(this, {
-		offscreen: true,
-		generateMipmaps: false,
-	});
+	WebGLRenderer.call(this, {offscreen: true});
 
 	const _build = this.build;
 	const attributes = {};
