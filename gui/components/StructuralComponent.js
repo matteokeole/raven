@@ -2,8 +2,10 @@ import {Component} from "../index.js";
 import {extend} from "../../utils/index.js";
 
 /**
+ * @abstract
  * @extends Component
- * @param {{children: Component[]}}
+ * @param {Object} options
+ * @param {Component[]} options.children
  */
 export function StructuralComponent({children}) {
 	Component.apply(this, arguments);

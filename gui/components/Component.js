@@ -1,11 +1,11 @@
 import {Matrix3, Vector2} from "../../math/index.js";
 
 /**
- * @param {{
- *    align: Number,
- *    margin: Vector2,
- *    size: Vector2,
- * }}
+ * @abstract
+ * @param {Object} options
+ * @param {Number} align
+ * @param {Vector2} margin
+ * @param {Vector2} size
  */
 export function Component({align, margin, size}) {
 	/** @type {?Vector2} */
