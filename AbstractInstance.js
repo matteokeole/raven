@@ -113,17 +113,13 @@ export function AbstractInstance(renderer) {
 		/** @todo Set event listeners on canvas */
 	};
 
-	/**
-	 * @todo Start the loop with `requestAnimationFrame`
-	 * 
-	 * @throws {Error}
-	 */
+	/** @throws {Error} */
 	this.run = function() {
 		if (running) throw Error("This instance is already running.");
 
 		running = true;
 
-		loop();
+		requestAnimationFrame(loop);
 	};
 
 	/** @throws {Error} */
@@ -135,12 +131,6 @@ export function AbstractInstance(renderer) {
 		animationFrameRequestId = null;
 		running = false;
 	};
-
-	/**
-	 * @param {Number} index
-	 * @param {OffscreenCanvas} texture
-	 */
-	this.updateCompositeTexture = (index, texture) => renderer.setTexture(index, texture);
 
 	this.dispose = function() {
 		if (running) this.pause();

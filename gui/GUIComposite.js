@@ -172,7 +172,7 @@ export function GUIComposite(renderer, instance) {
 
 		renderQueue.length = subcomponentCount = 0;
 
-		instance.updateCompositeTexture(this.getIndex(), renderer.getCanvas());
+		instance.getRenderer().updateCompositeTexture(this.getIndex(), renderer.getCanvas());
 	};
 
 	/**
