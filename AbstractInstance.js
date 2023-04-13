@@ -1,7 +1,10 @@
 import {Composite, WebGLRenderer} from "./index.js";
 import {Vector2} from "./math/index.js";
 
-/** @param {WebGLRenderer} renderer */
+/**
+ * @abstract
+ * @param {WebGLRenderer} renderer
+ */
 export function AbstractInstance(renderer) {
 	/**
 	 * @private

@@ -5,6 +5,7 @@ import {Program, Texture} from "./wrappers/index.js";
 /**
  * General-purpose renderer based on a WebGL context.
  * 
+ * @abstract
  * @param {Object} options
  * @param {Boolean} options.offscreen
  */

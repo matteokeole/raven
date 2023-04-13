@@ -1,6 +1,7 @@
 import {Instance, WebGLRenderer} from "./index.js";
 
 /**
+ * @abstract
  * @param {WebGLRenderer} renderer
  * @param {Instance} instance
  */

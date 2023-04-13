@@ -2,7 +2,6 @@ import {Vector2, Vector4} from "../math/index.js";
 
 /**
  * @todo See `gl.colorMask`
- * @todo Remove Vector.clone calls if useless
  * 
  * @param {Object} options
  * @param {Vector2} options.offset
@@ -38,9 +37,9 @@ export function Subcomponent({offset, size, uv, colorMask}) {
 /** @returns {Subcomponent} */
 Subcomponent.prototype.clone = function() {
 	return new Subcomponent({
-		offset: this.getOffset().clone(),
-		size: this.getSize().clone(),
-		uv: this.getUV().clone(),
-		colorMask: this.getColorMask().clone(),
+		offset: this.getOffset(),
+		size: this.getSize(),
+		uv: this.getUV(),
+		colorMask: this.getColorMask(),
 	});
 }
