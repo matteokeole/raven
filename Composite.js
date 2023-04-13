@@ -1,9 +1,9 @@
-import {Instance, WebGLRenderer} from "./index.js";
+import {AbstractInstance, WebGLRenderer} from "./index.js";
 
 /**
  * @abstract
  * @param {WebGLRenderer} renderer
- * @param {Instance} instance
+ * @param {AbstractInstance} instance
  */
 export function Composite(renderer, instance) {
 	/**
@@ -15,7 +15,7 @@ export function Composite(renderer, instance) {
 	/** @returns {WebGLRenderer} */
 	this.getRenderer = () => renderer;
 
-	/** @returns {Instance} */
+	/** @returns {AbstractInstance} */
 	this.getInstance = () => instance;
 
 	/** @returns {?Number} */

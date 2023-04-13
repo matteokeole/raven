@@ -2,12 +2,12 @@ import {Component, DynamicComponent, GUIRenderer, Layer, Subcomponent, Structura
 import {OrthographicCamera} from "../cameras/index.js";
 import {Matrix3, Vector2} from "../math/index.js";
 import {extend} from "../utils/index.js";
-import {Font, Composite} from "../index.js";
+import {AbstractInstance, Font, Composite} from "../index.js";
 
 /**
  * @extends Composite
  * @param {GUIRenderer} renderer
- * @param {Instance} instance Reference to the current instance, used for updating the canvas texture, registering listeners and manipulating the GUI scale.
+ * @param {AbstractInstance} instance Reference to the current instance, used for updating the canvas texture, registering listeners and manipulating the GUI scale.
  */
 export function GUIComposite(renderer, instance) {
 	Composite.call(this, renderer, instance);
@@ -53,7 +53,7 @@ export function GUIComposite(renderer, instance) {
 	/** @type {?Font} */
 	let mainFont;
 
-	/** @returns {Instance} */
+	/** @returns {AbstractInstance} */
 	this.getInstance = () => instance;
 
 	/** @returns {Object.<String, Font>} */
