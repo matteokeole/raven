@@ -144,6 +144,8 @@ export function WebGLRenderer({offscreen}) {
 			delete textures[i];
 		}
 
+		for (i in userTextures) delete userTextures[i];
+
 		gl.getExtension("WEBGL_lose_context").loseContext();
 		gl = null;
 		canvas = null;
