@@ -67,6 +67,14 @@ Vector.prototype.floor;
 /**
  * @abstract
  * @param {Vector} v
+ * @param {Number} n
+ * @returns {Vector}
+ */
+Vector.prototype.lerp;
+
+/**
+ * @abstract
+ * @param {Vector} v
  * @returns {Vector}
  */
 Vector.prototype.multiply;

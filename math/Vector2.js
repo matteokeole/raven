@@ -56,6 +56,14 @@ Vector2.prototype.floor = function() {
 };
 
 /** @override */
+Vector2.prototype.lerp = function(v, n) {
+	this[0] += n * (v[0] - this[0]);
+	this[1] += n * (v[1] - this[1]);
+
+	return this;
+};
+
+/** @override */
 Vector2.prototype.multiply = function(v) {
 	this[0] *= v[0];
 	this[1] *= v[1];
