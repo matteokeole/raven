@@ -118,7 +118,13 @@ export function WebGLRenderer({offscreen}) {
 
 	/** @throws {NoWebGL2Error} */
 	this.build = function() {
-		canvas = offscreen ? new OffscreenCanvas(0, 0) : document.createElement("canvas");
+		if (offscreen) {
+			canvas = new OffscreenCanvas(0, 0);
+		} else {
+			canvas = document.createElement("canvas");
+			canvas.textContent = "This browser does not support the Canvas API.";
+		}
+
 		gl = canvas.getContext("webgl2");
 
 		if (gl === null) throw new NoWebGL2Error();
