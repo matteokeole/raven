@@ -15,7 +15,7 @@ export function GUIRenderer() {
 	this.build = async function(shaderPath, projection) {
 		_build();
 
-		const program = await this.loadProgram("subcomponent.vert", "subcomponent.frag", shaderPath);
+		const program = await this.loadProgram(shaderPath, "subcomponent.vert", "subcomponent.frag");
 
 		this.linkProgram(program);
 

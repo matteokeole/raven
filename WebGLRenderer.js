@@ -160,27 +160,17 @@ export function WebGLRenderer({offscreen}) {
 }
 
 /**
- * @param {String} vertexPath
- * @param {String} fragmentPath
- * @param {String} basePath
+ * @param {String} base
+ * @param {String} vertexEndpoint
+ * @param {String} fragmentEndpoint
  * @returns {Program}
  */
-WebGLRenderer.prototype.loadProgram = async function(vertexPath, fragmentPath, basePath) {
+WebGLRenderer.prototype.loadProgram = async function(base, vertexEndpoint, fragmentEndpoint) {
 	const
 		gl = this.getContext(),
-		createShader = async function(path, type) {
-			const
-				shader = gl.createShader(type),
-				source = await (await fetch(path)).text();
-
-			gl.shaderSource(shader, source);
-			gl.compileShader(shader);
-
-			return shader;
-		},
 		program = gl.createProgram(),
-		vertexShader = await createShader(`${basePath}${vertexPath}`, gl.VERTEX_SHADER),
-		fragmentShader = await createShader(`${basePath}${fragmentPath}`, gl.FRAGMENT_SHADER);
+		vertexShader = await createShader(gl, base, vertexEndpoint, gl.VERTEX_SHADER),
+		fragmentShader = await createShader(gl, base, fragmentEndpoint, gl.FRAGMENT_SHADER);
 
 	gl.attachShader(program, vertexShader);
 	gl.attachShader(program, fragmentShader);
@@ -224,12 +214,12 @@ WebGLRenderer.prototype.linkProgram = function(program) {
  * Asynchronous texture loader.
  * Loads a list of sources in a `WebGLTexture` array.
  * 
- * @param {String[]} paths
- * @param {String} basePath
+ * @param {String[]} endpoints
+ * @param {String} base
  * @throws {RangeError}
  * @throws {ReferenceError}
  */
-WebGLRenderer.prototype.loadTextures = async function(paths, basePath) {
+WebGLRenderer.prototype.loadTextures = async function(endpoints, base) {
 	const gl = this.getContext();
 
 	if (gl.getParameter(gl.TEXTURE_BINDING_2D_ARRAY) === null) {
@@ -238,10 +228,10 @@ WebGLRenderer.prototype.loadTextures = async function(paths, basePath) {
 
 	const textures = this.getUserTextures();
 
-	for (let i = 0, l = paths.length, path, image; i < l; i++) {
-		path = paths[i];
+	for (let i = 0, l = endpoints.length, endpoint, image; i < l; i++) {
+		endpoint = endpoints[i];
 		image = new Image();
-		image.src = `${basePath}${path}`;
+		image.src = `${base}${endpoint}`;
 
 		try {
 			await image.decode();
@@ -250,12 +240,12 @@ WebGLRenderer.prototype.loadTextures = async function(paths, basePath) {
 		}
 
 		if (image.width > WebGLRenderer.MAX_TEXTURE_SIZE[0] || image.height > WebGLRenderer.MAX_TEXTURE_SIZE[1]) {
-			throw RangeError(`Could not load '${path}': dimensions are overflowing MAX_TEXTURE_SIZE`);
+			throw RangeError(`Could not load '${endpoint}': dimensions are overflowing MAX_TEXTURE_SIZE`);
 		}
 
 		gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, i, image.width, image.height, 1, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
-		textures[path] = new Texture(image, i);
+		textures[endpoint] = new Texture(image, i);
 	}
 };
 
@@ -295,3 +285,21 @@ WebGLRenderer.prototype.clear = function() {
  * @type {Vector2}
  */
 WebGLRenderer.MAX_TEXTURE_SIZE = new Vector2(256, 256);
+
+/**
+ * @param {WebGLRenderingContext|WebGL2RenderingContext} gl
+ * @param {String} base
+ * @param {String} endpoint
+ * @param {Number} type
+ * @returns {WebGLShader}
+ */
+async function createShader(gl, base, endpoint, type) {
+	const
+		shader = gl.createShader(type),
+		source = await (await fetch(`${base}${endpoint}`)).text();
+
+	gl.shaderSource(shader, source);
+	gl.compileShader(shader);
+
+	return shader;
+}
