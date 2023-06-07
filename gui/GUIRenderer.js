@@ -79,37 +79,6 @@ export function GUIRenderer() {
 		}
 	};
 
-	this.loadTestTextures = async function() {
-		const gl = this.getContext();
-		const textures = this.getUserTextures();
-		const textureLength = Object.keys(textures).length;
-		const dimension = 256;
-		const imageReplacement = {
-			width: dimension,
-			height: dimension,
-		};
-		const canvas = new OffscreenCanvas(dimension, dimension);
-		const ctx = canvas.getContext("2d");
-		const colors = {
-			darkgrey: "#2b2b2b",
-			grey: "#6f6f6f",
-			overlay: "#000a",
-		};
-		const colorKeys = Object.keys(colors);
-
-		for (let i = 0, l = colorKeys.length, color; i < l; i++) {
-			color = colors[colorKeys[i]];
-
-			ctx.clearRect(0, 0, dimension, dimension);
-			ctx.fillStyle = color;
-			ctx.fillRect(0, 0, dimension, dimension);
-
-			gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, textureLength + i, dimension, dimension, 1, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
-
-			textures[colorKeys[i]] = new Texture(imageReplacement, textureLength + i);
-		}
-	};
-
 	/**
 	 * @override
 	 * @param {Number} subcomponentCount
