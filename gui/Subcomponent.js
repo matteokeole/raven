@@ -10,7 +10,7 @@ import {Vector2, Vector4} from "../math/index.js";
  * @param {Vector4} [options.colorMask]
  */
 export function Subcomponent({offset, size, uv, colorMask}) {
-	colorMask ??= new Vector4();
+	colorMask ??= new Vector4(255, 255, 255, 255);
 
 	/** @returns {Vector2} */
 	this.getOffset = () => offset;
