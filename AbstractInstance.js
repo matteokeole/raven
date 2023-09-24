@@ -162,11 +162,12 @@ export function AbstractInstance(renderer) {
 	/** @param {Boolean} value */
 	this.setIsFirstResize = value => void (isFirstResize = value);
 
-	this.build = async function() {
+	/** @param {Vector2} [viewport] */
+	this.build = async function(viewport = new Vector2(innerWidth, innerHeight)) {
 		renderer.setCompositeCount(compositeCount);
 		await renderer.build(this.getParameter("shader_path"));
 
-		const viewport = new Vector2(innerWidth, innerHeight)
+		viewport = viewport
 			.multiplyScalar(devicePixelRatio)
 			.floor();
 
