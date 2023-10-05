@@ -1,49 +1,93 @@
 import {Subcomponent} from "./gui/index.js";
 
-/**
- * @param {Object} options
- * @param {String} options.name
- * @param {String} options.texturePath
- * @param {Number} options.letterHeight
- * @param {Number} options.letterSpacing
- */
-export function Font({name, texturePath, letterHeight, letterSpacing}) {
+export class Font {
 	/** @param {?Object} */
-	let data;
+	#data;
 
 	/** @param {?Object.<String, Subcomponent>} */
-	let characters;
+	#characters;
 
-	texturePath = `${texturePath}${name}.png`;
+	/** @param {String} */
+	#name;
+
+	/** @param {String} */
+	#texturePath;
+
+	/** @param {?Number} */
+	#monospaceLetterWidth;
+
+	/** @param {Number} */
+	#letterHeight;
+
+	/** @param {Number} */
+	#letterSpacing;
+
+	/**
+	 * @param {Object} options
+	 * @param {String} options.name Used to refer to the font in layers
+	 * @param {String} options.texturePath Parent directory path (the filename is deduced from the `name` property)
+	 * @param {?Number} options.monospaceLetterWidth Character width (monospace fonts only)
+	 * @param {Number} options.letterHeight
+	 * @param {Number} options.letterSpacing
+	 */
+	constructor({name, texturePath, monospaceLetterWidth, letterHeight, letterSpacing}) {
+		this.#name = name;
+		this.#texturePath = `${texturePath}${name}.png`;
+		this.#monospaceLetterWidth = monospaceLetterWidth;
+		this.#letterHeight = letterHeight;
+		this.#letterSpacing = letterSpacing;
+	}
 
 	/** @returns {?Object} */
-	this.getData = () => data;
+	getData() {
+		return this.#data;
+	}
 
-	/** @param {Object} value */
-	this.setData = value => void (data = value);
+	/** @param {?Object} data */
+	setData(data) {
+		this.#data = data;
+	}
 
 	/** @returns {?Object.<String, Subcomponent>} */
-	this.getCharacters = () => characters;
+	getCharacters() {
+		return this.#characters;
+	}
 
-	/** @param {Object.<String, Subcomponent>} value */
-	this.setCharacters = value => void (characters = value);
+	/** @param {?Object.<String, Subcomponent>} characters */
+	setCharacters(characters) {
+		this.#characters = characters;
+	}
 
 	/** @returns {String} */
-	this.getName = () => name;
+	getName() {
+		return this.#name;
+	}
 
 	/** @returns {String} */
-	this.getTexturePath = () => texturePath;
+	getTexturePath() {
+		return this.#texturePath;
+	}
+
+	/** @returns {?Number} */
+	getMonospaceLetterWidth() {
+		return this.#monospaceLetterWidth;
+	}
 
 	/** @returns {Number} */
-	this.getLetterHeight = () => letterHeight;
+	getLetterHeight() {
+		return this.#letterHeight;
+	}
 
 	/** @returns {Number} */
-	this.getLetterSpacing = () => letterSpacing;
+	getLetterSpacing() {
+		return this.#letterSpacing;
+	}
+
+	/** @param {String} fontPath */
+	async load(fontPath) {
+		const response = await fetch(`${fontPath}${this.#name}.json`);
+		const json = await response.json();
+
+		this.#data = json;
+	}
 }
-
-/** @param {String} fontPath */
-Font.prototype.load = async function(fontPath) {
-	this.setData(
-		await (await fetch(`${fontPath}${this.getName()}.json`)).json(),
-	);
-};
