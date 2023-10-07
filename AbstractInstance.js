@@ -1,245 +1,269 @@
 import {Composite, WebGLRenderer} from "./index.js";
 import {Vector2, intersects} from "./math/index.js";
 
-/**
- * @abstract
- * @param {WebGLRenderer} renderer
- */
-export function AbstractInstance(renderer) {
-	/**
-	 * @private
-	 * @type {Composite[]}
-	 */
-	const composites = [];
+/** @abstract */
+export class AbstractInstance {
+	/** @type {WebGLRenderer} */
+	#renderer;
 
-	/**
-	 * @private
-	 * @type {Number}
-	 */
-	let compositeCount = 0;
+	/** @type {Composite[]} */
+	#composites;
 
-	/**
-	 * @private
-	 * @type {?ResizeObserver}
-	 */
-	let resizeObserver;
+	/** @type {Number} */
+	#compositeCount;
 
-	/**
-	 * @private
-	 * @type {Vector2}
-	 */
-	const pointer = new Vector2();
+	/** @type {?ResizeObserver} */
+	#resizeObserver;
 
-	/**
-	 * @private
-	 * @type {Object}
-	 */
-	const listeners = {
-		mouse_down: [],
-		mouse_down_count: 0,
-		mouse_enter: [],
-		mouse_enter_count: 0,
-		mouse_leave: [],
-		mouse_leave_count: 0,
-	};
+	/** @type {Vector2} */
+	#pointer;
 
-	/**
-	 * @private
-	 * @type {Object.<String, *>}
-	 */
-	const parameters = {
-		current_scale: 0,
-		font_path: "",
-		shader_path: "",
-		texture_path: "",
-	};
+	/** @type {Object.<String, *>} */
+	#listeners;
 
-	/**
-	 * @private
-	 * @type {?Number}
-	 */
-	let animationFrameRequestId;
+	/** @type {Object.<String, *>} */
+	#parameters;
 
-	/**
-	 * @private
-	 * @type {Boolean}
-	 */
-	let isFirstResize = true;
+	/** @type {?Number} */
+	#animationFrameRequestId;
 
-	/**
-	 * @private
-	 * @type {Boolean}
-	 */
-	let running = false;
+	/** @type {Boolean} */
+	#isFirstResize;
 
-	function loop() {
-		animationFrameRequestId = requestAnimationFrame(loop);
+	/** @type {Boolean} */
+	#isRunning;
 
-		renderer.render();
-	}
+	#loop = function() {
+		this.#animationFrameRequestId = requestAnimationFrame(this.#loop);
+		this.#renderer.render();
+	}.bind(this);
 
-	function onMouseDown() {
-		for (let i = 0, l = listeners.mouse_down_count, listener; i < l; i++) {
-			listener = listeners.mouse_down[i];
+	#onMouseDown = function() {
+		for (let i = 0, l = this.#listeners.mouse_down_count, listener; i < l; i++) {
+			listener = this.#listeners.mouse_down[i];
 
-			if (!intersects(pointer, listener.component.getPosition(), listener.component.getSize())) continue;
+			if (!intersects(this.#pointer, listener.component.getPosition(), listener.component.getSize())) {
+				continue;
+			}
 
-			listener(pointer);
+			listener(this.#pointer);
 
 			break;
 		}
-	}
+	}.bind(this);
 
 	/**
 	 * @param {Object} event
 	 * @param {Number} event.clientX
 	 * @param {Number} event.clientY
 	 */
-	function onMouseMove({clientX, clientY}) {
-		pointer[0] = clientX;
-		pointer[1] = clientY;
-		pointer
+	#onMouseMove = function({clientX, clientY}) {
+		this.#pointer[0] = clientX;
+		this.#pointer[1] = clientY;
+		this.#pointer
 			.multiplyScalar(devicePixelRatio)
-			.divideScalar(parameters["current_scale"]);
+			.divideScalar(this.#parameters["current_scale"]);
 
 		let i, l, listener;
 
-		for (i = 0, l = listeners.mouse_enter_count; i < l; i++) {
-			listener = listeners.mouse_enter[i];
+		for (i = 0, l = this.#listeners.mouse_enter_count; i < l; i++) {
+			listener = this.#listeners.mouse_enter[i];
 
-			if (!intersects(pointer, listener.component.getPosition(), listener.component.getSize())) continue;
-			if (listener.component.getIsHovered()) continue;
+			if (!intersects(this.#pointer, listener.component.getPosition(), listener.component.getSize())) {
+				continue;
+			}
+			if (listener.component.getIsHovered()) {
+				continue;
+			}
 
 			listener.component.setIsHovered(true);
-			listener(pointer);
+			listener(this.#pointer);
 		}
 
-		for (i = 0, l = listeners.mouse_leave_count; i < l; i++) {
-			listener = listeners.mouse_leave[i];
+		for (i = 0, l = this.#listeners.mouse_leave_count; i < l; i++) {
+			listener = this.#listeners.mouse_leave[i];
 
-			if (intersects(pointer, listener.component.getPosition(), listener.component.getSize())) continue;
-			if (!listener.component.getIsHovered()) continue;
+			if (intersects(this.#pointer, listener.component.getPosition(), listener.component.getSize())) {
+				continue;
+			}
+			if (!listener.component.getIsHovered()) {
+				continue;
+			}
 
 			listener.component.setIsHovered(false);
-			listener(pointer);
+			listener(this.#pointer);
 		}
+	}.bind(this);
+
+	/** @param {WebGLRenderer} renderer */
+	constructor(renderer) {
+		this.#renderer = renderer;
+		this.#composites = [];
+		this.#compositeCount = 0;
+		this.#pointer = new Vector2();
+		this.#listeners = {
+			mouse_down: [],
+			mouse_down_count: 0,
+			mouse_enter: [],
+			mouse_enter_count: 0,
+			mouse_leave: [],
+			mouse_leave_count: 0,
+		};
+		this.#parameters = {
+			current_scale: 0,
+			font_path: "",
+			shader_path: "",
+			texture_path: "",
+		};
+		this.#isFirstResize = true;
+		this.#isRunning = false;
 	}
 
 	/** @returns {WebGLRenderer} */
-	this.getRenderer = () => renderer;
+	getRenderer() {
+		return this.#renderer;
+	}
 
 	/** @returns {Composite[]} */
-	this.getComposites = () => composites;
+	getComposites() {
+		return this.#composites;
+	}
 
-	/** @param {Composite[]} _composites */
-	this.setComposites = function(_composites) {
-		compositeCount = _composites.length;
+	/** @param {Composite[]} composites */
+	setComposites(composites) {
+		this.#compositeCount = composites.length;
 
-		for (let i = 0, composite; i < compositeCount; i++) {
-			composite = _composites[i];
+		for (let i = 0, composite; i < this.#compositeCount; i++) {
+			composite = composites[i];
 			composite.setIndex(i);
 
-			composites.push(composite);
+			this.#composites.push(composite);
 		}
 	};
 
-	/** @returns {?ResizeObserver} */
-	this.getResizeObserver = () => resizeObserver;
+	/** @returns {ResizeObserver} */
+	getResizeObserver() {
+		return this.#resizeObserver;
+	}
 
-	/** @param {ResizeObserver} value */
-	this.setResizeObserver = value => void (resizeObserver = value);
+	/** @param {ResizeObserver} resizeObserver */
+	setResizeObserver(resizeObserver) {
+		this.#resizeObserver = resizeObserver;
+	}
 
 	/**
 	 * @param {String} key
 	 * @returns {*}
+	 * @throws {ReferenceError}
 	 */
-	this.getParameter = function(key) {
-		if (!(key in parameters)) throw new Error(`Undefined parameter key "${key}".`);
+	getParameter(key) {
+		if (!(key in this.#parameters)) {
+			throw new ReferenceError(`Undefined parameter key "${key}".`);
+		}
 
-		return parameters[key];
-	};
+		return this.#parameters[key];
+	}
 
 	/**
 	 * @param {String} key
 	 * @param {*} value
+	 * @throws {ReferenceError}
 	 */
-	this.setParameter = function(key, value) {
-		if (!(key in parameters)) throw new Error(`Undefined parameter key "${key}".`);
+	setParameter(key, value) {
+		if (!(key in this.#parameters)) {
+			throw new ReferenceError(`Undefined parameter key "${key}".`);
+		}
 
-		parameters[key] = value;
-	};
+		this.#parameters[key] = value;
+	}
 
 	/** @returns {Boolean} */
-	this.getIsFirstResize = () => isFirstResize;
+	isFirstResize() {
+		return this.#isFirstResize;
+	}
 
-	/** @param {Boolean} value */
-	this.setIsFirstResize = value => void (isFirstResize = value);
+	/** @param {Boolean} isFirstResize */
+	setFirstResize(isFirstResize) {
+		this.#isFirstResize = isFirstResize;
+	}
 
-	/** @param {Vector2} [viewport] */
-	this.build = async function(viewport = new Vector2(innerWidth, innerHeight)) {
-		renderer.setCompositeCount(compositeCount);
-		await renderer.build(this.getParameter("shader_path"));
+	async build() {
+		/** @todo This method doesn't belong to the abstract WebGLRenderer class */
+		this.#renderer.setCompositeCount(this.#compositeCount);
 
-		viewport = viewport
+		await this.#renderer.build(this.#parameters["shader_path"]);
+
+		const viewport = new Vector2(innerWidth, innerHeight)
 			.multiplyScalar(devicePixelRatio)
 			.floor();
 
-		renderer.setViewport(viewport);
+		this.#renderer.setViewport(viewport);
 
-		for (let i = 0, composite; i < compositeCount; i++) {
-			composite = composites[i];
+		for (let i = 0, composite; i < this.#compositeCount; i++) {
+			composite = this.#composites[i];
 
 			await composite.build();
+
 			composite.getRenderer().setViewport(viewport);
 		}
 
-		renderer.getCanvas().onmousedown = onMouseDown;
-		renderer.getCanvas().onmousemove = onMouseMove;
-	};
+		const canvas = this.#renderer.getCanvas();
+
+		canvas.onmousedown = this.#onMouseDown;
+		canvas.onmousemove = this.#onMouseMove;
+	}
 
 	/**
 	 * @param {String} event
 	 * @param {Function} listener
 	 */
-	this.addListener = function(event, listener) {
-		listeners[event].push(listener);
-		listeners[`${event}_count`]++;
-	};
+	addListener(event, listener) {
+		this.#listeners[event].push(listener);
+		this.#listeners[`${event}_count`]++;
+	}
 
 	/**
 	 * @param {String} event
 	 * @param {Function} listener
 	 */
-	this.removeListener = function(event, listener) {
-		listeners[event].splice(listeners[event].indexOf(listener), 1);
-		listeners[`${event}_count`]--;
-	};
+	removeListener(event, listener) {
+		this.#listeners[event].splice(this.#listeners[event].indexOf(listener), 1);
+		this.#listeners[`${event}_count`]--;
+	}
 
 	/** @throws {Error} */
-	this.run = function() {
-		if (running) throw Error("This instance is already running.");
+	run() {
+		if (this.#isRunning) {
+			throw new Error("This instance is already running.");
+		}
 
-		running = true;
+		this.#isRunning = true;
 
-		requestAnimationFrame(loop);
-	};
+		requestAnimationFrame(this.#loop);
+	}
 
 	/** @throws {Error} */
-	this.pause = function() {
-		if (!running) throw Error("This instance is already paused.");
+	pause() {
+		if (!this.#isRunning) {
+			throw new Error("This instance is already paused.");
+		}
 
-		cancelAnimationFrame(animationFrameRequestId);
+		cancelAnimationFrame(this.#animationFrameRequestId);
 
-		animationFrameRequestId = null;
-		running = false;
-	};
+		this.#animationFrameRequestId = null;
+		this.#isRunning = false;
+	}
 
-	this.dispose = function() {
-		if (running) this.pause();
+	dispose() {
+		if (this.#isRunning) {
+			this.pause();
+		}
 
-		for (let i = 0; i < compositeCount; i++) composites[i].getRenderer().dispose();
+		for (let i = 0; i < this.#compositeCount; i++) {
+			this.#composites[i].getRenderer().dispose();
+		}
 
-		renderer.getCanvas().remove();
-		renderer.dispose();
-	};
+		this.#renderer.getCanvas().remove();
+		this.#renderer.dispose();
+	}
 }
