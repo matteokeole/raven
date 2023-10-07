@@ -1,45 +1,82 @@
 import {Vector2, Vector4} from "../math/index.js";
 
 /**
- * @todo See `gl.colorMask`
- * 
- * @param {Object} options
- * @param {Vector2} options.offset
- * @param {Vector2} options.size
- * @param {Vector2} options.uv
- * @param {Vector4} [options.colorMask]
+ * @todo See gl.colorMask
  */
-export function Subcomponent({offset, size, uv, colorMask}) {
-	colorMask ??= new Vector4(255, 255, 255, 255);
+export class Subcomponent {
+	/** @param {Vector2} */
+	#size;
+
+	/** @param {Vector2} */
+	#offset;
+
+	/** @param {Vector2} */
+	#uv;
+
+	/** @param {Vector4} */
+	#colorMask;
+
+	/**
+	 * @param {Object} options
+	 * @param {Vector2} options.size
+	 * @param {Vector2} options.offset
+	 * @param {Vector2} options.uv
+	 * @param {Vector4} [options.colorMask=Vector4(255, 255, 255, 255)]
+	 */
+	constructor({size, offset, uv, colorMask = new Vector4(255, 255, 255, 255)}) {
+		this.#size = size;
+		this.#offset = offset;
+		this.#uv = uv;
+		this.#colorMask = colorMask;
+	}
 
 	/** @returns {Vector2} */
-	this.getOffset = () => offset;
+	getSize() {
+		return this.#size;
+	}
 
-	/** @param {Vector2} value */
-	this.setOffset = value => void (offset = value);
+	/** @param {Vector2} size */
+	setSize(size) {
+		this.#size = size;
+	}
 
 	/** @returns {Vector2} */
-	this.getSize = () => size;
+	getOffset() {
+		return this.#offset;
+	}
+
+	/** @param {Vector2} offset */
+	setOffset(offset) {
+		this.#offset = offset;
+	}
 
 	/** @returns {Vector2} */
-	this.getUV = () => uv;
+	getUV() {
+		return this.#uv;
+	}
 
-	/** @param {Vector2} value */
-	this.setUV = value => void (uv = value);
+	/** @param {Vector2} uv */
+	setUV(uv) {
+		this.#uv = uv;
+	}
 
 	/** @returns {Vector4} */
-	this.getColorMask = () => colorMask;
+	getColorMask() {
+		return this.#colorMask;
+	}
 
-	/** @param {Vector4} value */
-	this.setColorMask = value => void (colorMask = value);
-}
+	/** @param {Vector4} colorMask */
+	setColorMask(colorMask) {
+		this.#colorMask = colorMask;
+	}
 
-/** @returns {Subcomponent} */
-Subcomponent.prototype.clone = function() {
-	return new Subcomponent({
-		offset: this.getOffset(),
-		size: this.getSize(),
-		uv: this.getUV(),
-		colorMask: this.getColorMask(),
-	});
+	/** @returns {Subcomponent} */
+	clone() {
+		return new Subcomponent({
+			size: this.#size,
+			offset: this.#offset,
+			uv: this.#uv,
+			colorMask: this.#colorMask,
+		});
+	}
 }

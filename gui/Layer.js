@@ -1,8 +1,11 @@
-export function Layer() {}
+import {Component, GUIComposite} from "./index.js";
 
-/**
- * @abstract
- * @param {GUIComposite} context
- * @returns {Component[]}
- */
-Layer.prototype.build;
+/** @abstract */
+export class Layer {
+	/**
+	 * @abstract
+	 * @param {GUIComposite} context
+	 * @returns {Component[]}
+	 */
+	build() {}
+}
