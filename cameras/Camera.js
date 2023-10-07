@@ -1,34 +1,52 @@
 import {Matrix3, Vector3} from "../math/index.js";
 
 /** @abstract */
-export function Camera() {
-	/** @type {Vector3} */
-	let position = new Vector3(0, 0, 0);
-
-	/** @type {Vector3} */
-	let rotation = new Vector3(0, 0, 0);
-
+export class Camera {
 	/** @type {Matrix3} */
-	let projectionMatrix = Matrix3.identity();
+	#projection;
 
-	/** @returns {Vector3} */
-	this.getPosition = () => position;
-	
-	/** @param {Vector3} value */
-	this.setPosition = value => void (position = value);
+	/** @type {Vector3} */
+	#position;
 
-	/** @returns {Vector3} */
-	this.getRotation = () => rotation;
+	/** @type {Vector3} */
+	#rotation;
 
-	/** @param {Vector3} value */
-	this.setRotation = value => void (rotation = value);
+	constructor() {
+		this.#projection = new Matrix3();
+		this.#position = new Vector3();
+		this.#rotation = new Vector3();
+	}
 
 	/** @returns {Matrix3} */
-	this.getProjectionMatrix = () => projectionMatrix;
+	getProjection() {
+		return this.#projection;
+	}
 
-	/** @param {Matrix3} value */
-	this.setProjectionMatrix = value => void (projectionMatrix = value);
+	/** @param {Matrix3} projection */
+	setProjection(projection) {
+		this.#projection = projection;
+	}
+
+	/** @returns {Vector3} */
+	getPosition() {
+		return this.#position;
+	}
+
+	/** @param {Vector3} position */
+	setPosition(position) {
+		this.#position = position;
+	}
+
+	/** @returns {Vector3} */
+	getRotation() {
+		return this.#rotation;
+	}
+
+	/** @param {Vector3} rotation */
+	setRotation(rotation) {
+		this.#rotation = rotation;
+	}
+
+	/** @abstract */
+	updateProjection() {}
 }
-
-/** @abstract */
-Camera.prototype.updateProjectionMatrix;

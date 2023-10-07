@@ -80,11 +80,13 @@ export function GUIComposite(renderer, instance) {
 	this.build = async function() {
 		const scale = instance.getParameter("current_scale");
 
-		camera.projectionMatrix = Matrix3
-			.orthographic(instance.getRenderer().getViewport())
-			.multiply(Matrix3.scale(new Vector2(scale, scale)));
+		camera.setProjection(
+			Matrix3
+				.orthographic(instance.getRenderer().getViewport())
+				.multiply(Matrix3.scale(new Vector2(scale, scale))),
+		);
 
-		await renderer.build(instance.getParameter("shader_path"), camera.projectionMatrix);
+		await renderer.build(instance.getParameter("shader_path"), camera.getProjection());
 	};
 
 	/**
@@ -185,12 +187,14 @@ export function GUIComposite(renderer, instance) {
 	this.resize = function(viewport) {
 		const scale = instance.getParameter("current_scale");
 
-		/** @todo Replace by `OrthographicCamera.updateProjectionMatrix` */
-		camera.projectionMatrix = Matrix3
-			.orthographic(viewport)
-			.multiply(Matrix3.scale(new Vector2(scale, scale)));
+		/** @todo Replace by OrthographicCamera.updateProjection */
+		camera.setProjection(
+			Matrix3
+				.orthographic(viewport)
+				.multiply(Matrix3.scale(new Vector2(scale, scale))),
+		);
 
-		renderer.resize(viewport, camera.projectionMatrix);
+		renderer.resize(viewport, camera.getProjection());
 		subcomponentCount = 0;
 
 		// Add all components to the render queue
