@@ -47,7 +47,12 @@ export function AbstractInstance(renderer) {
 	 * @private
 	 * @type {Object.<String, *>}
 	 */
-	const parameters = {};
+	const parameters = {
+		current_scale: 0,
+		font_path: "",
+		shader_path: "",
+		texture_path: "",
+	};
 
 	/**
 	 * @private
@@ -145,16 +150,24 @@ export function AbstractInstance(renderer) {
 	this.setResizeObserver = value => void (resizeObserver = value);
 
 	/**
-	 * @param {String} name
+	 * @param {String} key
 	 * @returns {*}
 	 */
-	this.getParameter = name => parameters[name];
+	this.getParameter = function(key) {
+		if (!(key in parameters)) throw new Error(`Undefined parameter key "${key}".`);
+
+		return parameters[key];
+	};
 
 	/**
-	 * @param {String} name
+	 * @param {String} key
 	 * @param {*} value
 	 */
-	this.setParameter = (name, value) => void (parameters[name] = value);
+	this.setParameter = function(key, value) {
+		if (!(key in parameters)) throw new Error(`Undefined parameter key "${key}".`);
+
+		parameters[key] = value;
+	};
 
 	/** @returns {Boolean} */
 	this.getIsFirstResize = () => isFirstResize;

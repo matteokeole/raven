@@ -117,7 +117,7 @@ export function WebGLRenderer({offscreen}) {
 	this.getUserTextures = () => userTextures;
 
 	/** @throws {NoWebGL2Error} */
-	this.build = function() {
+	this.build = async function() {
 		if (offscreen) {
 			canvas = new OffscreenCanvas(0, 0);
 		} else {
