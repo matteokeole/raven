@@ -17,19 +17,17 @@ export function StructuralComponent({children}) {
 		const m = this.getMargin();
 		const o = parentSize.subtract(size);
 
-		initial.add(m);
-
 		switch (align) {
 			case Component.alignCenterTop:
 			case Component.alignCenter:
 			case Component.alignCenterBottom:
-				initial[0] += o[0] * .5;
+				initial[0] += o[0] * .5 + m[0];
 
 				break;
 			case Component.alignRightTop:
 			case Component.alignRightCenter:
 			case Component.alignRightBottom:
-				initial[0] = o[0] - m[0];
+				initial[0] += o[0] - m[0];
 
 				break;
 		}
@@ -38,13 +36,13 @@ export function StructuralComponent({children}) {
 			case Component.alignLeftCenter:
 			case Component.alignCenter:
 			case Component.alignRightCenter:
-				initial[1] += o[1] * .5;
+				initial[1] += o[1] * .5 + m[1];
 
 				break;
 			case Component.alignLeftBottom:
 			case Component.alignCenterBottom:
 			case Component.alignRightBottom:
-				initial[1] = o[1] - m[1];
+				initial[1] += o[1] - m[1];
 
 				break;
 		}
