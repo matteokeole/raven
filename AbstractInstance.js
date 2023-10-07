@@ -24,6 +24,18 @@ export class AbstractInstance {
 	/** @type {Object.<String, *>} */
 	#parameters;
 
+	/** @type {Number} */
+	#framesPerSecond;
+
+	/** @type {Number} */
+	#frameIndex;
+
+	/** @type {Number} */
+	#frameInterval;
+
+	/** @type {Number} */
+	#timeSinceLastFrame;
+
 	/** @type {?Number} */
 	#animationFrameRequestId;
 
@@ -33,10 +45,29 @@ export class AbstractInstance {
 	/** @type {Boolean} */
 	#isRunning;
 
-	#loop = function() {
-		this.#animationFrameRequestId = requestAnimationFrame(this.#loop);
-		this.#renderer.render();
-	}.bind(this);
+	#loop() {
+		this.#animationFrameRequestId = requestAnimationFrame(this.#loop.bind(this));
+		const time = performance.now();
+		const delta = time - this.#timeSinceLastFrame;
+
+		if (delta > this.#frameInterval) {
+			this.#timeSinceLastFrame = time - delta / this.#frameInterval;
+
+			try {
+				/** @todo update() call */
+
+				this.#renderer.render();
+				this.#frameIndex++;
+			} catch (error) {
+				console.error(error);
+
+				cancelAnimationFrame(this.#animationFrameRequestId);
+
+				this.#animationFrameRequestId = null;
+				this.#isRunning = false;
+			}
+		}
+	}
 
 	#onMouseDown = function() {
 		for (let i = 0, l = this.#listeners.mouse_down_count, listener; i < l; i++) {
@@ -115,6 +146,10 @@ export class AbstractInstance {
 			shader_path: "",
 			texture_path: "",
 		};
+		this.#framesPerSecond = 60;
+		this.#frameIndex = 0;
+		this.#frameInterval = 60 / 1000;
+		this.#timeSinceLastFrame = 0;
 		this.#isFirstResize = true;
 		this.#isRunning = false;
 	}
@@ -177,6 +212,16 @@ export class AbstractInstance {
 		this.#parameters[key] = value;
 	}
 
+	/** @returns {Number} */
+	getFramesPerSecond() {
+		return this.#framesPerSecond;
+	}
+
+	/** @param {Number} framesPerSecond */
+	setFramesPerSecond(framesPerSecond) {
+		this.#framesPerSecond = framesPerSecond;
+	}
+
 	/** @returns {Boolean} */
 	isFirstResize() {
 		return this.#isFirstResize;
@@ -232,26 +277,19 @@ export class AbstractInstance {
 	}
 
 	/** @throws {Error} */
-	run() {
+	loop() {
 		if (this.#isRunning) {
 			throw new Error("This instance is already running.");
 		}
 
+		this.#frameIndex = 0;
+		this.#frameInterval = this.#framesPerSecond === 0 ?
+			0 :
+			1000 / this.#framesPerSecond;
+		this.#timeSinceLastFrame = 0;
 		this.#isRunning = true;
 
-		requestAnimationFrame(this.#loop);
-	}
-
-	/** @throws {Error} */
-	pause() {
-		if (!this.#isRunning) {
-			throw new Error("This instance is already paused.");
-		}
-
-		cancelAnimationFrame(this.#animationFrameRequestId);
-
-		this.#animationFrameRequestId = null;
-		this.#isRunning = false;
+		this.#loop();
 	}
 
 	dispose() {
