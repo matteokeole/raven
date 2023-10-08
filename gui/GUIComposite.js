@@ -72,7 +72,7 @@ export function GUIComposite({renderer, instance, fonts}) {
 		const glyphMapPath = instance.getParameter("font_path");
 
 		for (let font in fonts) {
-			await fonts[font].loadGlyphs(`${glyphMapPath}/${font}.json`);
+			await fonts[font].loadGlyphMap(glyphMapPath);
 		}
 
 		const scale = instance.getParameter("current_scale");

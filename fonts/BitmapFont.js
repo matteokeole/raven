@@ -10,6 +10,16 @@ import {Vector2, Vector4} from "../math/index.js";
 
 export class BitmapFont extends Font {
 	/**
+	 * @type {String}
+	 */
+	#glyphMapPath;
+
+	/**
+	 * @type {String}
+	 */
+	#texturePath;
+
+	/**
 	 * @type {?Object.<String, GlyphMapEntry>}
 	 */
 	#glyphMap;
@@ -18,11 +28,6 @@ export class BitmapFont extends Font {
 	 * @type {?Object.<String, Subcomponent>}
 	 */
 	#glyphs;
-
-	/**
-	 * @type {String}
-	 */
-	#texturePath;
 
 	/**
 	 * @type {Number}
@@ -35,19 +40,42 @@ export class BitmapFont extends Font {
 	#tileSpacing;
 
 	/**
+	 * @type {Object.<String, Number>}
+	 */
+	#customTileWidths;
+
+	/**
 	 * @param {Object} options
+	 * @param {String} options.glyphMapPath
 	 * @param {String} options.texturePath
 	 * @param {Number} options.tileHeight
 	 * @param {Number} [options.tileSpacing]
+	 * @param {Object.<String, Number>} [options.customTileWidths]
 	 */
-	constructor({texturePath, tileHeight, tileSpacing = 0}) {
+	constructor({glyphMapPath, texturePath, tileHeight, tileSpacing = 0, customTileWidths = {}}) {
 		super();
 
+		this.#glyphMapPath = glyphMapPath;
+		this.#texturePath = texturePath;
 		this.#glyphMap = null;
 		this.#glyphs = null;
-		this.#texturePath = texturePath;
 		this.#tileHeight = tileHeight;
 		this.#tileSpacing = tileSpacing;
+		this.#customTileWidths = customTileWidths;
+	}
+
+	/**
+	 * @returns {String}
+	 */
+	getGlyphMapPath() {
+		return this.#glyphMapPath;
+	}
+
+	/**
+	 * @returns {String}
+	 */
+	getTexturePath() {
+		return this.#texturePath;
 	}
 
 	/**
@@ -65,18 +93,11 @@ export class BitmapFont extends Font {
 	}
 
 	/**
-	 * @returns {String}
-	 */
-	getTexturePath() {
-		return this.#texturePath;
-	}
-
-	/**
-	 * @param {Subcomponent}
+	 * @param {String} glyph
 	 * @returns {Number}
 	 */
 	getTileWidth(glyph) {
-		return glyph.getSize()[0];
+		return this.#customTileWidths[glyph] ?? this.#glyphs[glyph].getSize()[0];
 	}
 
 	/**
@@ -94,10 +115,17 @@ export class BitmapFont extends Font {
 	}
 
 	/**
-	 * @param {String} glyphMapPath
+	 * @returns {Object.<String, Number>}
 	 */
-	async loadGlyphs(glyphMapPath) {
-		const response = await fetch(glyphMapPath);
+	getCustomTileWidths() {
+		return this.#customTileWidths;
+	}
+
+	/**
+	 * @param {String} basePath
+	 */
+	async loadGlyphMap(basePath) {
+		const response = await fetch(`${basePath}${this.#glyphMapPath}`);
 		const json = await response.json();
 
 		this.#glyphMap = json;
@@ -135,13 +163,15 @@ export class BitmapFont extends Font {
 		let width = 0;
 
 		for (let i = 0, l = string.length, glyph; i < l; i++) {
-			glyph = (this.#glyphs[string[i]] ?? this.#glyphs[""]).clone();
+			if (!(string[i] in this.#glyphs)) continue;
+
+			glyph = this.#glyphs[string[i]].clone();
 			glyph.setOffset(new Vector2(width, 0));
 			glyph.setColorMask(colorMask);
 
 			glyphs.push(glyph);
 
-			width += this.getTileWidth(glyph) + this.getTileSpacing();
+			width += this.getTileWidth(string[i]) + this.getTileSpacing();
 		}
 
 		return {glyphs, width};
