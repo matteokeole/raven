@@ -1,0 +1,2 @@
+/** @abstract */
+export class Font {}

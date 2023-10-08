@@ -1,15 +1,17 @@
-import {Component, DynamicComponent, GUIRenderer, Layer, Subcomponent, StructuralComponent} from "./index.js";
+import {Component, DynamicComponent, GUIRenderer, Layer, StructuralComponent} from "./index.js";
 import {OrthographicCamera} from "../cameras/index.js";
 import {Matrix3, Vector2} from "../math/index.js";
 import {extend} from "../utils/index.js";
-import {AbstractInstance, Font, Composite} from "../index.js";
+import {AbstractInstance, Composite} from "../index.js";
+import {BitmapFont} from "../fonts/index.js";
 
 /**
- * @extends Composite
- * @param {GUIRenderer} renderer
- * @param {AbstractInstance} instance Reference to the current instance, used for updating the canvas texture, registering listeners and manipulating the GUI scale.
+ * @param {Object} options
+ * @param {GUIRenderer} options.renderer
+ * @param {AbstractInstance} options.instance Reference to the current instance, used for updating the canvas texture, registering listeners and manipulating the GUI scale.
+ * @param {Object.<String, BitmapFont>} options.fonts
  */
-export function GUIComposite(renderer, instance) {
+export function GUIComposite({renderer, instance, fonts}) {
 	Composite.call(this, renderer, instance);
 
 	/**
@@ -47,37 +49,32 @@ export function GUIComposite(renderer, instance) {
 	/** @type {Number[]} */
 	const lastInsertionIndices = [];
 
-	/** @type {Object.<String, Font>} */
-	const fonts = {};
-
-	/** @type {?Font} */
-	let mainFont;
-
 	/** @returns {AbstractInstance} */
 	this.getInstance = () => instance;
 
-	/** @returns {Object.<String, Font>} */
-	this.getFonts = () => fonts;
-
-	/** @param {Font[]} value */
-	this.setFonts = value => {
-		this.setMainFont(value[0]);
-
-		for (let i = 0, l = value.length, font; i < l; i++) {
-			fonts[(font = value[i]).getName()] = font;
+	/**
+	 * @param {String} key
+	 * @returns {BitmapFont}
+	 * @throws {ReferenceError}
+	 */
+	this.getFont = function(key) {
+		if (!(key in fonts)) {
+			throw new ReferenceError(`Undefined font ${key}.`);
 		}
+
+		return fonts[key];
 	};
-
-	/** @returns {?Font} */
-	this.getMainFont = () => mainFont;
-
-	/** @param {Font} value */
-	this.setMainFont = value => void (mainFont = value);
 
 	/** @returns {?Texture} */
 	this.getTexture = path => renderer.getUserTextures()[path];
 
 	this.build = async function() {
+		const glyphMapPath = instance.getParameter("font_path");
+
+		for (let font in fonts) {
+			await fonts[font].loadGlyphs(`${glyphMapPath}/${font}.json`);
+		}
+
 		const scale = instance.getParameter("current_scale");
 
 		camera.setProjection(
@@ -297,43 +294,6 @@ export function GUIComposite(renderer, instance) {
 
 		this.compute().render();
 	};
-
-	this.dispose = renderer.dispose;
 }
 
 extend(GUIComposite, Composite);
-
-/** @param {Font[]} fonts */
-GUIComposite.prototype.setupFonts = async function(fonts) {
-	/** @type {String} */
-	const fontPath = this.getInstance().getParameter("font_path");
-
-	for (let i = 0, j, fl = fonts.length, font, data, dl, letterHeight, characters, symbol, character; i < fl; i++) {
-		font = fonts[i];
-
-		await font.load(fontPath);
-
-		data = Object.entries(font.getData());
-		letterHeight = font.getLetterHeight();
-		characters = {};
-
-		for (j = 0, dl = data.length; j < dl; j++) {
-			[symbol, character] = data[j];
-
-			characters[symbol] = new Subcomponent({
-				size: new Vector2(character.width, letterHeight),
-				offset: new Vector2(),
-				uv: new Vector2(character.uv[0], character.uv[1]),
-			});
-		}
-
-		font.setCharacters(characters);
-	}
-
-	this.setFonts(fonts);
-};
-
-/** @returns {?Font} */
-GUIComposite.prototype.getFont = function(name) {
-	return this.getFonts()[name];
-};
