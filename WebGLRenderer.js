@@ -209,10 +209,44 @@ WebGLRenderer.prototype.linkProgram = function(program) {
 };
 
 /**
+ * Loads a list of colors in a WebGLTexture array.
+ * 
+ * @param {Object.<String, String>} colors
+ * @throws {ReferenceError}
+ */
+WebGLRenderer.prototype.loadColors = function(colors) {
+	const gl = this.getContext();
+
+	if (gl.getParameter(gl.TEXTURE_BINDING_2D_ARRAY) === null) {
+		throw ReferenceError("No texture array bound to the context");
+	}
+
+	const textures = this.getUserTextures();
+	const textureCount = Object.keys(textures).length;
+
+	const width = WebGLRenderer.MAX_TEXTURE_SIZE[0];
+	const height = WebGLRenderer.MAX_TEXTURE_SIZE[1];
+	const canvas = new OffscreenCanvas(width, height);
+	const ctx = canvas.getContext("2d");
+
+	colors = Object.entries(colors);
+
+	for (let i = 0, l = colors.length; i < l; i++) {
+		ctx.clearRect(0, 0, width, height);
+		ctx.fillStyle = colors[i][1];
+		ctx.fillRect(0, 0, width, height);
+
+		gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, textureCount + i, width, height, 1, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+
+		textures[colors[i][0]] = new Texture({width, height}, textureCount + i);
+	}
+};
+
+/**
  * @todo Default texture for invalid paths?
  * 
  * Asynchronous texture loader.
- * Loads a list of sources in a `WebGLTexture` array.
+ * Loads a list of sources in a WebGLTexture array.
  * 
  * @param {String[]} endpoints
  * @param {String} base
@@ -227,6 +261,7 @@ WebGLRenderer.prototype.loadTextures = async function(endpoints, base) {
 	}
 
 	const textures = this.getUserTextures();
+	const textureCount = Object.keys(textures).length;
 
 	for (let i = 0, l = endpoints.length, endpoint, image; i < l; i++) {
 		endpoint = endpoints[i];
@@ -243,9 +278,9 @@ WebGLRenderer.prototype.loadTextures = async function(endpoints, base) {
 			throw RangeError(`Could not load '${endpoint}': dimensions are overflowing MAX_TEXTURE_SIZE`);
 		}
 
-		gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, i, image.width, image.height, 1, gl.RGBA, gl.UNSIGNED_BYTE, image);
+		gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, textureCount + i, image.width, image.height, 1, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
-		textures[endpoint] = new Texture(image, i);
+		textures[endpoint] = new Texture(image, textureCount + i);
 	}
 };
 
