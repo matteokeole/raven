@@ -59,14 +59,26 @@ export function GUIComposite({renderer, instance, fonts}) {
 	 */
 	this.getFont = function(key) {
 		if (!(key in fonts)) {
-			throw new ReferenceError(`Undefined font ${key}.`);
+			throw new ReferenceError(`Undefined font key "${key}".`);
 		}
 
 		return fonts[key];
 	};
 
-	/** @returns {?Texture} */
-	this.getTexture = path => renderer.getUserTextures()[path];
+	/**
+	 * @param {String} key
+	 * @returns {Texture}
+	 * @throws {ReferenceError}
+	 */
+	this.getTexture = function(key) {
+		const userTextures = renderer.getUserTextures();
+
+		if (!(key in userTextures)) {
+			throw new ReferenceError(`Undefined texture key "${key}".`);
+		}
+
+		return userTextures[key];
+	};
 
 	this.build = async function() {
 		const glyphMapPath = instance.getParameter("font_path");

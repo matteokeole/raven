@@ -77,11 +77,7 @@ export function Component({align, margin, size}) {
 	this.setPosition = value => void (position = value);
 
 	/** @returns {Number} */
-	this.getAlign = function() {
-		if (typeof align !== "number") throw TypeError(`Expecting an instance of Number, ${align} given`);
-
-		return align;
-	};;
+	this.getAlign = () => align;
 
 	/** @returns {Vector2} */
 	this.getMargin = () => margin;
