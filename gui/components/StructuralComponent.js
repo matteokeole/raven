@@ -1,4 +1,5 @@
 import {Component} from "./Component.js";
+import {Alignment} from "../index.js";
 
 /**
  * @abstract
@@ -36,30 +37,30 @@ export class StructuralComponent extends Component {
 		const o = parentSize.subtract(size);
 
 		switch (alignment) {
-			case Component.alignCenterTop:
-			case Component.alignCenter:
-			case Component.alignCenterBottom:
+			case Alignment.topCenter:
+			case Alignment.center:
+			case Alignment.bottomCenter:
 				initial[0] += o[0] * .5 + m[0];
 
 				break;
-			case Component.alignRightTop:
-			case Component.alignRightCenter:
-			case Component.alignRightBottom:
+			case Alignment.topRight:
+			case Alignment.centerRight:
+			case Alignment.bottomCenter:
 				initial[0] += o[0] - m[0];
 
 				break;
 		}
 
 		switch (alignment) {
-			case Component.alignLeftCenter:
-			case Component.alignCenter:
-			case Component.alignRightCenter:
+			case Alignment.centerLeft:
+			case Alignment.center:
+			case Alignment.centerRight:
 				initial[1] += o[1] * .5 + m[1];
 
 				break;
-			case Component.alignLeftBottom:
-			case Component.alignCenterBottom:
-			case Component.alignRightBottom:
+			case Alignment.bottomLeft:
+			case Alignment.bottomCenter:
+			case Alignment.bottomCenter:
 				initial[1] += o[1] - m[1];
 
 				break;

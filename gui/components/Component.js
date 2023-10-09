@@ -1,61 +1,21 @@
+import {Alignment} from "../index.js";
 import {Matrix3, Vector2} from "../../math/index.js";
+
+/**
+ * @typedef {Number} Alignment
+ */
 
 /**
  * @abstract
  */
 export class Component {
 	/**
-	 * @type {Number}
-	 */
-	static alignLeftTop = 0;
-
-	/**
-	 * @type {Number}
-	 */
-	static alignCenterTop = 1;
-
-	/**
-	 * @type {Number}
-	 */
-	static alignRightTop = 2;
-
-	/**
-	 * @type {Number}
-	 */
-	static alignLeftCenter = 3;
-
-	/**
-	 * @type {Number}
-	 */
-	static alignCenter = 4;
-
-	/**
-	 * @type {Number}
-	 */
-	static alignRightCenter = 5;
-
-	/**
-	 * @type {Number}
-	 */
-	static alignLeftBottom = 6;
-
-	/**
-	 * @type {Number}
-	 */
-	static alignCenterBottom = 7;
-
-	/**
-	 * @type {Number}
-	 */
-	static alignRightBottom = 8;
-
-	/**
 	 * @type {?Vector2}
 	 */
 	#position;
 
 	/**
-	 * @type {Number}
+	 * @type {Alignment}
 	 */
 	#alignment;
 
@@ -71,7 +31,7 @@ export class Component {
 
 	/**
 	 * @param {Object} options
-	 * @param {Number} options.alignment
+	 * @param {Alignment} options.alignment
 	 * @param {Vector2} [options.margin]
 	 * @param {Vector2} options.size
 	 */
@@ -97,7 +57,7 @@ export class Component {
 	}
 
 	/**
-	 * @returns {Number}
+	 * @returns {Alignment}
 	 */
 	getAlignment() {
 		return this.#alignment;
@@ -136,42 +96,42 @@ export class Component {
 		const o = parentSize.subtract(this.#size);
 
 		switch (this.#alignment) {
-			case Component.alignLeftTop:
-			case Component.alignLeftCenter:
-			case Component.alignLeftBottom:
+			case Alignment.topLeft:
+			case Alignment.centerLeft:
+			case Alignment.bottomLeft:
 				initial[0] += m[0];
 
 				break;
-			case Component.alignCenterTop:
-			case Component.alignCenter:
-			case Component.alignCenterBottom:
+			case Alignment.topCenter:
+			case Alignment.center:
+			case Alignment.bottomCenter:
 				initial[0] += o[0] * .5 + m[0];
 
 				break;
-			case Component.alignRightTop:
-			case Component.alignRightCenter:
-			case Component.alignRightBottom:
+			case Alignment.topRight:
+			case Alignment.centerRight:
+			case Alignment.bottomRight:
 				initial[0] += o[0] - m[0];
 
 				break;
 		}
 
 		switch (this.#alignment) {
-			case Component.alignLeftTop:
-			case Component.alignCenterTop:
-			case Component.alignRightTop:
+			case Alignment.topLeft:
+			case Alignment.topCenter:
+			case Alignment.topRight:
 				initial[1] += m[1];
 
 				break;
-			case Component.alignLeftCenter:
-			case Component.alignCenter:
-			case Component.alignRightCenter:
+			case Alignment.centerLeft:
+			case Alignment.center:
+			case Alignment.centerRight:
 				initial[1] += o[1] * .5 + m[1];
 
 				break;
-			case Component.alignLeftBottom:
-			case Component.alignCenterBottom:
-			case Component.alignRightBottom:
+			case Alignment.bottomLeft:
+			case Alignment.bottomCenter:
+			case Alignment.bottomRight:
 				initial[1] += o[1] - m[1];
 
 				break;
