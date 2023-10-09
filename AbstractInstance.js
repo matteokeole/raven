@@ -1,48 +1,78 @@
 import {Composite, WebGLRenderer} from "./index.js";
 import {Vector2, intersects} from "./math/index.js";
 
-/** @abstract */
+/**
+ * @abstract
+ */
 export class AbstractInstance {
-	/** @type {WebGLRenderer} */
+	/**
+	 * @type {WebGLRenderer}
+	 */
 	#renderer;
 
-	/** @type {Composite[]} */
+	/**
+	 * @type {Composite[]}
+	 */
 	#composites;
 
-	/** @type {Number} */
+	/**
+	 * @type {Number}
+	 */
 	#compositeCount;
 
-	/** @type {?ResizeObserver} */
+	/**
+	 * @type {?ResizeObserver}
+	 */
 	#resizeObserver;
 
-	/** @type {Vector2} */
+	/**
+	 * @type {Vector2}
+	 */
 	#pointer;
 
-	/** @type {Object.<String, *>} */
+	/**
+	 * @type {Object.<String, *>}
+	 */
 	#listeners;
 
-	/** @type {Object.<String, *>} */
+	/**
+	 * @type {Object.<String, *>}
+	 */
 	#parameters;
 
-	/** @type {Number} */
+	/**
+	 * @type {Number}
+	 */
 	#framesPerSecond;
 
-	/** @type {Number} */
+	/**
+	 * @type {Number}
+	 */
 	#frameIndex;
 
-	/** @type {Number} */
+	/**
+	 * @type {Number}
+	 */
 	#frameInterval;
 
-	/** @type {Number} */
+	/**
+	 * @type {Number}
+	 */
 	#timeSinceLastFrame;
 
-	/** @type {?Number} */
+	/**
+	 * @type {?Number}
+	 */
 	#animationFrameRequestId;
 
-	/** @type {Boolean} */
+	/**
+	 * @type {Boolean}
+	 */
 	#isFirstResize;
 
-	/** @type {Boolean} */
+	/**
+	 * @type {Boolean}
+	 */
 	#isRunning;
 
 	#loop() {
@@ -126,7 +156,9 @@ export class AbstractInstance {
 		}
 	}.bind(this);
 
-	/** @param {WebGLRenderer} renderer */
+	/**
+	 * @param {WebGLRenderer} renderer
+	 */
 	constructor(renderer) {
 		this.#renderer = renderer;
 		this.#composites = [];
@@ -154,17 +186,23 @@ export class AbstractInstance {
 		this.#isRunning = false;
 	}
 
-	/** @returns {WebGLRenderer} */
+	/**
+	 * @returns {WebGLRenderer}
+	 */
 	getRenderer() {
 		return this.#renderer;
 	}
 
-	/** @returns {Composite[]} */
+	/**
+	 * @returns {Composite[]}
+	 */
 	getComposites() {
 		return this.#composites;
 	}
 
-	/** @param {Composite[]} composites */
+	/**
+	 * @param {Composite[]} composites
+	 */
 	setComposites(composites) {
 		this.#compositeCount = composites.length;
 
@@ -176,12 +214,16 @@ export class AbstractInstance {
 		}
 	};
 
-	/** @returns {ResizeObserver} */
+	/**
+	 * @returns {ResizeObserver}
+	 */
 	getResizeObserver() {
 		return this.#resizeObserver;
 	}
 
-	/** @param {ResizeObserver} resizeObserver */
+	/**
+	 * @param {ResizeObserver} resizeObserver
+	 */
 	setResizeObserver(resizeObserver) {
 		this.#resizeObserver = resizeObserver;
 	}
@@ -212,28 +254,38 @@ export class AbstractInstance {
 		this.#parameters[key] = value;
 	}
 
-	/** @returns {Number} */
+	/**
+	 * @returns {Number}
+	 */
 	getFramesPerSecond() {
 		return this.#framesPerSecond;
 	}
 
-	/** @param {Number} framesPerSecond */
+	/**
+	 * @param {Number} framesPerSecond
+	 */
 	setFramesPerSecond(framesPerSecond) {
 		this.#framesPerSecond = framesPerSecond;
 	}
 
-	/** @returns {Boolean} */
+	/**
+	 * @returns {Boolean}
+	 */
 	isFirstResize() {
 		return this.#isFirstResize;
 	}
 
-	/** @param {Boolean} isFirstResize */
+	/**
+	 * @param {Boolean} isFirstResize
+	 */
 	setFirstResize(isFirstResize) {
 		this.#isFirstResize = isFirstResize;
 	}
 
 	async build() {
-		/** @todo This method doesn't belong to the abstract WebGLRenderer class */
+		/**
+		 * @todo This method doesn't belong to the abstract WebGLRenderer class
+		 */
 		this.#renderer.setCompositeCount(this.#compositeCount);
 
 		await this.#renderer.build(this.#parameters["shader_path"]);
@@ -276,7 +328,9 @@ export class AbstractInstance {
 		this.#listeners[`${event}_count`]--;
 	}
 
-	/** @throws {Error} */
+	/**
+	 * @throws {Error}
+	 */
 	loop() {
 		if (this.#isRunning) {
 			throw new Error("This instance is already running.");

@@ -1,60 +1,115 @@
-import {VisualComponent} from "../index.js";
-import {extend} from "../../utils/index.js";
+import {VisualComponent} from "./VisualComponent.js";
+import {Vector2} from "../../math/index.js";
 
-/** @typedef {(position: Vector2) => void} Listener */
+/**
+ * @typedef {(position: Vector2)} EventListener
+ */
 
 /**
  * @abstract
- * @extends VisualComponent
- * @param {?Listener} onMouseDown
- * @param {?Listener} onMouseEnter
- * @param {?Listener} onMouseLeave
  */
-export function DynamicComponent({onMouseDown, onMouseEnter, onMouseLeave}) {
-	VisualComponent.apply(this, arguments);
+export class DynamicComponent extends VisualComponent {
+	/**
+	 * @param {DynamicComponent} component
+	 * @param {?EventListener} eventListener
+	 */
+	static #initEventListener(component, eventListener) {
+		if (eventListener === null) return null;
 
-	/** @type {Boolean} */
-	let isHovered = false;
+		eventListener = listener.bind(component);
+		eventListener.component = component;
 
-	/** @type {?Listener} */
-	onMouseDown &&= configureListener.call(this, onMouseDown);
+		return eventListener;
+	}
 
-	/** @type {?Listener} */
-	onMouseEnter &&= configureListener.call(this, onMouseEnter);
+	/**
+	 * @type {Boolean}
+	 */
+	#hovered;
 
-	/** @type {?Listener} */
-	onMouseLeave &&= configureListener.call(this, onMouseLeave);
+	/**
+	 * @type {?Listener}
+	 */
+	#onMouseDown;
 
-	/** @returns {Boolean} */
-	this.getIsHovered = () => isHovered;
+	/**
+	 * @type {?Listener}
+	 */
+	#onMouseEnter;
 
-	/** @param {Boolean} value */
-	this.setIsHovered = value => void (isHovered = value);
+	/**
+	 * @type {?Listener}
+	 */
+	#onMouseLeave;
 
-	/** @returns {?Listener} */
-	this.getOnMouseDown = () => onMouseDown;
+	/**
+	 * @param {Object} options
+	 * @param {Listener} [options.onMouseDown]
+	 * @param {Listener} [options.onMouseEnter]
+	 * @param {Listener} [options.onMouseLeave]
+	 */
+	constructor({onMouseDown = null, onMouseEnter = null, onMouseLeave = null}) {
+		super(arguments[0]);
 
-	/** @param {Listener} value */
-	this.setOnMouseDown = value => void (onMouseDown = configureListener.call(this, value));
+		this.#hovered = false;
+		this.#onMouseDown = DynamicComponent.#initEventListener(this, onMouseDown);
+		this.#onMouseEnter = DynamicComponent.#initEventListener(this, onMouseEnter);
+		this.#onMouseLeave = DynamicComponent.#initEventListener(this, onMouseLeave);
+	}
 
-	/** @returns {?Listener} */
-	this.getOnMouseEnter = () => onMouseEnter;
+	/**
+	 * @returns {Boolean}
+	 */
+	isHovered() {
+		return this.#hovered;
+	}
 
-	/** @param {Listener} value */
-	this.setOnMouseEnter = value => void (onMouseEnter = configureListener.call(this, value));
+	/**
+	 * @param {Boolean} hovered
+	 */
+	setHovered(hovered) {
+		this.#hovered = hovered;
+	}
 
-	/** @returns {?Listener} */
-	this.getOnMouseLeave = () => onMouseLeave;
+	/**
+	 * @returns {?EventListener}
+	 */
+	getOnMouseDown() {
+		return this.#onMouseDown;
+	}
 
-	/** @param {Listener} value */
-	this.setOnMouseLeave = value => void (onMouseLeave = configureListener.call(this, value));
-}
+	/**
+	 * @param {?EventListener} onMouseDown
+	 */
+	setOnMouseDown(onMouseDown) {
+		this.#onMouseDown = DynamicComponent.#initEventListener(this, onMouseDown);
+	}
 
-extend(DynamicComponent, VisualComponent);
+	/**
+	 * @returns {?EventListener}
+	 */
+	getOnMouseEnter() {
+		return this.#onMouseEnter;
+	}
 
-function configureListener(listener) {
-	listener = listener.bind(this);
-	listener.component = this;
+	/**
+	 * @param {?EventListener} onMouseEnter
+	 */
+	setOnMouseEnter(onMouseEnter) {
+		this.#onMouseEnter = DynamicComponent.#initEventListener(this, onMouseEnter);
+	}
 
-	return listener;
+	/**
+	 * @returns {?EventListener}
+	 */
+	getOnMouseLeave() {
+		return this.#onMouseLeave;
+	}
+
+	/**
+	 * @param {?EventListener} onMouseLeave
+	 */
+	setOnMouseLeave(onMouseLeave) {
+		this.#onMouseLeave = DynamicComponent.#initEventListener(this, onMouseLeave);
+	}
 }

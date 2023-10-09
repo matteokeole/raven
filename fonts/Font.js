@@ -1,2 +1,4 @@
-/** @abstract */
+/**
+ * @abstract
+ */
 export class Font {}

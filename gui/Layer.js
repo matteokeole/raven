@@ -1,6 +1,9 @@
-import {Component, GUIComposite} from "./index.js";
+import {Component} from "./components/index.js";
+import {GUIComposite} from "./index.js";
 
-/** @abstract */
+/**
+ * @abstract
+ */
 export class Layer {
 	/**
 	 * @abstract

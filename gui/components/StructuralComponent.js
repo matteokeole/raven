@@ -1,23 +1,41 @@
-import {Component} from "../index.js";
-import {extend} from "../../utils/index.js";
+import {Component} from "./Component.js";
 
 /**
  * @abstract
- * @extends Component
- * @param {Object} options
- * @param {Component[]} options.children
  */
-export function StructuralComponent({children}) {
-	Component.apply(this, arguments);
+export class StructuralComponent extends Component {
+	/**
+	 * @type {Component[]}
+	 */
+	#children;
 
-	/** @override */
-	this.compute = function(initial, parentSize) {
-		const align = this.getAlign();
+	/**
+	 * @param {Object} options
+	 * @param {Component[]} options.children
+	 */
+	constructor({children}) {
+		super(arguments[0]);
+
+		this.#children = children;
+	}
+
+	/**
+	 * @returns {Component[]}
+	 */
+	getChildren() {
+		return this.#children;
+	}
+
+	/**
+	 * @inheritdoc
+	 */
+	compute(initial, parentSize) {
+		const alignment = this.getAlignment();
 		const size = this.getSize();
 		const m = this.getMargin();
 		const o = parentSize.subtract(size);
 
-		switch (align) {
+		switch (alignment) {
 			case Component.alignCenterTop:
 			case Component.alignCenter:
 			case Component.alignCenterBottom:
@@ -32,7 +50,7 @@ export function StructuralComponent({children}) {
 				break;
 		}
 
-		switch (align) {
+		switch (alignment) {
 			case Component.alignLeftCenter:
 			case Component.alignCenter:
 			case Component.alignRightCenter:
@@ -47,18 +65,15 @@ export function StructuralComponent({children}) {
 				break;
 		}
 
-		this.setPosition(initial.floor());
+		initial = initial.floor();
 
-		const position = this.getPosition();
-		const children = this.getChildren();
+		this.setPosition(initial);
 
-		for (let i = 0, l = children.length; i < l; i++) {
-			children[i].compute(position.clone(), size.clone());
+		/**
+		 * @todo These controls should not be inside abstract component classes
+		 */
+		for (let i = 0, l = this.#children.length; i < l; i++) {
+			this.#children[i].compute(initial.clone(), size.clone());
 		}
-	};
-
-	/** @returns {Component[]} */
-	this.getChildren = () => children;
+	}
 }
-
-extend(StructuralComponent, Component);

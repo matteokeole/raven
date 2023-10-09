@@ -1,4 +1,5 @@
-import {Component, DynamicComponent, GUIRenderer, Layer, StructuralComponent} from "./index.js";
+import {Component, DynamicComponent, StructuralComponent} from "./components/index.js";
+import {GUIRenderer, Layer} from "./index.js";
 import {OrthographicCamera} from "../cameras/index.js";
 import {Matrix3, Vector2} from "../math/index.js";
 import {extend} from "../utils/index.js";

@@ -1,31 +1,53 @@
-import {Component} from "../index.js";
-import {extend} from "../../utils/index.js";
+import {Component} from "./Component.js";
+import {Subcomponent} from "../index.js";
 import {Texture} from "../../wrappers/index.js";
 
 /**
  * @abstract
- * @extends Component
  */
-export function VisualComponent() {
-	Component.apply(this, arguments);
+export class VisualComponent extends Component {
+	/**
+	 * @type {Subcomponent[]}
+	 */
+	#subcomponents;
 
-	/** @type {Subcomponent[]} */
-	let subcomponents = [];
+	/**
+	 * @type {?Texture}
+	 */
+	#texture;
 
-	/** @type {Texture} */
-	let texture;
+	constructor() {
+		super(arguments[0]);
 
-	/** @returns {Subcomponent[]} */
-	this.getSubcomponents = () => subcomponents;
+		this.#subcomponents = [];
+		this.#texture = null;
+	}
 
-	/** @param {Subcomponent[]} value */
-	this.setSubcomponents = value => void (subcomponents = value);
+	/**
+	 * @returns {Subcomponent[]}
+	 */
+	getSubcomponents() {
+		return this.#subcomponents;
+	}
 
-	/** @returns {Texture} */
-	this.getTexture = () => texture;
+	/**
+	 * @param {Subcomponent[]} subcomponents
+	 */
+	setSubcomponents(subcomponents) {
+		this.#subcomponents = subcomponents;
+	}
 
-	/** @param {Texture} value */
-	this.setTexture = value => void (texture = value);
+	/**
+	 * @returns {?Texture}
+	 */
+	getTexture() {
+		return this.#texture;
+	}
+
+	/**
+	 * @param {?Texture} texture
+	 */
+	setTexture(texture) {
+		this.#texture = texture;
+	}
 }
-
-extend(VisualComponent, Component);

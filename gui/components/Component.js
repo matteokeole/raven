@@ -2,14 +2,127 @@ import {Matrix3, Vector2} from "../../math/index.js";
 
 /**
  * @abstract
- * @param {Object} options
- * @param {Number} align
- * @param {Vector2} margin
- * @param {Vector2} size
  */
-export function Component({align, margin, size}) {
-	/** @type {?Vector2} */
-	let position;
+export class Component {
+	/**
+	 * @type {Number}
+	 */
+	static alignLeftTop = 0;
+
+	/**
+	 * @type {Number}
+	 */
+	static alignCenterTop = 1;
+
+	/**
+	 * @type {Number}
+	 */
+	static alignRightTop = 2;
+
+	/**
+	 * @type {Number}
+	 */
+	static alignLeftCenter = 3;
+
+	/**
+	 * @type {Number}
+	 */
+	static alignCenter = 4;
+
+	/**
+	 * @type {Number}
+	 */
+	static alignRightCenter = 5;
+
+	/**
+	 * @type {Number}
+	 */
+	static alignLeftBottom = 6;
+
+	/**
+	 * @type {Number}
+	 */
+	static alignCenterBottom = 7;
+
+	/**
+	 * @type {Number}
+	 */
+	static alignRightBottom = 8;
+
+	/**
+	 * @type {?Vector2}
+	 */
+	#position;
+
+	/**
+	 * @type {Number}
+	 */
+	#alignment;
+
+	/**
+	 * @type {Vector2}
+	 */
+	#margin;
+
+	/**
+	 * @type {Vector2}
+	 */
+	#size;
+
+	/**
+	 * @param {Object} options
+	 * @param {Number} options.alignment
+	 * @param {Vector2} [options.margin]
+	 * @param {Vector2} options.size
+	 */
+	constructor({alignment, margin = new Vector2(), size}) {
+		this.#position = null;
+		this.#alignment = alignment;
+		this.#margin = margin;
+		this.#size = size;
+	}
+
+	/**
+	 * @returns {?Vector2}
+	 */
+	getPosition() {
+		return this.#position;
+	}
+
+	/**
+	 * @param {?Vector2} position
+	 */
+	setPosition(position) {
+		this.#position = position;
+	}
+
+	/**
+	 * @returns {Number}
+	 */
+	getAlignment() {
+		return this.#alignment;
+	}
+
+	/**
+	 * @returns {Vector2}
+	 */
+	getMargin() {
+		return this.#margin;
+	}
+
+	/**
+	 * @returns {Vector2}
+	 */
+	getSize() {
+		return this.#size;
+	}
+
+	/**
+	 * @param {Vector2} size
+	 */
+	setSize(size) {
+		this.#size = size;
+	}
 
 	/**
 	 * Computes the absolute position of the component
@@ -18,14 +131,11 @@ export function Component({align, margin, size}) {
 	 * @param {Vector2} initial
 	 * @param {Vector2} parentSize
 	 */
-	this.compute = function(initial, parentSize) {
-		const
-			m = margin,
-			o = parentSize.subtract(size);
+	compute(initial, parentSize) {
+		const m = this.#margin;
+		const o = parentSize.subtract(this.#size);
 
-		if (align !== 0 && !align) throw TypeError(`Expecting an instance of Number, ${align} given`);
-
-		switch (align) {
+		switch (this.#alignment) {
 			case Component.alignLeftTop:
 			case Component.alignLeftCenter:
 			case Component.alignLeftBottom:
@@ -46,7 +156,7 @@ export function Component({align, margin, size}) {
 				break;
 		}
 
-		switch (align) {
+		switch (this.#alignment) {
 			case Component.alignLeftTop:
 			case Component.alignCenterTop:
 			case Component.alignRightTop:
@@ -67,39 +177,15 @@ export function Component({align, margin, size}) {
 				break;
 		}
 
-		position = initial.floor();
-	};
+		this.#position = initial.floor();
+	}
 
-	/** @returns {?Vector2} */
-	this.getPosition = () => position;
-
-	/** @param {Vector2} value */
-	this.setPosition = value => void (position = value);
-
-	/** @returns {Number} */
-	this.getAlign = () => align;
-
-	/** @returns {Vector2} */
-	this.getMargin = () => margin;
-
-	/** @returns {Vector2} */
-	this.getSize = () => size;
-
-	/** @param {Vector2} value */
-	this.setSize = value => void (size = value);
-
-	/** @returns {Matrix3} */
-	this.getWorldMatrix = () => Matrix3
-		.translation(position)
-		.multiply(Matrix3.scale(this.getSize()));
+	/**
+	 * @returns {Matrix3}
+	 */
+	getWorld() {
+		return Matrix3
+			.translation(this.#position)
+			.multiply(Matrix3.scale(this.#size));
+	}
 }
-
-Component.alignLeftTop = 0;
-Component.alignCenterTop = 1;
-Component.alignRightTop = 2;
-Component.alignLeftCenter = 3;
-Component.alignCenter = 4;
-Component.alignRightCenter = 5;
-Component.alignLeftBottom = 6;
-Component.alignCenterBottom = 7;
-Component.alignRightBottom = 8;
