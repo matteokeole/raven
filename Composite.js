@@ -1,35 +1,76 @@
 import {AbstractInstance, WebGLRenderer} from "./index.js";
+import {Vector2} from "./math/index.js";
 
 /**
  * @abstract
- * @param {WebGLRenderer} renderer
- * @param {AbstractInstance} instance
  */
-export function Composite(renderer, instance) {
+export class Composite {
 	/**
-	 * @private
+	 * @type {WebGLRenderer}
+	 */
+	#renderer;
+
+	/**
+	 * @type {AbstractInstance}
+	 */
+	#instance;
+
+	/**
 	 * @type {?Number}
 	 */
-	let index;
+	#index;
 
-	/** @returns {WebGLRenderer} */
-	this.getRenderer = () => renderer;
+	/**
+	 * @param {Object} options
+	 * @param {WebGLRenderer} options.renderer
+	 * @param {AbstractInstance} options.instance
+	 */
+	constructor({renderer, instance}) {
+		this.#renderer = renderer;
+		this.#instance = instance;
+	}
 
-	/** @returns {AbstractInstance} */
-	this.getInstance = () => instance;
+	/**
+	 * @returns {WebGLRenderer}
+	 */
+	getRenderer() {
+		return this.#renderer;
+	}
 
-	/** @returns {?Number} */
-	this.getIndex = () => index;
+	/**
+	 * @returns {AbstractInstance}
+	 */
+	getInstance() {
+		return this.#instance;
+	}
 
-	/** @param {Number} value */
-	this.setIndex = value => void (index = value);
+	/**
+	 * @returns {?Number}
+	 */
+	getIndex() {
+		return this.#index;
+	}
+
+	/**
+	 * @param {?Number} index
+	 */
+	setIndex(index) {
+		this.#index = index;
+	}
+
+	/**
+	 * @abstract
+	 */
+	async build() {}
+
+	/**
+	 * @abstract
+	 */
+	render() {}
+
+	/**
+	 * @abstract
+	 * @param {Vector2} viewport
+	 */
+	resize(viewport) {}
 }
-
-/** @abstract */
-Composite.prototype.build;
-
-/** @abstract */
-Composite.prototype.render;
-
-/** @abstract */
-Composite.prototype.resize;
