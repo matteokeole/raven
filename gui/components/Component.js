@@ -85,59 +85,29 @@ export class Component {
 	}
 
 	/**
-	 * Computes the absolute position of the component
-	 * by using its alignment and margin.
+	 * Calculates the component absolute position.
 	 * 
-	 * @param {Vector2} initial
-	 * @param {Vector2} parentSize
+	 * @param {Vector2} initial Cloned parent top left corner
+	 * @param {Vector2} parentSize Cloned parent size
 	 */
 	compute(initial, parentSize) {
-		const m = this.#margin;
-		const o = parentSize.subtract(this.#size);
+		const x = ((this.#alignment & 0b111000) >> 4) * .5;
+		const y = ((this.#alignment & 0b111) >> 1) * .5;
 
-		switch (this.#alignment) {
-			case Alignment.topLeft:
-			case Alignment.centerLeft:
-			case Alignment.bottomLeft:
-				initial[0] += m[0];
+		const displacement = parentSize
+			.subtract(this.#size)
+			.multiply(new Vector2(x, y));
+		const marginDisplacement = new Vector2(x & 1, y & 1)
+			.multiplyScalar(-2)
+			.addScalar(1);
+		const margin = this.#margin
+			.clone()
+			.multiply(marginDisplacement);
 
-				break;
-			case Alignment.topCenter:
-			case Alignment.center:
-			case Alignment.bottomCenter:
-				initial[0] += o[0] * .5 + m[0];
-
-				break;
-			case Alignment.topRight:
-			case Alignment.centerRight:
-			case Alignment.bottomRight:
-				initial[0] += o[0] - m[0];
-
-				break;
-		}
-
-		switch (this.#alignment) {
-			case Alignment.topLeft:
-			case Alignment.topCenter:
-			case Alignment.topRight:
-				initial[1] += m[1];
-
-				break;
-			case Alignment.centerLeft:
-			case Alignment.center:
-			case Alignment.centerRight:
-				initial[1] += o[1] * .5 + m[1];
-
-				break;
-			case Alignment.bottomLeft:
-			case Alignment.bottomCenter:
-			case Alignment.bottomRight:
-				initial[1] += o[1] - m[1];
-
-				break;
-		}
-
-		this.#position = initial.floor();
+		this.#position = initial
+			.add(displacement)
+			.add(margin)
+			.floor();
 	}
 
 	/**
