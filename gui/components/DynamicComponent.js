@@ -2,7 +2,7 @@ import {VisualComponent} from "./VisualComponent.js";
 import {Vector2} from "../../math/index.js";
 
 /**
- * @typedef {(position: Vector2)} EventListener
+ * @typedef {(position: Vector2) => void} EventListener
  */
 
 /**
@@ -16,7 +16,7 @@ export class DynamicComponent extends VisualComponent {
 	static #initEventListener(component, eventListener) {
 		if (eventListener === null) return null;
 
-		eventListener = listener.bind(component);
+		eventListener = eventListener.bind(component);
 		eventListener.component = component;
 
 		return eventListener;
@@ -28,25 +28,25 @@ export class DynamicComponent extends VisualComponent {
 	#hovered;
 
 	/**
-	 * @type {?Listener}
+	 * @type {?EventListener}
 	 */
 	#onMouseDown;
 
 	/**
-	 * @type {?Listener}
+	 * @type {?EventListener}
 	 */
 	#onMouseEnter;
 
 	/**
-	 * @type {?Listener}
+	 * @type {?EventListener}
 	 */
 	#onMouseLeave;
 
 	/**
 	 * @param {Object} options
-	 * @param {Listener} [options.onMouseDown]
-	 * @param {Listener} [options.onMouseEnter]
-	 * @param {Listener} [options.onMouseLeave]
+	 * @param {EventListener} [options.onMouseDown]
+	 * @param {EventListener} [options.onMouseEnter]
+	 * @param {EventListener} [options.onMouseLeave]
 	 */
 	constructor({onMouseDown = null, onMouseEnter = null, onMouseLeave = null}) {
 		super(arguments[0]);
