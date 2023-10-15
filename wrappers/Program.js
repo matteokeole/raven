@@ -1,17 +1,48 @@
-/**
- * Wrapper on a `WebGLProgram`.
- * 
- * @param {WebGLProgram} program
- * @param {WebGLShader} vertexShader
- * @param {WebGLShader} fragmentShader
- */
-export function Program(program, vertexShader, fragmentShader) {
-	/** @returns {WebGLProgram} */
-	this.getProgram = () => program;
+export class Program {
+	/**
+	 * @type {WebGLProgram}
+	 */
+	#program;
 
-	/** @returns {WebGLShader} */
-	this.getVertexShader = () => vertexShader;
+	/**
+	 * @type {WebGLShader}
+	 */
+	#vertexShader;
 
-	/** @returns {WebGLShader} */
-	this.getFragmentShader = () => fragmentShader;
+	/**
+	 * @type {WebGLShader}
+	 */
+	#fragmentShader;
+
+	/**
+	 * @param {WebGLProgram} program
+	 * @param {WebGLShader} vertexShader
+	 * @param {WebGLShader} fragmentShader
+	 */
+	constructor(program, vertexShader, fragmentShader) {
+		this.#program = program;
+		this.#vertexShader = vertexShader;
+		this.#fragmentShader = fragmentShader;
+	}
+
+	/**
+	 * @returns {WebGLProgram}
+	 */
+	getProgram() {
+		return this.#program;
+	}
+
+	/**
+	 * @returns {WebGLShader}
+	 */
+	getVertexShader() {
+		return this.#vertexShader;
+	}
+
+	/**
+	 * @returns {WebGLShader}
+	 */
+	getFragmentShader() {
+		return this.#fragmentShader;
+	}
 }

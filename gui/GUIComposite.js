@@ -1,9 +1,8 @@
-import {Component, DynamicComponent, StructuralComponent} from "./components/index.js";
-import {GUIRenderer, Layer} from "./index.js";
+import {Component, ReactiveComponent, StructuralComponent} from "./components/index.js";
+import {Layer} from "./index.js";
 import {Camera, OrthographicCamera} from "../cameras/index.js";
 import {Matrix3, Vector2} from "../math/index.js";
-import {extend} from "../utils/index.js";
-import {AbstractInstance, Composite} from "../index.js";
+import {Composite} from "../index.js";
 import {Font} from "../fonts/index.js";
 
 import {Texture} from "../wrappers/index.js";
@@ -30,9 +29,9 @@ export class GUIComposite extends Composite {
 	#rootComponents;
 
 	/**
-	 * @type {DynamicComponent[]}
+	 * @type {ReactiveComponent[]}
 	 */
-	#dynamicComponents;
+	#reactiveComponents;
 
 	/**
 	 * Children of currently built layers.
@@ -65,11 +64,13 @@ export class GUIComposite extends Composite {
 	constructor({fonts}) {
 		super(arguments[0]);
 
+		this.setAnimatable(true);
+
 		this.#camera = new OrthographicCamera(this.getInstance().getRenderer().getViewport());
 		this.#subcomponentCount = 0;
 		this.#layerStack = [];
 		this.#rootComponents = [];
-		this.#dynamicComponents = [];
+		this.#reactiveComponents = [];
 		this.#tree = [];
 		this.#renderQueue = [];
 		this.#lastInsertionIndices = [];
@@ -142,12 +143,17 @@ export class GUIComposite extends Composite {
 				this.#renderQueue.push(component);
 				this.#subcomponentCount += component.getSubcomponents().length;
 
-				if (component instanceof DynamicComponent) {
-					this.#dynamicComponents.push(component);
+				if (component instanceof ReactiveComponent) {
+					this.#reactiveComponents.push(component);
 
-					if (addListeners) this.addListeners(component);
+					if (addListeners) {
+						this.addListeners(component);
+					}
 				}
-				if (addToTree) this.#tree.push(component);
+
+				if (addToTree) {
+					this.#tree.push(component);
+				}
 
 				continue;
 			}
@@ -159,7 +165,7 @@ export class GUIComposite extends Composite {
 	/**
 	 * Initializes the event listeners for the provided component.
 	 * 
-	 * @param {Component} component
+	 * @param {ReactiveComponent} component
 	 */
 	addListeners(component) {
 		let listener;
@@ -176,7 +182,7 @@ export class GUIComposite extends Composite {
 	 */
 	removeListeners(components) {
 		for (let i = 0, l = components.length, component, listener; i < l; i++) {
-			if (!(components[i] instanceof DynamicComponent)) continue;
+			if (!(components[i] instanceof ReactiveComponent)) continue;
 
 			component = components[i];
 
@@ -187,7 +193,8 @@ export class GUIComposite extends Composite {
 	}
 
 	/**
-	 * Computes the absolute position for each component of the render queue.
+	 * Computes the absolute position for each component of the render queue,
+	 * all layers included.
 	 * 
 	 * @returns {this}
 	 */
@@ -195,7 +202,7 @@ export class GUIComposite extends Composite {
 		/**
 		 * @todo Create the viewport in the instance instead of there
 		 */
-		const viewport = this
+		const parentSize = this
 			.getInstance()
 			.getRenderer()
 			.getViewport()
@@ -203,7 +210,7 @@ export class GUIComposite extends Composite {
 			.divideScalar(this.getInstance().getParameter("current_scale"));
 
 		for (let i = 0, l = this.#rootComponents.length; i < l; i++) {
-			this.#rootComponents[i].compute(new Vector2(), viewport.clone());
+			this.#rootComponents[i].compute(new Vector2(), parentSize);
 		}
 
 		return this;
@@ -215,7 +222,8 @@ export class GUIComposite extends Composite {
 	render() {
 		this.getRenderer().render(this.#renderQueue, this.#subcomponentCount);
 
-		this.#renderQueue.length = this.#subcomponentCount = 0;
+		this.#renderQueue.length = 0;
+		this.#subcomponentCount = 0;
 
 		this.getInstance().getRenderer().updateCompositeTexture(
 			this.getIndex(),
@@ -232,7 +240,9 @@ export class GUIComposite extends Composite {
 	resize(viewport) {
 		const scale = this.getInstance().getParameter("current_scale");
 
-		/** @todo Replace by OrthographicCamera.updateProjection */
+		/**
+		 * @todo Replace by OrthographicCamera.updateProjection
+		 */
 		this.#camera.setProjection(
 			Matrix3
 				.orthographic(viewport)
@@ -273,14 +283,17 @@ export class GUIComposite extends Composite {
 	push(layer) {
 		this.#layerStack.push(layer);
 
-		// Discard event listeners of `DynamicComponent` instances in the previous layers
-		this.removeListeners(this.#dynamicComponents);
+		// Discard event listeners of `ReactiveComponent` instances in the previous layers
+		this.removeListeners(this.#reactiveComponents);
 
-		this.#dynamicComponents.length = this.#subcomponentCount = 0;
+		this.#reactiveComponents.length = this.#subcomponentCount = 0;
 
 		// Mark the tree length as the extraction index for this layer
 		this.#lastInsertionIndices.push(this.#tree.length);
 
+		/**
+		 * @todo Layer.build() should return a single root component
+		 */
 		const builtComponents = layer.build(this);
 		this.#rootComponents.push(...builtComponents);
 
@@ -298,13 +311,15 @@ export class GUIComposite extends Composite {
 	 * Adds the provided component to the render queue.
 	 * 
 	 * @param {Component} component
-	 * @returns {GUIComposite}
+	 * @returns {this}
 	 */
 	pushToRenderQueue(component) {
 		if (component instanceof StructuralComponent) {
 			const children = component.getChildren();
 
-			for (let i = 0, l = children.length; i < l; i++) this.pushToRenderQueue(children[i]);
+			for (let i = 0, l = children.length; i < l; i++) {
+				this.pushToRenderQueue(children[i]);
+			}
 
 			return this;
 		}
@@ -322,15 +337,23 @@ export class GUIComposite extends Composite {
 	 * If the layer stack is empty or contains one layer, nothing will be done.
 	 */
 	pop() {
-		if (this.#layerStack.length === 0) throw Error("Could not pop: no layers registered.");
-		if (this.#layerStack.length === 1) throw Error("Could not pop the only entry of the layer stack.");
+		if (this.#layerStack.length === 0) {
+			throw Error("Could not pop: no layers registered.");
+		}
 
-		this.removeListeners(this.#dynamicComponents);
+		if (this.#layerStack.length === 1) {
+			throw Error("Could not pop the only entry of the layer stack.");
+		}
+
+		this.removeListeners(this.#reactiveComponents);
 
 		// Truncate the tree (remove the components from the popped layer)
 		this.#tree.length = this.#lastInsertionIndices.pop();
 
-		this.#dynamicComponents.length = this.#renderQueue.length = this.#subcomponentCount = 0;
+		this.#reactiveComponents.length = 0;
+		this.#renderQueue.length = 0;
+		this.#subcomponentCount = 0;
+
 		this.addChildrenToRenderQueue(this.#tree, {
 			addListeners: true,
 			addToTree: false,

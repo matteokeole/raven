@@ -1,5 +1,6 @@
 import {Component} from "./Component.js";
 import {Subcomponent} from "../index.js";
+import {Composite} from "../../Composite.js";
 import {Texture} from "../../wrappers/index.js";
 
 /**
@@ -49,5 +50,14 @@ export class VisualComponent extends Component {
 	 */
 	setTexture(texture) {
 		this.#texture = texture;
+	}
+
+	/**
+	 * @abstract
+	 * @param {Composite} context
+	 * @param {Number} frameIndex
+	 */
+	animate(context, frameIndex) {
+		throw new Error("Not implemented");
 	}
 }

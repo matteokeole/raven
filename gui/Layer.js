@@ -1,14 +1,17 @@
 import {Component} from "./components/index.js";
-import {GUIComposite} from "./index.js";
+import {Composite} from "../index.js";
 
 /**
+ * @todo Replace by Component?
  * @abstract
  */
 export class Layer {
 	/**
 	 * @abstract
-	 * @param {GUIComposite} context
+	 * @param {Composite} context
 	 * @returns {Component[]}
 	 */
-	build() {}
+	build(context) {
+		throw new Error("Not implemented");
+	}
 }

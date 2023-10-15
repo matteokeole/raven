@@ -306,7 +306,7 @@ WebGLRenderer.prototype.createTextureArray = function(length, generateMipmaps = 
  * @abstract
  * @param {Array} scene
  */
-WebGLRenderer.prototype.render;
+WebGLRenderer.prototype.render = function(scene) {};
 
 WebGLRenderer.prototype.clear = function() {
 	const gl = this.getContext();

@@ -75,87 +75,6 @@ export class AbstractInstance {
 	 */
 	#isRunning;
 
-	#loop() {
-		this.#animationFrameRequestId = requestAnimationFrame(this.#loop.bind(this));
-		const time = performance.now();
-		const delta = time - this.#timeSinceLastFrame;
-
-		if (delta > this.#frameInterval) {
-			this.#timeSinceLastFrame = time - delta / this.#frameInterval;
-
-			try {
-				/** @todo update() call */
-
-				this.#renderer.render();
-				this.#frameIndex++;
-			} catch (error) {
-				console.error(error);
-
-				cancelAnimationFrame(this.#animationFrameRequestId);
-
-				this.#animationFrameRequestId = null;
-				this.#isRunning = false;
-			}
-		}
-	}
-
-	#onMouseDown = function() {
-		for (let i = 0, l = this.#listeners.mouse_down_count, listener; i < l; i++) {
-			listener = this.#listeners.mouse_down[i];
-
-			if (!intersects(this.#pointer, listener.component.getPosition(), listener.component.getSize())) {
-				continue;
-			}
-
-			listener(this.#pointer);
-
-			break;
-		}
-	}.bind(this);
-
-	/**
-	 * @param {Object} event
-	 * @param {Number} event.clientX
-	 * @param {Number} event.clientY
-	 */
-	#onMouseMove = function({clientX, clientY}) {
-		this.#pointer[0] = clientX;
-		this.#pointer[1] = clientY;
-		this.#pointer
-			.multiplyScalar(devicePixelRatio)
-			.divideScalar(this.#parameters["current_scale"]);
-
-		let i, l, listener;
-
-		for (i = 0, l = this.#listeners.mouse_enter_count; i < l; i++) {
-			listener = this.#listeners.mouse_enter[i];
-
-			if (!intersects(this.#pointer, listener.component.getPosition(), listener.component.getSize())) {
-				continue;
-			}
-			if (listener.component.getIsHovered()) {
-				continue;
-			}
-
-			listener.component.setIsHovered(true);
-			listener(this.#pointer);
-		}
-
-		for (i = 0, l = this.#listeners.mouse_leave_count; i < l; i++) {
-			listener = this.#listeners.mouse_leave[i];
-
-			if (intersects(this.#pointer, listener.component.getPosition(), listener.component.getSize())) {
-				continue;
-			}
-			if (!listener.component.getIsHovered()) {
-				continue;
-			}
-
-			listener.component.setIsHovered(false);
-			listener(this.#pointer);
-		}
-	}.bind(this);
-
 	/**
 	 * @param {WebGLRenderer} renderer
 	 */
@@ -306,8 +225,8 @@ export class AbstractInstance {
 
 		const canvas = this.#renderer.getCanvas();
 
-		canvas.onmousedown = this.#onMouseDown;
-		canvas.onmousemove = this.#onMouseMove;
+		canvas.addEventListener("mousedown", this.#onMouseDown);
+		canvas.addEventListener("mousemove", this.#onMouseMove);
 	}
 
 	/**
@@ -358,4 +277,92 @@ export class AbstractInstance {
 		this.#renderer.getCanvas().remove();
 		this.#renderer.dispose();
 	}
+
+	#loop = function() {
+		this.#animationFrameRequestId = requestAnimationFrame(this.#loop);
+		const time = performance.now();
+		const delta = time - this.#timeSinceLastFrame;
+
+		if (delta > this.#frameInterval) {
+			this.#timeSinceLastFrame = time - delta / this.#frameInterval;
+
+			try {
+				this.#update();
+				this.#renderer.render();
+				this.#frameIndex++;
+			} catch (error) {
+				console.error(error);
+
+				cancelAnimationFrame(this.#animationFrameRequestId);
+
+				this.#animationFrameRequestId = null;
+				this.#isRunning = false;
+			}
+		}
+	}.bind(this);
+
+	#update() {
+		for (let i = 0; i < this.#compositeCount; i++) {
+			if (!this.#composites[i].isAnimatable()) continue;
+
+			this.#composites[i].update();
+		}
+	}
+
+	#onMouseDown = function() {
+		for (let i = 0, l = this.#listeners.mouse_down_count, listener; i < l; i++) {
+			listener = this.#listeners.mouse_down[i];
+
+			if (!intersects(this.#pointer, listener.component.getPosition(), listener.component.getSize())) {
+				continue;
+			}
+
+			listener(this.#pointer);
+
+			break;
+		}
+	}.bind(this);
+
+	/**
+	 * @param {Object} event
+	 * @param {Number} event.clientX
+	 * @param {Number} event.clientY
+	 */
+	#onMouseMove = function({clientX, clientY}) {
+		this.#pointer[0] = clientX;
+		this.#pointer[1] = clientY;
+		this.#pointer
+			.multiplyScalar(devicePixelRatio)
+			.divideScalar(this.#parameters["current_scale"]);
+
+		let i, l, listener;
+
+		for (i = 0, l = this.#listeners.mouse_enter_count; i < l; i++) {
+			listener = this.#listeners.mouse_enter[i];
+
+			if (!intersects(this.#pointer, listener.component.getPosition(), listener.component.getSize())) {
+				continue;
+			}
+			if (listener.component.getIsHovered()) {
+				continue;
+			}
+
+			listener.component.setIsHovered(true);
+			listener(this.#pointer);
+		}
+
+		for (i = 0, l = this.#listeners.mouse_leave_count; i < l; i++) {
+			listener = this.#listeners.mouse_leave[i];
+
+			if (intersects(this.#pointer, listener.component.getPosition(), listener.component.getSize())) {
+				continue;
+			}
+			if (!listener.component.getIsHovered()) {
+				continue;
+			}
+
+			listener.component.setIsHovered(false);
+			listener(this.#pointer);
+		}
+	}.bind(this);
 }

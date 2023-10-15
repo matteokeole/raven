@@ -21,6 +21,11 @@ export class Composite {
 	#index;
 
 	/**
+	 * @type {Boolean}
+	 */
+	#isAnimatable;
+
+	/**
 	 * @param {Object} options
 	 * @param {WebGLRenderer} options.renderer
 	 * @param {AbstractInstance} options.instance
@@ -28,6 +33,7 @@ export class Composite {
 	constructor({renderer, instance}) {
 		this.#renderer = renderer;
 		this.#instance = instance;
+		this.#isAnimatable = false;
 	}
 
 	/**
@@ -59,9 +65,28 @@ export class Composite {
 	}
 
 	/**
+	 * @returns {Boolean}
+	 */
+	isAnimatable() {
+		return this.#isAnimatable;
+	}
+
+	/**
+	 * @param {Boolean} isAnimatable
+	 */
+	setAnimatable(isAnimatable) {
+		this.#isAnimatable = isAnimatable;
+	}
+
+	/**
 	 * @abstract
 	 */
 	async build() {}
+
+	/**
+	 * @abstract
+	 */
+	update() {}
 
 	/**
 	 * @abstract

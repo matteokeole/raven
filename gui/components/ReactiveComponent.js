@@ -8,9 +8,9 @@ import {Vector2} from "../../math/index.js";
 /**
  * @abstract
  */
-export class DynamicComponent extends VisualComponent {
+export class ReactiveComponent extends VisualComponent {
 	/**
-	 * @param {DynamicComponent} component
+	 * @param {ReactiveComponent} component
 	 * @param {?EventListener} eventListener
 	 */
 	static #initEventListener(component, eventListener) {
@@ -52,9 +52,9 @@ export class DynamicComponent extends VisualComponent {
 		super(arguments[0]);
 
 		this.#hovered = false;
-		this.#onMouseDown = DynamicComponent.#initEventListener(this, onMouseDown);
-		this.#onMouseEnter = DynamicComponent.#initEventListener(this, onMouseEnter);
-		this.#onMouseLeave = DynamicComponent.#initEventListener(this, onMouseLeave);
+		this.#onMouseDown = ReactiveComponent.#initEventListener(this, onMouseDown);
+		this.#onMouseEnter = ReactiveComponent.#initEventListener(this, onMouseEnter);
+		this.#onMouseLeave = ReactiveComponent.#initEventListener(this, onMouseLeave);
 	}
 
 	/**
@@ -82,7 +82,7 @@ export class DynamicComponent extends VisualComponent {
 	 * @param {?EventListener} onMouseDown
 	 */
 	setOnMouseDown(onMouseDown) {
-		this.#onMouseDown = DynamicComponent.#initEventListener(this, onMouseDown);
+		this.#onMouseDown = ReactiveComponent.#initEventListener(this, onMouseDown);
 	}
 
 	/**
@@ -96,7 +96,7 @@ export class DynamicComponent extends VisualComponent {
 	 * @param {?EventListener} onMouseEnter
 	 */
 	setOnMouseEnter(onMouseEnter) {
-		this.#onMouseEnter = DynamicComponent.#initEventListener(this, onMouseEnter);
+		this.#onMouseEnter = ReactiveComponent.#initEventListener(this, onMouseEnter);
 	}
 
 	/**
@@ -110,6 +110,6 @@ export class DynamicComponent extends VisualComponent {
 	 * @param {?EventListener} onMouseLeave
 	 */
 	setOnMouseLeave(onMouseLeave) {
-		this.#onMouseLeave = DynamicComponent.#initEventListener(this, onMouseLeave);
+		this.#onMouseLeave = ReactiveComponent.#initEventListener(this, onMouseLeave);
 	}
 }
