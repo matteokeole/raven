@@ -287,7 +287,7 @@ export class AbstractInstance {
 			this.#timeSinceLastFrame = time - delta / this.#frameInterval;
 
 			try {
-				this.#update();
+				this.#update(this.#frameIndex);
 				this.#renderer.render();
 				this.#frameIndex++;
 			} catch (error) {
@@ -301,11 +301,14 @@ export class AbstractInstance {
 		}
 	}.bind(this);
 
-	#update() {
+	/**
+	 * @param {Number} frameIndex
+	 */
+	#update(frameIndex) {
 		for (let i = 0; i < this.#compositeCount; i++) {
 			if (!this.#composites[i].isAnimatable()) continue;
 
-			this.#composites[i].update();
+			this.#composites[i].update(frameIndex);
 		}
 	}
 

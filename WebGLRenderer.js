@@ -13,7 +13,7 @@ export function WebGLRenderer({offscreen}) {
 	/** @type {HTMLCanvasElement|OffscreenCanvas|null} */
 	let canvas;
 
-	/** @type {WebGLRenderingContext|WebGL2RenderingContext|null} */
+	/** @type {?WebGL2RenderingContext} */
 	let gl;
 
 	/**
@@ -72,11 +72,11 @@ export function WebGLRenderer({offscreen}) {
 	};
 
 	/**
-	 * @returns {WebGLRenderingContext|WebGL2RenderingContext}
+	 * @returns {WebGL2RenderingContext}
 	 * @throws {ReferenceError}
 	 */
 	this.getContext = function() {
-		if (!(gl instanceof WebGLRenderingContext || gl instanceof WebGL2RenderingContext)) {
+		if (!(gl instanceof WebGL2RenderingContext)) {
 			throw ReferenceError("Attempt to get an undefined WebGL context");
 		}
 
@@ -163,7 +163,7 @@ export function WebGLRenderer({offscreen}) {
  * @param {String} base
  * @param {String} vertexEndpoint
  * @param {String} fragmentEndpoint
- * @returns {Program}
+ * @returns {Promise<Program>}
  */
 WebGLRenderer.prototype.loadProgram = async function(base, vertexEndpoint, fragmentEndpoint) {
 	const
@@ -238,7 +238,10 @@ WebGLRenderer.prototype.loadColors = function(colors) {
 
 		gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, textureCount + i, width, height, 1, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
 
-		textures[colors[i][0]] = new Texture({width, height}, textureCount + i);
+		textures[colors[i][0]] = new Texture(
+			new Image(width, height),
+			textureCount + i,
+		);
 	}
 };
 
@@ -326,7 +329,7 @@ WebGLRenderer.MAX_TEXTURE_SIZE = new Vector2(256, 256);
  * @param {String} base
  * @param {String} endpoint
  * @param {Number} type
- * @returns {WebGLShader}
+ * @returns {Promise<WebGLShader>}
  */
 async function createShader(gl, base, endpoint, type) {
 	const

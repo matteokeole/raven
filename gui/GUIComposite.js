@@ -1,4 +1,4 @@
-import {Component, ReactiveComponent, StructuralComponent} from "./components/index.js";
+import {Component, ReactiveComponent, StructuralComponent, VisualComponent} from "./components/index.js";
 import {Layer} from "./index.js";
 import {Camera, OrthographicCamera} from "../cameras/index.js";
 import {Matrix3, Vector2} from "../math/index.js";
@@ -27,6 +27,11 @@ export class GUIComposite extends Composite {
 	 * @type {Component[]}
 	 */
 	#rootComponents;
+
+	/**
+	 * @type {VisualComponent[]}
+	 */
+	#animatedComponents;
 
 	/**
 	 * @type {ReactiveComponent[]}
@@ -70,6 +75,7 @@ export class GUIComposite extends Composite {
 		this.#subcomponentCount = 0;
 		this.#layerStack = [];
 		this.#rootComponents = [];
+		this.#animatedComponents = [];
 		this.#reactiveComponents = [];
 		this.#tree = [];
 		this.#renderQueue = [];
@@ -143,6 +149,8 @@ export class GUIComposite extends Composite {
 				this.#renderQueue.push(component);
 				this.#subcomponentCount += component.getSubcomponents().length;
 
+				this.#animatedComponents.push(component);
+
 				if (component instanceof ReactiveComponent) {
 					this.#reactiveComponents.push(component);
 
@@ -210,7 +218,7 @@ export class GUIComposite extends Composite {
 			.divideScalar(this.getInstance().getParameter("current_scale"));
 
 		for (let i = 0, l = this.#rootComponents.length; i < l; i++) {
-			this.#rootComponents[i].compute(new Vector2(), parentSize);
+			this.#rootComponents[i].compute(new Vector2(), parentSize.clone());
 		}
 
 		return this;
@@ -219,12 +227,38 @@ export class GUIComposite extends Composite {
 	/**
 	 * @inheritdoc
 	 */
+	update(frameIndex) {
+		for (let i = 0, length = this.#animatedComponents.length, component; i < length; i++) {
+			component = this.#animatedComponents[i];
+
+			if (!component.update(this, frameIndex)) {
+				continue;
+			}
+
+			this.pushToRenderQueue(component);
+		}
+
+		if (this.#renderQueue.length === 0) {
+			return;
+		}
+
+		this.render();
+	}
+
+	/**
+	 * @inheritdoc
+	 */
 	render() {
+		// console.debug(`render(): ${this.#renderQueue.length} (${this.#subcomponentCount}) in queue`);
+
 		this.getRenderer().render(this.#renderQueue, this.#subcomponentCount);
 
 		this.#renderQueue.length = 0;
 		this.#subcomponentCount = 0;
 
+		/**
+		 * @todo Move updateCompositeTexture() to the instance itself
+		 */
 		this.getInstance().getRenderer().updateCompositeTexture(
 			this.getIndex(),
 			this.getRenderer().getCanvas(),
@@ -286,7 +320,9 @@ export class GUIComposite extends Composite {
 		// Discard event listeners of `ReactiveComponent` instances in the previous layers
 		this.removeListeners(this.#reactiveComponents);
 
-		this.#reactiveComponents.length = this.#subcomponentCount = 0;
+		this.#subcomponentCount = 0;
+		this.#animatedComponents.length = 0;
+		this.#reactiveComponents.length = 0;
 
 		// Mark the tree length as the extraction index for this layer
 		this.#lastInsertionIndices.push(this.#tree.length);
@@ -334,15 +370,12 @@ export class GUIComposite extends Composite {
 	 * Removes the last layer from the layer stack.
 	 * Calling this method will result in all the children of all the stacked layers
 	 * being registered into the render queue.
-	 * If the layer stack is empty or contains one layer, nothing will be done.
+	 * 
+	 * @throws {Error}
 	 */
 	pop() {
 		if (this.#layerStack.length === 0) {
-			throw Error("Could not pop: no layers registered.");
-		}
-
-		if (this.#layerStack.length === 1) {
-			throw Error("Could not pop the only entry of the layer stack.");
+			throw new Error("Could not pop: no layers registered.");
 		}
 
 		this.removeListeners(this.#reactiveComponents);
@@ -350,16 +383,24 @@ export class GUIComposite extends Composite {
 		// Truncate the tree (remove the components from the popped layer)
 		this.#tree.length = this.#lastInsertionIndices.pop();
 
-		this.#reactiveComponents.length = 0;
 		this.#renderQueue.length = 0;
 		this.#subcomponentCount = 0;
+		this.#animatedComponents.length = 0;
+		this.#reactiveComponents.length = 0;
+
+		if (this.#layerStack.length === 1) {
+			this.#rootComponents.length = 0;
+
+			this.getRenderer().clear();
+
+			return;
+		}
 
 		this.addChildrenToRenderQueue(this.#tree, {
 			addListeners: true,
 			addToTree: false,
 		});
 
-		// Clear already rendered components
 		this.getRenderer().clear();
 
 		this.compute().render();

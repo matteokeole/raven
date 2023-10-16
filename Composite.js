@@ -85,8 +85,9 @@ export class Composite {
 
 	/**
 	 * @abstract
+	 * @param {Number} frameIndex
 	 */
-	update() {}
+	update(frameIndex) {}
 
 	/**
 	 * @abstract

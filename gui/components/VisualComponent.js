@@ -56,8 +56,9 @@ export class VisualComponent extends Component {
 	 * @abstract
 	 * @param {Composite} context
 	 * @param {Number} frameIndex
+	 * @returns {Boolean}
 	 */
-	animate(context, frameIndex) {
-		throw new Error("Not implemented");
+	update(context, frameIndex) {
+		return false;
 	}
 }

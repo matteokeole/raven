@@ -36,7 +36,10 @@ export class StructuralComponent extends Component {
 		 * @todo These controls should not be inside abstract component classes
 		 */
 		for (let i = 0, l = this.#children.length; i < l; i++) {
-			this.#children[i].compute(initial.clone(), this.getSize().clone());
+			this.#children[i].compute(
+				this.getPosition().clone(),
+				this.getSize().clone(),
+			);
 		}
 	}
 }

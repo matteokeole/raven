@@ -21,7 +21,7 @@ export class Subcomponent {
 	 * @param {Vector2} options.size
 	 * @param {Vector2} options.offset
 	 * @param {Vector2} options.uv
-	 * @param {Vector4} [options.colorMask=Vector4(255, 255, 255, 255)]
+	 * @param {Vector4} [options.colorMask]
 	 */
 	constructor({size, offset, uv, colorMask = new Vector4(255, 255, 255, 255)}) {
 		this.#size = size;
