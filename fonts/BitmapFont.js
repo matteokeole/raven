@@ -1,6 +1,6 @@
 import {Font} from "./Font.js";
 import {Subcomponent} from "../gui/index.js";
-import {Vector2, Vector4} from "../math/index.js";
+import {min, Vector2, Vector4} from "../math/index.js";
 
 /**
  * @typedef {Object} GlyphMapEntry
@@ -50,10 +50,11 @@ export class BitmapFont extends Font {
 	 * @param {String} options.texturePath
 	 * @param {Number} options.tileHeight
 	 * @param {Number} [options.tileSpacing]
+	 * @param {Number} [options.lineSpacing]
 	 * @param {Object.<String, Number>} [options.customTileWidths]
 	 */
-	constructor({glyphMapPath, texturePath, tileHeight, tileSpacing = 0, customTileWidths = {}}) {
-		super();
+	constructor({glyphMapPath, texturePath, tileHeight, tileSpacing = 0, lineSpacing = 0, customTileWidths = {}}) {
+		super({lineSpacing});
 
 		this.#glyphMapPath = glyphMapPath;
 		this.#texturePath = texturePath;
@@ -147,11 +148,13 @@ export class BitmapFont extends Font {
 	}
 
 	/**
+	 * @todo Typedef the return object?
+	 * 
 	 * Note: Newlines are not supported.
 	 * 
 	 * @param {String} string
 	 * @param {Vector4} colorMask
-	 * @returns {Subcomponent[]}
+	 * @returns {Object}
 	 * @throws {Error}
 	 */
 	generateGlyphsFromString(string, colorMask) {
@@ -160,20 +163,64 @@ export class BitmapFont extends Font {
 		}
 
 		const glyphs = [];
-		let width = 0;
+		const size = new Vector2(0, this.#tileHeight);
 
 		for (let i = 0, l = string.length, glyph; i < l; i++) {
-			if (!(string[i] in this.#glyphs)) continue;
+			if (!(string[i] in this.#glyphs)) {
+				continue;
+			}
 
 			glyph = this.#glyphs[string[i]].clone();
-			glyph.setOffset(new Vector2(width, 0));
+			glyph.setOffset(new Vector2(size[0], 0));
 			glyph.setColorMask(colorMask);
 
 			glyphs.push(glyph);
 
-			width += this.getTileWidth(string[i]) + this.getTileSpacing();
+			size[0] += this.getTileWidth(string[i]) + this.#tileSpacing;
 		}
 
-		return {glyphs, width};
+		return {glyphs, size};
+	}
+
+	/**
+	 * @todo Typedef the return object?
+	 * 
+	 * @param {String} string Can be multiline
+	 * @param {Vector4} colorMask
+	 * @returns {Object}
+	 */
+	generateGlyphsFromMultilineString(string, colorMask) {
+		const lines = string.split("\n");
+
+		const glyphs = [];
+		const size = new Vector2();
+
+		for (let i = 0, lineLength = lines.length, line; i < lineLength; i++) {
+			line = lines[i];
+
+			let lineWidth = 0;
+
+			for (let j = 0, characterLength = line.length, glyph; j < characterLength; j++) {
+				if (!(line[j] in this.#glyphs)) {
+					continue;
+				}
+
+				glyph = this.#glyphs[line[j]].clone();
+				glyph.setOffset(new Vector2(lineWidth, size[1]));
+				glyph.setColorMask(colorMask);
+
+				glyphs.push(glyph);
+
+				lineWidth += this.getTileWidth(line[j]) + this.#tileSpacing;
+			}
+
+			/**
+			 * @todo Wrong function name, swap min() and max()
+			 */
+			size[0] = min(size[0], lineWidth);
+			size[1] += this.#tileHeight + this.getLineSpacing();
+		}
+
+		return {glyphs, size};
 	}
 }
