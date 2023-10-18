@@ -278,8 +278,10 @@ WebGLRenderer.prototype.loadTextures = async function(endpoints, base) {
 		}
 
 		if (image.width > WebGLRenderer.MAX_TEXTURE_SIZE[0] || image.height > WebGLRenderer.MAX_TEXTURE_SIZE[1]) {
-			throw RangeError(`Could not load '${endpoint}': dimensions are overflowing MAX_TEXTURE_SIZE`);
+			throw new RangeError(`Could not load "${endpoint}": dimensions are overflowing MAX_TEXTURE_SIZE.`);
 		}
+
+		console.log(image);
 
 		gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, textureCount + i, image.width, image.height, 1, gl.RGBA, gl.UNSIGNED_BYTE, image);
 

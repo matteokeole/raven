@@ -1,6 +1,6 @@
 import {Component} from "./Component.js";
 import {Subcomponent} from "../index.js";
-import {Composite} from "../../Composite.js";
+import {Composite} from "../../index.js";
 import {Texture} from "../../wrappers/index.js";
 
 /**

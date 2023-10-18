@@ -1,12 +1,14 @@
-import {Component, ReactiveComponent, StructuralComponent, VisualComponent} from "./components/index.js";
 import {Layer} from "./index.js";
+import {Component, ReactiveComponent, StructuralComponent, VisualComponent} from "./components/index.js";
+import {Composite} from "../index.js";
 import {Camera, OrthographicCamera} from "../cameras/index.js";
 import {Matrix3, Vector2} from "../math/index.js";
-import {Composite} from "../index.js";
 import {Font} from "../fonts/index.js";
-
 import {Texture} from "../wrappers/index.js";
 
+/**
+ * @todo Clear queue?
+ */
 export class GUIComposite extends Composite {
 	/**
 	 * @type {Camera}
