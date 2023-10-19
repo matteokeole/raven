@@ -38,7 +38,7 @@ export class Instance {
 	/**
 	 * @type {Object.<String, *>}
 	 */
-	#parameters;
+	_parameters;
 
 	/**
 	 * @type {Number}
@@ -91,7 +91,7 @@ export class Instance {
 			mouse_leave: [],
 			mouse_leave_count: 0,
 		};
-		this.#parameters = {
+		this._parameters = {
 			current_scale: 0,
 			font_path: "",
 			shader_path: "",
@@ -153,11 +153,11 @@ export class Instance {
 	 * @throws {ReferenceError}
 	 */
 	getParameter(key) {
-		if (!(key in this.#parameters)) {
+		if (!(key in this._parameters)) {
 			throw new ReferenceError(`Undefined parameter key "${key}".`);
 		}
 
-		return this.#parameters[key];
+		return this._parameters[key];
 	}
 
 	/**
@@ -166,11 +166,11 @@ export class Instance {
 	 * @throws {ReferenceError}
 	 */
 	setParameter(key, value) {
-		if (!(key in this.#parameters)) {
+		if (!(key in this._parameters)) {
 			throw new ReferenceError(`Undefined parameter key "${key}".`);
 		}
 
-		this.#parameters[key] = value;
+		this._parameters[key] = value;
 	}
 
 	/**
@@ -207,7 +207,7 @@ export class Instance {
 		 */
 		this.#renderer.setCompositeCount(this.#compositeCount);
 
-		await this.#renderer.build(this.#parameters["shader_path"]);
+		await this.#renderer.build(this._parameters["shader_path"]);
 
 		const viewport = new Vector2(innerWidth, innerHeight)
 			.multiplyScalar(devicePixelRatio)
@@ -336,7 +336,7 @@ export class Instance {
 		this.#pointer[1] = clientY;
 		this.#pointer
 			.multiplyScalar(devicePixelRatio)
-			.divideScalar(this.#parameters["current_scale"]);
+			.divideScalar(this._parameters["current_scale"]);
 
 		let i, l, listener;
 
