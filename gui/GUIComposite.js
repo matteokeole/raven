@@ -346,7 +346,7 @@ export class GUIComposite extends Composite {
 	/**
 	 * @todo Render queue unique check
 	 * 
-	 * Adds the provided component to the render queue.
+	 * Registers the component in the render queue.
 	 * 
 	 * @param {Component} component
 	 * @returns {this}
