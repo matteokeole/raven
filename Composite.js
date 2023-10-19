@@ -1,4 +1,4 @@
-import {AbstractInstance, WebGLRenderer} from "./index.js";
+import {Instance, WebGLRenderer} from "./index.js";
 import {Vector2} from "./math/index.js";
 
 /**
@@ -11,7 +11,7 @@ export class Composite {
 	#renderer;
 
 	/**
-	 * @type {AbstractInstance}
+	 * @type {Instance}
 	 */
 	#instance;
 
@@ -28,7 +28,7 @@ export class Composite {
 	/**
 	 * @param {Object} options
 	 * @param {WebGLRenderer} options.renderer
-	 * @param {AbstractInstance} options.instance
+	 * @param {Instance} options.instance
 	 */
 	constructor({renderer, instance}) {
 		this.#renderer = renderer;
@@ -44,7 +44,7 @@ export class Composite {
 	}
 
 	/**
-	 * @returns {AbstractInstance}
+	 * @returns {Instance}
 	 */
 	getInstance() {
 		return this.#instance;

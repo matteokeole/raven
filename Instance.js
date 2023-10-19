@@ -4,7 +4,7 @@ import {Vector2, intersects} from "./math/index.js";
 /**
  * @abstract
  */
-export class AbstractInstance {
+export class Instance {
 	/**
 	 * @type {WebGLRenderer}
 	 */

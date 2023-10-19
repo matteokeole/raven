@@ -292,7 +292,7 @@ WebGLRenderer.prototype.loadTextures = async function(endpoints, base) {
  * The texture size is capped by `WebGLRenderer.MAX_TEXTURE_SIZE`.
  * 
  * @param {Number} length
- * @param {Boolean} [generateMipmaps=false]
+ * @param {Boolean} [generateMipmaps]
  */
 WebGLRenderer.prototype.createTextureArray = function(length, generateMipmaps = false) {
 	const gl = this.getContext();
