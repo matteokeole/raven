@@ -4,16 +4,24 @@ import {Vector2, Vector4} from "../math/index.js";
  * @todo See gl.colorMask
  */
 export class Subcomponent {
-	/** @param {Vector2} */
+	/**
+	 * @type {Vector2}
+	 */
 	#size;
 
-	/** @param {Vector2} */
+	/**
+	 * @type {Vector2}
+	 */
 	#offset;
 
-	/** @param {Vector2} */
+	/**
+	 * @type {Vector2}
+	 */
 	#uv;
 
-	/** @param {Vector4} */
+	/**
+	 * @type {Vector4}
+	 */
 	#colorMask;
 
 	/**
