@@ -148,7 +148,7 @@ export class BitmapFont extends Font {
 	}
 
 	/**
-	 * @todo Typedef the return object?
+	 * @todo Typedef the return object or return directly a Text component?
 	 * 
 	 * Note: Newlines are not supported.
 	 * 

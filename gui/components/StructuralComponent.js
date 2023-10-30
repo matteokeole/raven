@@ -1,4 +1,9 @@
 import {Component} from "./Component.js";
+import {Vector2} from "../../math/index.js";
+
+/**
+ * @typedef {Number} Alignment
+ */
 
 /**
  * @abstract
@@ -11,10 +16,13 @@ export class StructuralComponent extends Component {
 
 	/**
 	 * @param {Object} options
+	 * @param {Number} options.alignment
+	 * @param {Vector2} [options.margin]
+	 * @param {Vector2} options.size
 	 * @param {Component[]} options.children
 	 */
-	constructor({children}) {
-		super(arguments[0]);
+	constructor({alignment, margin, size, children}) {
+		super({alignment, margin, size});
 
 		this.#children = children;
 	}

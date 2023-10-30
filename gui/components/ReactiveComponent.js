@@ -10,14 +10,16 @@ import {Vector2} from "../../math/index.js";
  */
 export class ReactiveComponent extends VisualComponent {
 	/**
-	 * @param {ReactiveComponent} component
 	 * @param {?EventListener} eventListener
+	 * @returns {?EventListener}
 	 */
-	static #initEventListener(component, eventListener) {
-		if (eventListener === null) return null;
+	#initEventListener(eventListener) {
+		if (eventListener === null) {
+			return null;
+		}
 
-		eventListener = eventListener.bind(component);
-		eventListener.component = component;
+		eventListener = eventListener.bind(this);
+		eventListener.component = this;
 
 		return eventListener;
 	}
@@ -44,17 +46,20 @@ export class ReactiveComponent extends VisualComponent {
 
 	/**
 	 * @param {Object} options
+	 * @param {Number} options.alignment
+	 * @param {Vector2} [options.margin]
+	 * @param {Vector2} options.size
 	 * @param {EventListener} [options.onMouseDown]
 	 * @param {EventListener} [options.onMouseEnter]
 	 * @param {EventListener} [options.onMouseLeave]
 	 */
-	constructor({onMouseDown = null, onMouseEnter = null, onMouseLeave = null}) {
-		super(arguments[0]);
+	constructor({alignment, margin, size, onMouseDown = null, onMouseEnter = null, onMouseLeave = null}) {
+		super({alignment, margin, size});
 
 		this.#hovered = false;
-		this.#onMouseDown = ReactiveComponent.#initEventListener(this, onMouseDown);
-		this.#onMouseEnter = ReactiveComponent.#initEventListener(this, onMouseEnter);
-		this.#onMouseLeave = ReactiveComponent.#initEventListener(this, onMouseLeave);
+		this.#onMouseDown = this.#initEventListener(onMouseDown);
+		this.#onMouseEnter = this.#initEventListener(onMouseEnter);
+		this.#onMouseLeave = this.#initEventListener(onMouseLeave);
 	}
 
 	/**
@@ -82,7 +87,7 @@ export class ReactiveComponent extends VisualComponent {
 	 * @param {?EventListener} onMouseDown
 	 */
 	setOnMouseDown(onMouseDown) {
-		this.#onMouseDown = ReactiveComponent.#initEventListener(this, onMouseDown);
+		this.#onMouseDown = this.#initEventListener(onMouseDown);
 	}
 
 	/**
@@ -96,7 +101,7 @@ export class ReactiveComponent extends VisualComponent {
 	 * @param {?EventListener} onMouseEnter
 	 */
 	setOnMouseEnter(onMouseEnter) {
-		this.#onMouseEnter = ReactiveComponent.#initEventListener(this, onMouseEnter);
+		this.#onMouseEnter = this.#initEventListener(onMouseEnter);
 	}
 
 	/**
@@ -110,6 +115,6 @@ export class ReactiveComponent extends VisualComponent {
 	 * @param {?EventListener} onMouseLeave
 	 */
 	setOnMouseLeave(onMouseLeave) {
-		this.#onMouseLeave = ReactiveComponent.#initEventListener(this, onMouseLeave);
+		this.#onMouseLeave = this.#initEventListener(onMouseLeave);
 	}
 }

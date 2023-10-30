@@ -1,6 +1,7 @@
 import {Component} from "./Component.js";
 import {Subcomponent} from "../index.js";
 import {Composite} from "../../index.js";
+import {Vector2} from "../../math/index.js";
 import {Texture} from "../../wrappers/index.js";
 
 /**
@@ -17,8 +18,14 @@ export class VisualComponent extends Component {
 	 */
 	#texture;
 
-	constructor() {
-		super(arguments[0]);
+	/**
+	 * @param {Object} options
+	 * @param {Number} options.alignment
+	 * @param {Vector2} [options.margin]
+	 * @param {Vector2} options.size
+	 */
+	constructor({alignment, margin, size}) {
+		super({alignment, margin, size});
 
 		this.#subcomponents = [];
 		this.#texture = null;
