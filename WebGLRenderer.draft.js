@@ -1,9 +1,14 @@
-import {Vector4} from "./math/index.js";
+import {Vector2, Vector4} from "./math/index.js";
 
 /**
  * @abstract
  */
 export class WebGLRenderer {
+	/**
+	 * @type {Vector2}
+	 */
+	static #MAX_TEXTURE_SIZE = new Vector2(256, 256);
+
 	/**
 	 * @type {null|HTMLCanvasElement|OffscreenCanvas}
 	 */
@@ -84,16 +89,17 @@ export class WebGLRenderer {
 	 * @todo Include already set textureCount
 	 * @todo Handle dimension overflow error
 	 * @todo Handle unbound TEXTURE_2D_ARRAY error
+	 * 
 	 * @param {Object.<String, TexImageSource>} textures
 	 */
-	loadTextures(textures) {
+	createTextureArray(textures) {
 		if (this._context.getParameter(this._context.TEXTURE_BINDING_2D_ARRAY) === null) {
 			// throw new ReferenceError("No texture array bound to the context");
 
 			this._context.bindTexture(this._context.TEXTURE_2D_ARRAY, this._context.createTexture());
 			this._context.texParameteri(this._context.TEXTURE_2D_ARRAY, this._context.TEXTURE_MAG_FILTER, this._context.NEAREST);
 			this._context.generateMipmap(this._context.TEXTURE_2D_ARRAY);
-			this._context.texStorage3D(this._context.TEXTURE_2D_ARRAY, 1, this._context.RGBA8, 256, 256, 1);
+			this._context.texStorage3D(this._context.TEXTURE_2D_ARRAY, 1, this._context.RGBA8, WebGLRenderer.#MAX_TEXTURE_SIZE[0], WebGLRenderer.#MAX_TEXTURE_SIZE[1], 1);
 		}
 
 		const keys = Object.getOwnPropertyNames(textures);
