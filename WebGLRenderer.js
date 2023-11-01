@@ -6,338 +6,407 @@ import {Program, Texture} from "./wrappers/index.js";
  * General-purpose renderer based on a WebGL context.
  * 
  * @abstract
- * @param {Object} options
- * @param {Boolean} options.offscreen
  */
-export function WebGLRenderer({offscreen}) {
-	/** @type {HTMLCanvasElement|OffscreenCanvas|null} */
-	let canvas;
+export class WebGLRenderer {
+	/**
+	 * @type {Vector2}
+	 */
+	static MAX_TEXTURE_SIZE = new Vector2(256, 256);
 
-	/** @type {?WebGL2RenderingContext} */
-	let gl;
+	/**
+	 * @type {Boolean}
+	 */
+	#offscreen;
+
+	/**
+	 * @type {null|HTMLCanvasElement|OffscreenCanvas}
+	 */
+	#canvas;
+
+	/**
+	 * @type {?WebGL2RenderingContext}
+	 */
+	#context;
 
 	/**
 	 * @todo Switch to `Vector4`
 	 * 
 	 * @type {Vector2}
 	 */
-	const viewport = new Vector2();
+	#viewport;
 
 	/**
-	 * @private
 	 * @type {WebGLProgram[]}
 	 */
-	const programs = [];
+	#programs;
 
 	/**
-	 * @private
 	 * @type {Object.<String, Number>}
 	 */
-	const attributes = {};
+	#attributes;
 
 	/**
-	 * @private
 	 * @type {Object.<String, WebGLUniformLocation>}
 	 */
-	const uniforms = {};
+	#uniforms;
 
 	/**
-	 * @private
 	 * @type {Object.<String, WebGLBuffer>}
 	 */
-	const buffers = {};
+	#buffers;
 
 	/**
-	 * @private
 	 * @type {Object.<String, WebGLTexture>}
 	 */
-	const textures = {};
+	#textures;
 
 	/**
-	 * @private
 	 * @type {Object.<String, Texture>}
 	 */
-	const userTextures = {};
+	#userTextures;
 
 	/**
-	 * @returns {HTMLCanvasElement|OffscreenCanvas}
-	 * @throws {ReferenceError}
+	 * @param {Object} options
+	 * @param {Boolean} options.offscreen
 	 */
-	this.getCanvas = function() {
-		if (!(canvas instanceof HTMLCanvasElement || canvas instanceof OffscreenCanvas)) {
-			throw ReferenceError("Attempt to get an undefined canvas");
-		}
-
-		return canvas;
-	};
+	constructor({offscreen}) {
+		this.#offscreen = offscreen;
+		this.#canvas = null;
+		this.#context = null;
+		this.#viewport = new Vector2();
+		this.#programs = [];
+		this.#attributes = {};
+		this.#uniforms = {};
+		this.#buffers = {};
+		this.#textures = {};
+		this.#userTextures = {};
+	}
 
 	/**
-	 * @returns {WebGL2RenderingContext}
-	 * @throws {ReferenceError}
+	 * @returns {null|HTMLCanvasElement|OffscreenCanvas}
 	 */
-	this.getContext = function() {
-		if (!(gl instanceof WebGL2RenderingContext)) {
-			throw ReferenceError("Attempt to get an undefined WebGL context");
-		}
+	getCanvas() {
+		return this.#canvas;
+	}
 
-		return gl;
-	};
+	/**
+	 * @returns {?WebGL2RenderingContext}
+	 */
+	getContext() {
+		return this.#context;
+	}
 
-	/** @returns {Vector2} */
-	this.getViewport = () => viewport;
+	/**
+	 * @returns {Vector2}
+	 */
+	getViewport() {
+		return this.#viewport;
+	}
 
-	/** @param {Vector2} newViewport */
-	this.setViewport = function(newViewport) {
-		viewport.set(newViewport);
+	/**
+	 * @param {Vector2} viewport
+	 */
+	setViewport(viewport) {
+		this.#viewport = viewport;
+		this.#canvas.width = this.#viewport[0];
+		this.#canvas.height = this.#viewport[1];
 
-		gl.viewport(
+		this.#context.viewport(
 			0,
 			0,
-			canvas.width = viewport[0],
-			canvas.height = viewport[1],
+			this.#viewport[0],
+			this.#viewport[1],
 		);
-	};
+	}
 
-	/** @returns {Object.<String, WebGLProgram>} */
-	this.getPrograms = () => programs;
+	/**
+	 * @returns {Object.<String, WebGLProgram>}
+	 */
+	getPrograms() {
+		return this.#programs;
+	}
 
-	/** @returns {Object.<String, Number>} */
-	this.getAttributes = () => attributes;
+	/**
+	 * @returns {Object.<String, Number>}
+	 */
+	getAttributes() {
+		return this.#attributes;
+	}
 
-	/** @returns {Object.<String, WebGLUniformLocation>} */
-	this.getUniforms = () => uniforms;
+	/**
+	 * @returns {Object.<String, WebGLUniformLocation>}
+	 */
+	getUniforms() {
+		return this.#uniforms;
+	}
 
-	/** @returns {Object.<String, WebGLBuffer>} */
-	this.getBuffers = () => buffers;
+	/**
+	 * @returns {Object.<String, WebGLBuffer>}
+	 */
+	getBuffers() {
+		return this.#buffers;
+	}
 
-	/** @returns {Object.<String, WebGLTexture>} */
-	this.getTextures = () => textures;
+	/**
+	 * @returns {Object.<String, WebGLTexture>}
+	 */
+	getTextures() {
+		return this.#textures;
+	}
 
-	/** @returns {Object.<String, Texture>} */
-	this.getUserTextures = () => userTextures;
+	/**
+	 * @returns {Object.<String, Texture>}
+	 */
+	getUserTextures() {
+		return this.#userTextures;
+	}
 
-	/** @throws {NoWebGL2Error} */
-	this.build = async function() {
-		if (offscreen) {
-			canvas = new OffscreenCanvas(0, 0);
+	/**
+	 * @throws {NoWebGL2Error}
+	 */
+	async build() {
+		if (this.#offscreen) {
+			this.#canvas = new OffscreenCanvas(0, 0);
 		} else {
-			canvas = document.createElement("canvas");
-			canvas.textContent = "This browser does not support the Canvas API.";
+			this.#canvas = document.createElement("canvas");
+			this.#canvas.textContent = "This browser does not support the Canvas API.";
 		}
 
-		gl = canvas.getContext("webgl2");
+		this.#context = this.#canvas.getContext("webgl2");
 
-		if (gl === null) throw new NoWebGL2Error();
-	};
+		if (this.#context === null) {
+			throw new NoWebGL2Error();
+		}
+	}
 
-	/** @see {@link https://registry.khronos.org/webgl/extensions/WEBGL_lose_context} */
-	this.dispose = function() {
+	/**
+	 * @param {String} base
+	 * @param {String} vertexEndpoint
+	 * @param {String} fragmentEndpoint
+	 * @returns {Promise<Program>}
+	 */
+	async loadProgram(base, vertexEndpoint, fragmentEndpoint) {
+		const program = this.#context.createProgram();
+		const vertexShader = await this.#createShader(base, vertexEndpoint, this.#context.VERTEX_SHADER);
+		const fragmentShader = await this.#createShader(base, fragmentEndpoint, this.#context.FRAGMENT_SHADER);
+
+		this.#context.attachShader(program, vertexShader);
+		this.#context.attachShader(program, fragmentShader);
+
+		this.getPrograms().push(program);
+
+		return new Program(program, vertexShader, fragmentShader);
+	}
+
+	/**
+	 * Links a loaded program to the renderer context.
+	 * Returns `true` if the linking was successful and a `ShaderCompilationError` otherwise.
+	 * 
+	 * @param {Program} program
+	 * @returns {Boolean}
+	 * @throws {ShaderCompilationError}
+	 */
+	linkProgram(program) {
+		this.#context.linkProgram(program.getProgram());
+
+		if (this.#context.getProgramParameter(program.getProgram(), this.#context.LINK_STATUS)) {
+			return true;
+		}
+
+		/**
+		 * @type {?String}
+		 */
+		let log;
+
+		if ((log = this.#context.getShaderInfoLog(program.getVertexShader())).length !== 0) {
+			throw new ShaderCompilationError(log, "VERTEX SHADER");
+		}
+
+		if ((log = this.#context.getShaderInfoLog(program.getFragmentShader())).length !== 0) {
+			throw new ShaderCompilationError(log, "FRAGMENT SHADER");
+		}
+	}
+
+	/**
+	 * Binds a new texture array to the context.
+	 * The texture size is capped by `WebGLRenderer.MAX_TEXTURE_SIZE`.
+	 * 
+	 * @param {Number} length
+	 * @param {Boolean} [generateMipmaps]
+	 */
+	createTextureArray(length, generateMipmaps) {
+		this.#context.bindTexture(this.#context.TEXTURE_2D_ARRAY, this.#context.createTexture());
+		this.#context.texParameteri(this.#context.TEXTURE_2D_ARRAY, this.#context.TEXTURE_MAG_FILTER, this.#context.NEAREST);
+
+		if (generateMipmaps) {
+			this.#context.generateMipmap(this.#context.TEXTURE_2D_ARRAY);
+		} else {
+			this.#context.texParameteri(this.#context.TEXTURE_2D_ARRAY, this.#context.TEXTURE_MIN_FILTER, this.#context.LINEAR);
+		}
+
+		this.#context.texStorage3D(this.#context.TEXTURE_2D_ARRAY, 1, this.#context.RGBA8, WebGLRenderer.MAX_TEXTURE_SIZE[0], WebGLRenderer.MAX_TEXTURE_SIZE[1], length);
+	}
+
+	/**
+	 * Loads a list of colors into a WebGLTexture array.
+	 * 
+	 * @param {Object.<String, String>} colors
+	 * @throws {ReferenceError} if no texture array is bound to the context
+	 */
+	loadColors(colors) {
+		if (this.#context.getParameter(this.#context.TEXTURE_BINDING_2D_ARRAY) === null) {
+			throw ReferenceError("No texture array bound to the context");
+		}
+
+		const textureCount = Object.keys(this.#userTextures).length;
+		const canvas = new OffscreenCanvas(WebGLRenderer.MAX_TEXTURE_SIZE[0], WebGLRenderer.MAX_TEXTURE_SIZE[1]);
+		const ctx = canvas.getContext("2d");
+
+		colors = Object.entries(colors);
+
+		for (let i = 0, l = colors.length; i < l; i++) {
+			ctx.clearRect(0, 0, WebGLRenderer.MAX_TEXTURE_SIZE[0], WebGLRenderer.MAX_TEXTURE_SIZE[1]);
+			ctx.fillStyle = colors[i][1];
+			ctx.fillRect(0, 0, WebGLRenderer.MAX_TEXTURE_SIZE[0], WebGLRenderer.MAX_TEXTURE_SIZE[1]);
+
+			this.#context.texSubImage3D(
+				this.#context.TEXTURE_2D_ARRAY,
+				0,
+				0,
+				0,
+				textureCount + i,
+				WebGLRenderer.MAX_TEXTURE_SIZE[0],
+				WebGLRenderer.MAX_TEXTURE_SIZE[1],
+				1,
+				this.#context.RGBA,
+				this.#context.UNSIGNED_BYTE,
+				canvas,
+			);
+
+			this.#userTextures[colors[i][0]] = new Texture(
+				new Image(WebGLRenderer.MAX_TEXTURE_SIZE[0], WebGLRenderer.MAX_TEXTURE_SIZE[1]),
+				textureCount + i,
+			);
+		}
+	}
+
+	/**
+	 * @todo Specify default texture for invalid paths?
+	 * 
+	 * Loads asynchronously a list of image endpoints in a WebGLTexture array.
+	 * 
+	 * @param {String[]} endpoints
+	 * @param {String} base
+	 * @throws {RangeError} if the image dimensions are larger than `WebGLRenderer.MAX_TEXTURE_SIZE`
+	 * @throws {ReferenceError} if no texture array is bound to the context
+	 */
+	async loadTextures(endpoints, base) {
+		if (this.#context.getParameter(this.#context.TEXTURE_BINDING_2D_ARRAY) === null) {
+			throw ReferenceError("No texture array bound to the context");
+		}
+
+		const textureCount = Object.keys(this.#userTextures).length;
+
+		for (let i = 0, l = endpoints.length, endpoint, image; i < l; i++) {
+			endpoint = endpoints[i];
+			image = new Image();
+			image.src = `${base}${endpoint}`;
+
+			try {
+				await image.decode();
+			} catch (error) {
+				continue;
+			}
+
+			if (image.width > WebGLRenderer.MAX_TEXTURE_SIZE[0] || image.height > WebGLRenderer.MAX_TEXTURE_SIZE[1]) {
+				throw new RangeError(`Could not load "${endpoint}": image dimensions are overflowing MAX_TEXTURE_SIZE.`);
+			}
+
+			this.#context.texSubImage3D(
+				this.#context.TEXTURE_2D_ARRAY,
+				0,
+				0,
+				0,
+				textureCount + i,
+				image.width,
+				image.height,
+				1,
+				this.#context.RGBA,
+				this.#context.UNSIGNED_BYTE,
+				image,
+			);
+
+			this.#userTextures[endpoint] = new Texture(image, textureCount + i);
+		}
+	}
+
+	/**
+	 * @abstract
+	 * @param {Array} scene
+	 */
+	render(scene) {}
+
+	/**
+	 * Warning: do not call this every frame to avoid unnecessary operations.
+	 */
+	clear() {
+		this.#context.clear(this.#context.COLOR_BUFFER_BIT | this.#context.DEPTH_BUFFER_BIT);
+	}
+
+	/**
+	 * @see {@link https://registry.khronos.org/webgl/extensions/WEBGL_lose_context}
+	 */
+	dispose() {
 		let i, l;
 
-		for (i = 0, l = programs.length; i < l; i++) gl.deleteProgram(programs[i]);
-		programs.length = 0;
-
-		for (i in attributes) delete attributes[i];
-
-		for (i in uniforms) delete uniforms[i];
-
-		for (i in buffers) {
-			gl.deleteBuffer(buffers[i]);
-			delete buffers[i];
+		for (i = 0, l = this.#programs.length; i < l; i++) {
+			this.#context.deleteProgram(this.#programs[i]);
 		}
 
-		for (i in textures) {
-			gl.deleteTexture(textures[i]);
-			delete textures[i];
+		this.#programs.length = 0;
+
+		for (i in this.#attributes) {
+			delete this.#attributes[i];
 		}
 
-		for (i in userTextures) delete userTextures[i];
-
-		gl.getExtension("WEBGL_lose_context").loseContext();
-		gl = null;
-		canvas = null;
-	};
-}
-
-/**
- * @param {String} base
- * @param {String} vertexEndpoint
- * @param {String} fragmentEndpoint
- * @returns {Promise<Program>}
- */
-WebGLRenderer.prototype.loadProgram = async function(base, vertexEndpoint, fragmentEndpoint) {
-	const
-		gl = this.getContext(),
-		program = gl.createProgram(),
-		vertexShader = await createShader(gl, base, vertexEndpoint, gl.VERTEX_SHADER),
-		fragmentShader = await createShader(gl, base, fragmentEndpoint, gl.FRAGMENT_SHADER);
-
-	gl.attachShader(program, vertexShader);
-	gl.attachShader(program, fragmentShader);
-
-	this.getPrograms().push(program);
-
-	return new Program(program, vertexShader, fragmentShader);
-};
-
-/**
- * Links a loaded program to the WebGL context.
- * Returns `true` if the linking was successful, `false` otherwise.
- * 
- * @param {Program} program
- * @returns {Boolean}
- * @throws {ShaderCompilationError}
- */
-WebGLRenderer.prototype.linkProgram = function(program) {
-	const gl = this.getContext();
-
-	gl.linkProgram(program.getProgram());
-
-	if (gl.getProgramParameter(program.getProgram(), gl.LINK_STATUS)) return true;
-
-	let log;
-
-	if ((log = gl.getShaderInfoLog(program.getVertexShader())).length !== 0) {
-		throw new ShaderCompilationError(log, "VERTEX SHADER");
-	}
-
-	if ((log = gl.getShaderInfoLog(program.getFragmentShader())).length !== 0) {
-		throw new ShaderCompilationError(log, "FRAGMENT SHADER");
-	}
-
-	return false;
-};
-
-/**
- * Loads a list of colors in a WebGLTexture array.
- * 
- * @param {Object.<String, String>} colors
- * @throws {ReferenceError}
- */
-WebGLRenderer.prototype.loadColors = function(colors) {
-	const gl = this.getContext();
-
-	if (gl.getParameter(gl.TEXTURE_BINDING_2D_ARRAY) === null) {
-		throw ReferenceError("No texture array bound to the context");
-	}
-
-	const textures = this.getUserTextures();
-	const textureCount = Object.keys(textures).length;
-
-	const width = WebGLRenderer.MAX_TEXTURE_SIZE[0];
-	const height = WebGLRenderer.MAX_TEXTURE_SIZE[1];
-	const canvas = new OffscreenCanvas(width, height);
-	const ctx = canvas.getContext("2d");
-
-	colors = Object.entries(colors);
-
-	for (let i = 0, l = colors.length; i < l; i++) {
-		ctx.clearRect(0, 0, width, height);
-		ctx.fillStyle = colors[i][1];
-		ctx.fillRect(0, 0, width, height);
-
-		gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, textureCount + i, width, height, 1, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
-
-		textures[colors[i][0]] = new Texture(
-			new Image(width, height),
-			textureCount + i,
-		);
-	}
-};
-
-/**
- * @todo Default texture for invalid paths?
- * 
- * Asynchronous texture loader.
- * Loads a list of sources in a WebGLTexture array.
- * 
- * @param {String[]} endpoints
- * @param {String} base
- * @throws {RangeError}
- * @throws {ReferenceError}
- */
-WebGLRenderer.prototype.loadTextures = async function(endpoints, base) {
-	const gl = this.getContext();
-
-	if (gl.getParameter(gl.TEXTURE_BINDING_2D_ARRAY) === null) {
-		throw ReferenceError("No texture array bound to the context");
-	}
-
-	const textures = this.getUserTextures();
-	const textureCount = Object.keys(textures).length;
-
-	for (let i = 0, l = endpoints.length, endpoint, image; i < l; i++) {
-		endpoint = endpoints[i];
-		image = new Image();
-		image.src = `${base}${endpoint}`;
-
-		try {
-			await image.decode();
-		} catch (error) {
-			continue;
+		for (i in this.#uniforms) {
+			delete this.#uniforms[i];
 		}
 
-		if (image.width > WebGLRenderer.MAX_TEXTURE_SIZE[0] || image.height > WebGLRenderer.MAX_TEXTURE_SIZE[1]) {
-			throw new RangeError(`Could not load "${endpoint}": dimensions are overflowing MAX_TEXTURE_SIZE.`);
+		for (i in this.#buffers) {
+			this.#context.deleteBuffer(this.#buffers[i]);
+
+			delete this.#buffers[i];
 		}
 
-		gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, textureCount + i, image.width, image.height, 1, gl.RGBA, gl.UNSIGNED_BYTE, image);
+		for (i in this.#textures) {
+			this.#context.deleteTexture(this.#textures[i]);
 
-		textures[endpoint] = new Texture(image, textureCount + i);
+			delete this.#textures[i];
+		}
+
+		for (i in this.#userTextures) {
+			delete this.#userTextures[i];
+		}
+
+		this.#context.getExtension("WEBGL_lose_context").loseContext();
+		this.#context = null;
+		this.#canvas = null;
 	}
-};
 
-/**
- * Binds a new texture array to the context.
- * The texture size is capped by `WebGLRenderer.MAX_TEXTURE_SIZE`.
- * 
- * @param {Number} length
- * @param {Boolean} [generateMipmaps]
- */
-WebGLRenderer.prototype.createTextureArray = function(length, generateMipmaps = false) {
-	const gl = this.getContext();
+	/**
+	 * @param {String} base
+	 * @param {String} endpoint
+	 * @param {GLint} type `gl.VERTEX_SHADER` or `gl.FRAGMENT_SHADER`
+	 * @returns {Promise<WebGLShader>}
+	 */
+	async #createShader(base, endpoint, type) {
+		const shader = this.#context.createShader(type);
+		const source = await (await fetch(`${base}${endpoint}`)).text();
 
-	gl.bindTexture(gl.TEXTURE_2D_ARRAY, gl.createTexture());
-	gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-	generateMipmaps ?
-		gl.generateMipmap(gl.TEXTURE_2D_ARRAY) :
-		gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-	gl.texStorage3D(gl.TEXTURE_2D_ARRAY, 1, gl.RGBA8, WebGLRenderer.MAX_TEXTURE_SIZE[0], WebGLRenderer.MAX_TEXTURE_SIZE[1], length);
-};
+		this.#context.shaderSource(shader, source);
+		this.#context.compileShader(shader);
 
-/**
- * @abstract
- * @param {Array} scene
- */
-WebGLRenderer.prototype.render = function(scene) {};
-
-WebGLRenderer.prototype.clear = function() {
-	const gl = this.getContext();
-
-	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-};
-
-/**
- * @todo Rework
- * 
- * @type {Vector2}
- */
-WebGLRenderer.MAX_TEXTURE_SIZE = new Vector2(256, 256);
-
-/**
- * @param {WebGLRenderingContext|WebGL2RenderingContext} gl
- * @param {String} base
- * @param {String} endpoint
- * @param {Number} type
- * @returns {Promise<WebGLShader>}
- */
-async function createShader(gl, base, endpoint, type) {
-	const
-		shader = gl.createShader(type),
-		source = await (await fetch(`${base}${endpoint}`)).text();
-
-	gl.shaderSource(shader, source);
-	gl.compileShader(shader);
-
-	return shader;
+		return shader;
+	}
 }

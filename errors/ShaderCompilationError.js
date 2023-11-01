@@ -2,7 +2,6 @@
  * References an error when the binding of a `WebGLProgram` on a
  * `WebGLRenderingContext` fails due to a `WebGLShader` compilation error.
  * 
- * @extends Error
  * @param {String} message Error log
  * @param {String} type Shader type
  */

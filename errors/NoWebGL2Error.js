@@ -1,8 +1,6 @@
 /**
  * Represents an error where a `WebGL2RenderingContext` could not be obtained
  * via an `HTMLCanvasElement` or `OffscreenCanvas`.
- * 
- * @extends Error
  */
 export function NoWebGL2Error() {
 	const

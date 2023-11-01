@@ -1,6 +1,6 @@
 import {Layer} from "./index.js";
 import {Component, ReactiveComponent, StructuralComponent, VisualComponent} from "./components/index.js";
-import {Composite} from "../index.js";
+import {Composite, Instance, WebGLRenderer} from "../index.js";
 import {Camera, OrthographicCamera} from "../cameras/index.js";
 import {Matrix3, Vector2} from "../math/index.js";
 import {Font} from "../fonts/index.js";
@@ -66,10 +66,12 @@ export class GUIComposite extends Composite {
 
 	/**
 	 * @param {Object} options
+	 * @param {WebGLRenderer} options.renderer
+	 * @param {Instance} options.instance
 	 * @param {Object.<String, Font>} options.fonts
 	 */
-	constructor({fonts}) {
-		super(arguments[0]);
+	constructor({renderer, instance, fonts}) {
+		super({renderer, instance});
 
 		this.setAnimatable(true);
 
@@ -129,10 +131,15 @@ export class GUIComposite extends Composite {
 				.multiply(Matrix3.scale(new Vector2(scale, scale))),
 		);
 
-		await this.getRenderer().build(
-			this.getInstance().getParameter("shader_path"),
-			this.#camera.getProjection(),
-		);
+		const renderer = this.getRenderer();
+
+		/**
+		 * @todo Thes methods don't belong to the base WebGLRenderer class
+		 */
+		renderer.setShaderPath(this.getInstance().getParameter("shader_path"));
+		renderer.setProjection(this.#camera.getProjection());
+
+		await renderer.build();
 	}
 
 	/**
@@ -191,10 +198,13 @@ export class GUIComposite extends Composite {
 	 * @param {Component[]} components
 	 */
 	removeListeners(components) {
-		for (let i = 0, l = components.length, component, listener; i < l; i++) {
+		for (let i = 0, l = components.length, listener; i < l; i++) {
 			if (!(components[i] instanceof ReactiveComponent)) continue;
 
-			component = components[i];
+			/**
+			 * @type {ReactiveComponent}
+			 */
+			const component = components[i];
 
 			if ((listener = component.getOnMouseDown()) !== null) this.getInstance().removeListener("mouse_down", listener);
 			if ((listener = component.getOnMouseEnter()) !== null) this.getInstance().removeListener("mouse_enter", listener);

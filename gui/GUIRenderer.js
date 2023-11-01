@@ -1,20 +1,47 @@
 import {WebGLRenderer} from "../index.js";
 import {Matrix3, Vector2} from "../math/index.js";
-import {extend} from "../utils/index.js";
 
-export function GUIRenderer() {
-	WebGLRenderer.call(this, {offscreen: true});
-
-	const _build = this.build;
+export class GUIRenderer extends WebGLRenderer {
+	/**
+	 * @type {?String}
+	 */
+	#shaderPath;
 
 	/**
-	 * @param {String} shaderPath Instance shader path
+	 * @type {?Matrix3}
+	 */
+	#projection;
+
+	constructor() {
+		super({
+			offscreen: true,
+		});
+
+		this.#shaderPath = null;
+		this.#projection = null;
+	}
+
+	/**
+	 * @param {String} shaderPath
+	 */
+	setShaderPath(shaderPath) {
+		this.#shaderPath = shaderPath;
+	}
+
+	/**
 	 * @param {Matrix3} projection
 	 */
-	this.build = async function(shaderPath, projection) {
-		_build();
+	setProjection(projection) {
+		this.#projection = projection;
+	}
 
-		const program = await this.loadProgram(shaderPath, "subcomponent.vert", "subcomponent.frag");
+	/**
+	 * @inheritdoc
+	 */
+	async build() {
+		super.build();
+
+		const program = await this.loadProgram(this.#shaderPath, "subcomponent.vert", "subcomponent.frag");
 
 		this.linkProgram(program);
 
@@ -40,7 +67,7 @@ export function GUIRenderer() {
 		buffers.texture = gl.createBuffer();
 		buffers.colorMask = gl.createBuffer();
 
-	 	gl.uniformMatrix3fv(uniforms.projection, false, projection);
+	 	gl.uniformMatrix3fv(uniforms.projection, false, this.#projection);
 
 		gl.enableVertexAttribArray(attributes.vertex);
 		gl.enableVertexAttribArray(attributes.world);
@@ -53,7 +80,7 @@ export function GUIRenderer() {
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([1, 1, 0, 1, 0, 0, 1, 0]), gl.STATIC_DRAW);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureIndex);
-		gl.vertexAttribIPointer(attributes.textureIndex, 1, gl.UNSIGNED_BYTE, false, 0, 0);
+		gl.vertexAttribIPointer(attributes.textureIndex, 1, gl.UNSIGNED_BYTE, 0, 0);
 		gl.vertexAttribDivisor(attributes.textureIndex, 1);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.colorMask);
@@ -79,10 +106,12 @@ export function GUIRenderer() {
 	};
 
 	/**
-	 * @override
+	 * @todo Put the subcomponent count within the scene argument to get a clean override?
+	 * 
+	 * @inheritdoc
 	 * @param {Number} subcomponentCount
 	 */
-	this.render = function(scene, subcomponentCount) {
+	render(scene, subcomponentCount) {
 		const
 			gl = this.getContext(),
 			buffers = this.getBuffers(),
@@ -133,13 +162,13 @@ export function GUIRenderer() {
 	};
 
 	/**
+	 * @todo Put in the base WebGLRenderer class?
+	 * 
 	 * @param {Vector2} viewport
 	 * @param {Matrix3} projection
 	 */
-	this.resize = function(viewport, projection) {
+	resize(viewport, projection) {
 		this.setViewport(viewport);
-	 	this.getContext().uniformMatrix3fv(this.getUniforms().projection, false, projection);
-	};
+		this.getContext().uniformMatrix3fv(this.getUniforms().projection, false, projection);
+	}
 }
-
-extend(GUIRenderer, WebGLRenderer);

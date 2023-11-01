@@ -203,11 +203,12 @@ export class Instance {
 
 	async build() {
 		/**
-		 * @todo This method doesn't belong to the abstract WebGLRenderer class
+		 * @todo Thes methods don't belong to the base WebGLRenderer class
 		 */
 		this.#renderer.setCompositeCount(this.#compositeCount);
+		this.#renderer.setShaderPath(this._parameters["shader_path"]);
 
-		await this.#renderer.build(this._parameters["shader_path"]);
+		await this.#renderer.build();
 
 		const viewport = new Vector2(innerWidth, innerHeight)
 			.multiplyScalar(devicePixelRatio)
