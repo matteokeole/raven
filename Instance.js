@@ -339,11 +339,11 @@ export class Instance {
 			if (!intersects(this.#pointer, listener.component.getPosition(), listener.component.getSize())) {
 				continue;
 			}
-			if (listener.component.getIsHovered()) {
+			if (listener.component.isHovered()) {
 				continue;
 			}
 
-			listener.component.setIsHovered(true);
+			listener.component.setHovered(true);
 			listener(this.#pointer);
 		}
 
@@ -353,11 +353,11 @@ export class Instance {
 			if (intersects(this.#pointer, listener.component.getPosition(), listener.component.getSize())) {
 				continue;
 			}
-			if (!listener.component.getIsHovered()) {
+			if (!listener.component.isHovered()) {
 				continue;
 			}
 
-			listener.component.setIsHovered(false);
+			listener.component.setHovered(false);
 			listener(this.#pointer);
 		}
 	}.bind(this);
