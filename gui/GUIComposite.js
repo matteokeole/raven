@@ -344,10 +344,10 @@ export class GUIComposite extends Composite {
 		/**
 		 * @todo Layer.build() should return a single root component
 		 */
-		const builtComponents = layer.build(this);
-		this.#rootComponents.push(...builtComponents);
+		const builtComponent = layer.build(this);
 
-		this.addChildrenToRenderQueue(builtComponents, {
+		this.#rootComponents.push(builtComponent);
+		this.addChildrenToRenderQueue([builtComponent], {
 			addListeners: true,
 			addToTree: true,
 		});
@@ -393,7 +393,11 @@ export class GUIComposite extends Composite {
 
 		this.removeListeners(this.#reactiveComponents);
 
-		// Truncate the tree (remove the components from the popped layer)
+		/**
+		 * @todo Also truncate the root components?
+		 * 
+		 * Truncate the tree (remove the components from the popped layer)
+		 */
 		this.#tree.length = this.#lastInsertionIndices.pop();
 
 		this._scene.clear();
