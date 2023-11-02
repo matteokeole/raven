@@ -183,7 +183,7 @@ export class BitmapFont extends Font {
 	}
 
 	/**
-	 * @todo Typedef the return object?
+	 * @todo Typedef the return object or return directly a Text component?
 	 * 
 	 * @param {String} string Can be multiline
 	 * @param {Vector4} colorMask

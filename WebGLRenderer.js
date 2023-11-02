@@ -1,5 +1,6 @@
 import {ShaderCompilationError} from "./errors/index.js";
 import {Vector2, Vector4} from "./math/index.js";
+import {Scene} from "./Scene/Scene.js";
 import {TextureContainer} from "./wrappers/index.js";
 
 /**
@@ -200,7 +201,7 @@ export class WebGLRenderer {
 
 	/**
 	 * @abstract
-	 * @param {*} scene
+	 * @param {Scene} scene
 	 */
 	render(scene) {}
 

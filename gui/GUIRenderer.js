@@ -1,6 +1,7 @@
 import {WebGLRenderer} from "../index.js";
 import {ShaderSourceLoader} from "../Loader/index.js";
 import {Matrix3, Vector4} from "../math/index.js";
+import {GUIScene} from "../Scene/index.js";
 
 export class GUIRenderer extends WebGLRenderer {
 	/**
@@ -128,17 +129,18 @@ export class GUIRenderer extends WebGLRenderer {
 	 * @todo Put the subcomponent count within the scene argument to get a clean override?
 	 * 
 	 * @inheritdoc
-	 * @param {Number} subcomponentCount
+	 * @param {GUIScene} scene
 	 */
-	render(scene, subcomponentCount) {
-		const
-			worlds = new Float32Array(subcomponentCount * 9),
-			textureIndices = new Uint8Array(subcomponentCount),
-			textures = new Float32Array(subcomponentCount * 9),
-			colorMasks = new Uint8Array(subcomponentCount * 4);
+	render(scene) {
+		const queue = scene.getQueue();
+		const subcomponentCount = scene.getSubcomponentCount();
+		const worlds = new Float32Array(subcomponentCount * 9);
+		const textureIndices = new Uint8Array(subcomponentCount);
+		const textures = new Float32Array(subcomponentCount * 9);
+		const colorMasks = new Uint8Array(subcomponentCount * 4);
 
-		for (let i = 0, j, k = 0, cl = scene.length, component, position, textureIndex = new Uint8Array(1), subcomponents, sl, subcomponent, size, world, texture; i < cl; i++) {
-			component = scene[i];
+		for (let i = 0, j, k = 0, cl = queue.length, component, position, textureIndex = new Uint8Array(1), subcomponents, sl, subcomponent, size, world, texture; i < cl; i++) {
+			component = queue[i];
 			position = component.getPosition();
 
 			subcomponents = component.getSubcomponents();

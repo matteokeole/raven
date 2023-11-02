@@ -1,5 +1,6 @@
 import {Instance, WebGLRenderer} from "./index.js";
 import {Vector4} from "./math/index.js";
+import {Scene} from "./Scene/Scene.js";
 
 /**
  * @abstract
@@ -8,7 +9,12 @@ export class Composite {
 	/**
 	 * @type {WebGLRenderer}
 	 */
-	#renderer;
+	_renderer;
+
+	/**
+	 * @type {Scene}
+	 */
+	_scene;
 
 	/**
 	 * @type {Instance}
@@ -31,7 +37,8 @@ export class Composite {
 	 * @param {Instance} options.instance
 	 */
 	constructor({renderer, instance}) {
-		this.#renderer = renderer;
+		this._renderer = renderer;
+		this._scene = new Scene();
 		this.#instance = instance;
 		this.#isAnimatable = false;
 	}
@@ -40,7 +47,7 @@ export class Composite {
 	 * @returns {WebGLRenderer}
 	 */
 	getRenderer() {
-		return this.#renderer;
+		return this._renderer;
 	}
 
 	/**

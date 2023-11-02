@@ -5,10 +5,8 @@ import {Camera, OrthographicCamera} from "../cameras/index.js";
 import {Font} from "../fonts/index.js";
 import {Matrix3, Vector2} from "../math/index.js";
 import {TextureContainer} from "../wrappers/index.js";
+import {GUIScene} from "../Scene/index.js";
 
-/**
- * @todo Clear queue?
- */
 export class GUIComposite extends Composite {
 	/**
 	 * @type {Camera}
@@ -48,13 +46,6 @@ export class GUIComposite extends Composite {
 	#tree;
 
 	/**
-	 * Components registered for the next render.
-	 * 
-	 * @type {Component[]}
-	 */
-	#renderQueue;
-
-	/**
 	 * @type {Number[]}
 	 */
 	#lastInsertionIndices;
@@ -73,26 +64,28 @@ export class GUIComposite extends Composite {
 	constructor({renderer, instance, fonts}) {
 		super({renderer, instance});
 
+		this._renderer = renderer;
+
+		// This contains the visual components registered for the next render
+		this._scene = new GUIScene();
+
 		this.setAnimatable(true);
 
 		this.#camera = new OrthographicCamera(this.getInstance().getRenderer().getViewport());
-		this.#subcomponentCount = 0;
 		this.#layerStack = [];
 		this.#rootComponents = [];
 		this.#animatedComponents = [];
 		this.#reactiveComponents = [];
 		this.#tree = [];
-		this.#renderQueue = [];
 		this.#lastInsertionIndices = [];
 		this.#fonts = fonts;
 	}
 
 	/**
-	 * @inheritdoc
 	 * @returns {GUIRenderer}
 	 */
 	getRenderer() {
-		return super.getRenderer();
+		return this._renderer;
 	}
 
 	/**
@@ -162,8 +155,7 @@ export class GUIComposite extends Composite {
 			component = children[i];
 
 			if (!(component instanceof StructuralComponent)) {
-				this.#renderQueue.push(component);
-				this.#subcomponentCount += component.getSubcomponents().length;
+				this._scene.add(component);
 
 				this.#animatedComponents.push(component);
 
@@ -258,7 +250,7 @@ export class GUIComposite extends Composite {
 			this.pushToRenderQueue(component);
 		}
 
-		if (this.#renderQueue.length === 0) {
+		if (this._scene.isEmpty()) {
 			return;
 		}
 
@@ -269,15 +261,17 @@ export class GUIComposite extends Composite {
 	 * @inheritdoc
 	 */
 	render() {
-		// console.debug(`render(): ${this.#renderQueue.length} (${this.#subcomponentCount}) in queue`);
+		console.debug(`render(): ${this._scene.getQueue().length} (${this._scene.getSubcomponentCount()}) in queue`);
 
-		this.getRenderer().render(this.#renderQueue, this.#subcomponentCount);
-
-		this.#renderQueue.length = 0;
-		this.#subcomponentCount = 0;
+		this.getRenderer().render(this._scene);
 
 		/**
-		 * @todo Move updateCompositeTexture() to the instance itself
+		 * @todo This is an example of why "scene" is not the best name for a render queue
+		 */
+		this._scene.clear();
+
+		/**
+		 * @todo Move updateCompositeTexture() to the instance/instance renderer
 		 */
 		this.getInstance().getRenderer().updateCompositeTexture(
 			this.getIndex(),
@@ -304,7 +298,8 @@ export class GUIComposite extends Composite {
 		);
 
 		this.getRenderer().resize(viewport, this.#camera.getProjection());
-		this.#subcomponentCount = 0;
+
+		this._scene.resetSubcomponentCount();
 
 		// Add all components to the render queue
 		for (let i = 0, l = this.#tree.length, component; i < l; i++) {
@@ -319,8 +314,7 @@ export class GUIComposite extends Composite {
 				continue;
 			}
 
-			this.#renderQueue.push(component);
-			this.#subcomponentCount += component.getSubcomponents().length;
+			this._scene.add(component);
 		}
 
 		this.compute().render();
@@ -340,7 +334,7 @@ export class GUIComposite extends Composite {
 		// Discard event listeners of `ReactiveComponent` instances in the previous layers
 		this.removeListeners(this.#reactiveComponents);
 
-		this.#subcomponentCount = 0;
+		this._scene.resetSubcomponentCount();
 		this.#animatedComponents.length = 0;
 		this.#reactiveComponents.length = 0;
 
@@ -380,8 +374,7 @@ export class GUIComposite extends Composite {
 			return this;
 		}
 
-		this.#renderQueue.push(component);
-		this.#subcomponentCount += component.getSubcomponents().length;
+		this._scene.add(component);
 
 		return this;
 	}
@@ -403,8 +396,7 @@ export class GUIComposite extends Composite {
 		// Truncate the tree (remove the components from the popped layer)
 		this.#tree.length = this.#lastInsertionIndices.pop();
 
-		this.#renderQueue.length = 0;
-		this.#subcomponentCount = 0;
+		this._scene.clear();
 		this.#animatedComponents.length = 0;
 		this.#reactiveComponents.length = 0;
 
