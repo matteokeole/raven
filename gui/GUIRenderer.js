@@ -126,8 +126,6 @@ export class GUIRenderer extends WebGLRenderer {
 	}
 
 	/**
-	 * @todo Put the subcomponent count within the scene argument to get a clean override?
-	 * 
 	 * @inheritdoc
 	 * @param {GUIScene} scene
 	 */

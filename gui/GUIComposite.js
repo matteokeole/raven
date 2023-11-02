@@ -327,6 +327,7 @@ export class GUIComposite extends Composite {
 	 * The new components will be rendered on top of the previous ones.
 	 * 
 	 * @param {Layer} layer
+	 * @throws {Error} if the layer didn't return a component
 	 */
 	push(layer) {
 		this.#layerStack.push(layer);
@@ -341,13 +342,14 @@ export class GUIComposite extends Composite {
 		// Mark the tree length as the extraction index for this layer
 		this.#lastInsertionIndices.push(this.#tree.length);
 
-		/**
-		 * @todo Layer.build() should return a single root component
-		 */
-		const builtComponent = layer.build(this);
+		const rootComponent = layer.build(this);
 
-		this.#rootComponents.push(builtComponent);
-		this.addChildrenToRenderQueue([builtComponent], {
+		if (!(rootComponent instanceof Component)) {
+			throw new Error("The layer must return an instance of Component.");
+		}
+
+		this.#rootComponents.push(rootComponent);
+		this.addChildrenToRenderQueue([rootComponent], {
 			addListeners: true,
 			addToTree: true,
 		});
