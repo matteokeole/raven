@@ -151,12 +151,9 @@ export class WebGLRenderer {
 	}
 
 	/**
-	 * @todo Include already set textureCount
-	 * @todo Handle dimension overflow error
-	 * @todo Handle unbound TEXTURE_2D_ARRAY error
-	 * 
 	 * @param {import("./Loader/TextureLoader.js").Image[]} textures
 	 * @param {Boolean} generateMipmaps
+	 * @throws {RangeError} if a texture is larger than `MAX_TEXTURE_SIZE`
 	 */
 	createTextureArray(textures, generateMipmaps) {
 		this._context.bindTexture(this._context.TEXTURE_2D_ARRAY, this._context.createTexture());
@@ -174,6 +171,10 @@ export class WebGLRenderer {
 
 		for (let i = 0, texture; i < length; i++) {
 			texture = textures[i];
+
+			if (texture.viewport.magnitude() > WebGLRenderer.MAX_TEXTURE_SIZE.magnitude()) {
+				throw new RangeError(`Could not load "${texture.name}": image dimensions are overflowing MAX_TEXTURE_SIZE.`);
+			}
 
 			this._context.texSubImage3D(
 				this._context.TEXTURE_2D_ARRAY,
@@ -199,8 +200,9 @@ export class WebGLRenderer {
 
 	/**
 	 * @abstract
+	 * @param {*} scene
 	 */
-	render() {}
+	render(scene) {}
 
 	/**
 	 * Warning: this clears the whole canvas; prefer targeting only specific parts when possible.
@@ -210,9 +212,39 @@ export class WebGLRenderer {
 	}
 
 	/**
+	 * Frees all the resources used by the renderer
+	 * and triggers a `webglcontextlost` event.
+	 * 
 	 * @see {@link https://registry.khronos.org/webgl/extensions/WEBGL_lose_context}
 	 */
 	dispose() {
+		this._context.useProgram(null);
+		this._context.bindBuffer(this._context.ARRAY_BUFFER, null);
+		this._context.bindTexture(this._context.TEXTURE_2D_ARRAY, null);
+
+		const buffers = Object.values(this._buffers);
+		const textures = Object.values(this._textures);
+
+		this._programs.length = 0;
+		this._attributes = {};
+		this._uniforms = {};
+		this._buffers = {};
+		this._textures = {};
+
+		let i, length;
+
+		for (i = 0, length = this._programs.length; i < length; i++) {
+			this._context.deleteProgram(this._programs[i]);
+		}
+
+		for (i = 0, length = buffers.length; i < length; i++) {
+			this._context.deleteBuffer(buffers[i]);
+		}
+
+		for (i = 0, length = textures.length; i < length; i++) {
+			this._context.deleteTexture(textures[i]);
+		}
+
 		this._context.getExtension("WEBGL_lose_context").loseContext();
 		this._context = null;
 	}
