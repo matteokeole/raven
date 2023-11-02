@@ -63,7 +63,7 @@ export class TextureLoader extends Loader {
 	 * @param {Vector2} viewport Final texture size
 	 * @returns {Image[]}
 	 */
-	loadHexadecimalColors(json, viewport) {
+	loadColors(json, viewport) {
 		const textures = [];
 
 		for (let i = 0, length = json.length, color, image; i < length; i++) {
