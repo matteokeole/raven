@@ -1,14 +1,12 @@
-import {Layer} from "./index.js";
+import {GUIRenderer, Layer} from "./index.js";
 import {Component, ReactiveComponent, StructuralComponent, VisualComponent} from "./components/index.js";
-import {Composite, Instance, WebGLRenderer} from "../index.js";
+import {Composite, Instance} from "../index.js";
 import {Camera, OrthographicCamera} from "../cameras/index.js";
-import {Matrix3, Vector2} from "../math/index.js";
 import {Font} from "../fonts/index.js";
-import {Texture} from "../wrappers/index.js";
+import {Matrix3, Vector2} from "../math/index.js";
+import {TextureContainer} from "../wrappers/index.js";
+import {GUIScene} from "../Scene/index.js";
 
-/**
- * @todo Clear queue?
- */
 export class GUIComposite extends Composite {
 	/**
 	 * @type {Camera}
@@ -48,13 +46,6 @@ export class GUIComposite extends Composite {
 	#tree;
 
 	/**
-	 * Components registered for the next render.
-	 * 
-	 * @type {Component[]}
-	 */
-	#renderQueue;
-
-	/**
 	 * @type {Number[]}
 	 */
 	#lastInsertionIndices;
@@ -66,25 +57,35 @@ export class GUIComposite extends Composite {
 
 	/**
 	 * @param {Object} options
-	 * @param {WebGLRenderer} options.renderer
+	 * @param {GUIRenderer} options.renderer
 	 * @param {Instance} options.instance
 	 * @param {Object.<String, Font>} options.fonts
 	 */
 	constructor({renderer, instance, fonts}) {
 		super({renderer, instance});
 
+		this._renderer = renderer;
+
+		// This contains the visual components registered for the next render
+		this._scene = new GUIScene();
+
 		this.setAnimatable(true);
 
 		this.#camera = new OrthographicCamera(this.getInstance().getRenderer().getViewport());
-		this.#subcomponentCount = 0;
 		this.#layerStack = [];
 		this.#rootComponents = [];
 		this.#animatedComponents = [];
 		this.#reactiveComponents = [];
 		this.#tree = [];
-		this.#renderQueue = [];
 		this.#lastInsertionIndices = [];
 		this.#fonts = fonts;
+	}
+
+	/**
+	 * @returns {GUIRenderer}
+	 */
+	getRenderer() {
+		return this._renderer;
 	}
 
 	/**
@@ -102,15 +103,15 @@ export class GUIComposite extends Composite {
 
 	/**
 	 * @param {String} key
-	 * @returns {Texture}
+	 * @returns {TextureContainer}
 	 * @throws {ReferenceError}
 	 */
 	getTexture(key) {
-		if (!(key in this.getRenderer().getUserTextures())) {
+		if (!(key in this.getRenderer().getTextures())) {
 			throw new ReferenceError(`Undefined texture key "${key}".`);
 		}
 
-		return this.getRenderer().getUserTextures()[key];
+		return this.getRenderer().getTextures()[key];
 	}
 
 	/**
@@ -123,21 +124,20 @@ export class GUIComposite extends Composite {
 			await this.#fonts[key].loadGlyphMap(glyphMapPath);
 		}
 
-		const scale = this.getInstance().getParameter("current_scale");
-
-		this.#camera.setProjection(
-			Matrix3
-				.orthographic(this.getInstance().getRenderer().getViewport())
-				.multiply(Matrix3.scale(new Vector2(scale, scale))),
+		const viewport = new Vector2(
+			this.getInstance().getRenderer().getViewport()[2],
+			this.getInstance().getRenderer().getViewport()[3],
 		);
+		const scale = this.getInstance().getParameter("current_scale");
+		const projection = Matrix3
+			.orthographic(viewport)
+			.multiply(Matrix3.scale(new Vector2(scale, scale)));
 
 		const renderer = this.getRenderer();
 
-		/**
-		 * @todo Thes methods don't belong to the base WebGLRenderer class
-		 */
 		renderer.setShaderPath(this.getInstance().getParameter("shader_path"));
-		renderer.setProjection(this.#camera.getProjection());
+		renderer.setProjection(projection);
+		this.#camera.setProjection(projection);
 
 		await renderer.build();
 	}
@@ -155,8 +155,7 @@ export class GUIComposite extends Composite {
 			component = children[i];
 
 			if (!(component instanceof StructuralComponent)) {
-				this.#renderQueue.push(component);
-				this.#subcomponentCount += component.getSubcomponents().length;
+				this._scene.add(component);
 
 				this.#animatedComponents.push(component);
 
@@ -219,14 +218,15 @@ export class GUIComposite extends Composite {
 	 * @returns {this}
 	 */
 	compute() {
+		const instanceViewport = this
+			.getInstance()
+			.getRenderer()
+			.getViewport();
+
 		/**
 		 * @todo Create the viewport in the instance instead of there
 		 */
-		const parentSize = this
-			.getInstance()
-			.getRenderer()
-			.getViewport()
-			.clone()
+		const parentSize = new Vector2(instanceViewport[2], instanceViewport[3])
 			.divideScalar(this.getInstance().getParameter("current_scale"));
 
 		for (let i = 0, l = this.#rootComponents.length; i < l; i++) {
@@ -250,7 +250,7 @@ export class GUIComposite extends Composite {
 			this.pushToRenderQueue(component);
 		}
 
-		if (this.#renderQueue.length === 0) {
+		if (this._scene.isEmpty()) {
 			return;
 		}
 
@@ -261,15 +261,17 @@ export class GUIComposite extends Composite {
 	 * @inheritdoc
 	 */
 	render() {
-		// console.debug(`render(): ${this.#renderQueue.length} (${this.#subcomponentCount}) in queue`);
+		console.debug(`render(): ${this._scene.getQueue().length} (${this._scene.getSubcomponentCount()}) in queue`);
 
-		this.getRenderer().render(this.#renderQueue, this.#subcomponentCount);
-
-		this.#renderQueue.length = 0;
-		this.#subcomponentCount = 0;
+		this.getRenderer().render(this._scene);
 
 		/**
-		 * @todo Move updateCompositeTexture() to the instance itself
+		 * @todo This is an example of why "scene" is not the best name for a render queue
+		 */
+		this._scene.clear();
+
+		/**
+		 * @todo Move updateCompositeTexture() to the instance/instance renderer
 		 */
 		this.getInstance().getRenderer().updateCompositeTexture(
 			this.getIndex(),
@@ -291,12 +293,13 @@ export class GUIComposite extends Composite {
 		 */
 		this.#camera.setProjection(
 			Matrix3
-				.orthographic(viewport)
+				.orthographic(new Vector2(viewport[2], viewport[3]))
 				.multiply(Matrix3.scale(new Vector2(scale, scale))),
 		);
 
 		this.getRenderer().resize(viewport, this.#camera.getProjection());
-		this.#subcomponentCount = 0;
+
+		this._scene.resetSubcomponentCount();
 
 		// Add all components to the render queue
 		for (let i = 0, l = this.#tree.length, component; i < l; i++) {
@@ -311,8 +314,7 @@ export class GUIComposite extends Composite {
 				continue;
 			}
 
-			this.#renderQueue.push(component);
-			this.#subcomponentCount += component.getSubcomponents().length;
+			this._scene.add(component);
 		}
 
 		this.compute().render();
@@ -332,7 +334,7 @@ export class GUIComposite extends Composite {
 		// Discard event listeners of `ReactiveComponent` instances in the previous layers
 		this.removeListeners(this.#reactiveComponents);
 
-		this.#subcomponentCount = 0;
+		this._scene.resetSubcomponentCount();
 		this.#animatedComponents.length = 0;
 		this.#reactiveComponents.length = 0;
 
@@ -342,10 +344,10 @@ export class GUIComposite extends Composite {
 		/**
 		 * @todo Layer.build() should return a single root component
 		 */
-		const builtComponents = layer.build(this);
-		this.#rootComponents.push(...builtComponents);
+		const builtComponent = layer.build(this);
 
-		this.addChildrenToRenderQueue(builtComponents, {
+		this.#rootComponents.push(builtComponent);
+		this.addChildrenToRenderQueue([builtComponent], {
 			addListeners: true,
 			addToTree: true,
 		});
@@ -372,8 +374,7 @@ export class GUIComposite extends Composite {
 			return this;
 		}
 
-		this.#renderQueue.push(component);
-		this.#subcomponentCount += component.getSubcomponents().length;
+		this._scene.add(component);
 
 		return this;
 	}
@@ -392,11 +393,14 @@ export class GUIComposite extends Composite {
 
 		this.removeListeners(this.#reactiveComponents);
 
-		// Truncate the tree (remove the components from the popped layer)
+		/**
+		 * @todo Also truncate the root components?
+		 * 
+		 * Truncate the tree (remove the components from the popped layer)
+		 */
 		this.#tree.length = this.#lastInsertionIndices.pop();
 
-		this.#renderQueue.length = 0;
-		this.#subcomponentCount = 0;
+		this._scene.clear();
 		this.#animatedComponents.length = 0;
 		this.#reactiveComponents.length = 0;
 

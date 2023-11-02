@@ -1,2 +1,1 @@
-export {Program} from "./Program.js";
-export {Texture} from "./Texture.js";
+export {TextureContainer} from "./TextureContainer.js";

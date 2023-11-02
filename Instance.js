@@ -1,12 +1,12 @@
-import {Composite, WebGLRenderer} from "./index.js";
-import {Vector2, intersects} from "./math/index.js";
+import {Composite, InstanceRenderer} from "./index.js";
+import {intersects, Vector2, Vector4} from "./math/index.js";
 
 /**
  * @abstract
  */
 export class Instance {
 	/**
-	 * @type {WebGLRenderer}
+	 * @type {InstanceRenderer}
 	 */
 	#renderer;
 
@@ -76,7 +76,7 @@ export class Instance {
 	#isRunning;
 
 	/**
-	 * @param {WebGLRenderer} renderer
+	 * @param {InstanceRenderer} renderer
 	 */
 	constructor(renderer) {
 		this.#renderer = renderer;
@@ -106,7 +106,7 @@ export class Instance {
 	}
 
 	/**
-	 * @returns {WebGLRenderer}
+	 * @returns {InstanceRenderer}
 	 */
 	getRenderer() {
 		return this.#renderer;
@@ -202,15 +202,11 @@ export class Instance {
 	}
 
 	async build() {
-		/**
-		 * @todo Thes methods don't belong to the base WebGLRenderer class
-		 */
 		this.#renderer.setCompositeCount(this.#compositeCount);
 		this.#renderer.setShaderPath(this._parameters["shader_path"]);
+		this.#renderer.build();
 
-		await this.#renderer.build();
-
-		const viewport = new Vector2(innerWidth, innerHeight)
+		const viewport = new Vector4(0, 0, innerWidth, innerHeight)
 			.multiplyScalar(devicePixelRatio)
 			.floor();
 
@@ -249,7 +245,7 @@ export class Instance {
 	}
 
 	/**
-	 * @throws {Error}
+	 * @throws {Error} if the instance is already running
 	 */
 	loop() {
 		if (this.#isRunning) {
@@ -267,10 +263,6 @@ export class Instance {
 	}
 
 	dispose() {
-		if (this.#isRunning) {
-			this.pause();
-		}
-
 		for (let i = 0; i < this.#compositeCount; i++) {
 			this.#composites[i].getRenderer().dispose();
 		}

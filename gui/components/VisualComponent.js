@@ -2,7 +2,7 @@ import {Component} from "./Component.js";
 import {Subcomponent} from "../index.js";
 import {Composite} from "../../index.js";
 import {Vector2} from "../../math/index.js";
-import {Texture} from "../../wrappers/index.js";
+import {TextureContainer} from "../../wrappers/index.js";
 
 /**
  * @abstract
@@ -14,7 +14,7 @@ export class VisualComponent extends Component {
 	#subcomponents;
 
 	/**
-	 * @type {?Texture}
+	 * @type {?TextureContainer}
 	 */
 	#texture;
 
@@ -46,14 +46,14 @@ export class VisualComponent extends Component {
 	}
 
 	/**
-	 * @returns {?Texture}
+	 * @returns {?TextureContainer}
 	 */
 	getTexture() {
 		return this.#texture;
 	}
 
 	/**
-	 * @param {?Texture} texture
+	 * @param {?TextureContainer} texture
 	 */
 	setTexture(texture) {
 		this.#texture = texture;

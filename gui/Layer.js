@@ -1,5 +1,6 @@
 import {Component} from "./components/index.js";
 import {Composite} from "../index.js";
+import {NotImplementedError} from "../errors/index.js";
 
 /**
  * @todo Replace by Component?
@@ -9,9 +10,9 @@ export class Layer {
 	/**
 	 * @abstract
 	 * @param {Composite} context
-	 * @returns {Component[]}
+	 * @returns {Component}
 	 */
 	build(context) {
-		throw new Error("Not implemented");
+		throw new NotImplementedError();
 	}
 }
