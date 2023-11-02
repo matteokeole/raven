@@ -1,5 +1,5 @@
 import {Instance, WebGLRenderer} from "./index.js";
-import {Vector2} from "./math/index.js";
+import {Vector4} from "./math/index.js";
 
 /**
  * @abstract
@@ -96,7 +96,7 @@ export class Composite {
 
 	/**
 	 * @abstract
-	 * @param {Vector2} viewport
+	 * @param {Vector4} viewport
 	 */
 	resize(viewport) {}
 }

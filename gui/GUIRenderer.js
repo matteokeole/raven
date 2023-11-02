@@ -1,24 +1,36 @@
 import {WebGLRenderer} from "../index.js";
-import {Matrix3, Vector2} from "../math/index.js";
+import {ShaderSourceLoader} from "../Loader/index.js";
+import {Matrix3, Vector4} from "../math/index.js";
 
 export class GUIRenderer extends WebGLRenderer {
 	/**
-	 * @type {?String}
+	 * @type {?OffscreenCanvas}
+	 */
+	_canvas;
+
+	/**
+	 * @type {String}
 	 */
 	#shaderPath;
 
 	/**
-	 * @type {?Matrix3}
+	 * @type {Matrix3}
 	 */
 	#projection;
 
 	constructor() {
-		super({
-			offscreen: true,
-		});
+		super();
 
-		this.#shaderPath = null;
-		this.#projection = null;
+		this._canvas = null;
+		this.#shaderPath = "";
+		this.#projection = Matrix3.identity();
+	}
+
+	/**
+	 * @returns {?OffscreenCanvas}
+	 */
+	getCanvas() {
+		return this._canvas;
 	}
 
 	/**
@@ -41,69 +53,76 @@ export class GUIRenderer extends WebGLRenderer {
 	async build() {
 		super.build();
 
-		const program = await this.loadProgram(this.#shaderPath, "subcomponent.vert", "subcomponent.frag");
+		this._canvas = new OffscreenCanvas(0, 0);
+		this._context = this._canvas.getContext("webgl2");
 
-		this.linkProgram(program);
+		this._context.enable(this._context.BLEND);
+		this._context.blendFunc(this._context.SRC_ALPHA, this._context.ONE_MINUS_SRC_ALPHA);
 
-		const gl = this.getContext();
+		const loader = new ShaderSourceLoader(this.#shaderPath);
+		const vertexShaderSource = await loader.load("subcomponent.vert");
+		const fragmentShaderSource = await loader.load("subcomponent.frag");
 
-		gl.enable(gl.BLEND);
-		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-		gl.useProgram(program.getProgram());
+		const program = this._createProgram(vertexShaderSource, fragmentShaderSource);
 
-		const attributes = this.getAttributes();
-		const uniforms = this.getUniforms();
-		const buffers = this.getBuffers();
+		this._context.useProgram(program);
 
-		attributes.vertex = 0;
-		attributes.world = 1;
-		attributes.textureIndex = 4;
-		attributes.texture = 5;
-		attributes.colorMask = 8;
-		uniforms.projection = gl.getUniformLocation(program.getProgram(), "u_projection");
-		buffers.vertex = gl.createBuffer();
-		buffers.world = gl.createBuffer();
-		buffers.textureIndex = gl.createBuffer();
-		buffers.texture = gl.createBuffer();
-		buffers.colorMask = gl.createBuffer();
+		this._programs.push(program);
+		this._attributes.vertex = 0;
+		this._attributes.world = 1;
+		this._attributes.textureIndex = 4;
+		this._attributes.texture = 5;
+		this._attributes.colorMask = 8;
+		this._uniforms.projection = this._context.getUniformLocation(program, "u_projection");
+		this._buffers.vertex = this._context.createBuffer();
+		this._buffers.world = this._context.createBuffer();
+		this._buffers.textureIndex = this._context.createBuffer();
+		this._buffers.texture = this._context.createBuffer();
+		this._buffers.colorMask = this._context.createBuffer();
 
-	 	gl.uniformMatrix3fv(uniforms.projection, false, this.#projection);
+	 	this._context.uniformMatrix3fv(this._uniforms.projection, false, this.#projection);
 
-		gl.enableVertexAttribArray(attributes.vertex);
-		gl.enableVertexAttribArray(attributes.world);
-		gl.enableVertexAttribArray(attributes.textureIndex);
-		gl.enableVertexAttribArray(attributes.texture);
-		gl.enableVertexAttribArray(attributes.colorMask);
+		this._context.enableVertexAttribArray(this._attributes.vertex);
+		this._context.enableVertexAttribArray(this._attributes.world);
+		this._context.enableVertexAttribArray(this._attributes.textureIndex);
+		this._context.enableVertexAttribArray(this._attributes.texture);
+		this._context.enableVertexAttribArray(this._attributes.colorMask);
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.vertex);
-		gl.vertexAttribPointer(attributes.vertex, 2, gl.FLOAT, false, 0, 0);
-		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([1, 1, 0, 1, 0, 0, 1, 0]), gl.STATIC_DRAW);
+		this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.vertex);
+		this._context.vertexAttribPointer(this._attributes.vertex, 2, this._context.FLOAT, false, 0, 0);
+		this._context.bufferData(this._context.ARRAY_BUFFER, new Float32Array([
+			1, 1,
+			0, 1,
+			0, 0,
+			1, 0,
+		]), this._context.STATIC_DRAW);
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureIndex);
-		gl.vertexAttribIPointer(attributes.textureIndex, 1, gl.UNSIGNED_BYTE, 0, 0);
-		gl.vertexAttribDivisor(attributes.textureIndex, 1);
+		this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.textureIndex);
+		this._context.vertexAttribIPointer(this._attributes.textureIndex, 1, this._context.UNSIGNED_BYTE, 0, 0);
+		this._context.vertexAttribDivisor(this._attributes.textureIndex, 1);
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.colorMask);
-		gl.vertexAttribPointer(attributes.colorMask, 4, gl.UNSIGNED_BYTE, true, 0, 0);
-		gl.vertexAttribDivisor(attributes.colorMask, 1);
+		this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.colorMask);
+		this._context.vertexAttribPointer(this._attributes.colorMask, 4, this._context.UNSIGNED_BYTE, true, 0, 0);
+		this._context.vertexAttribDivisor(this._attributes.colorMask, 1);
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.world);
+		this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.world);
 
 		let i;
-		for (i = attributes.world + 2; i >= attributes.world; i--) {
-			gl.enableVertexAttribArray(i);
-			gl.vertexAttribPointer(i, 3, gl.FLOAT, false, 36, (i - 1) * 12);
-			gl.vertexAttribDivisor(i, 1);
+
+		for (i = this._attributes.world + 2; i >= this._attributes.world; i--) {
+			this._context.enableVertexAttribArray(i);
+			this._context.vertexAttribPointer(i, 3, this._context.FLOAT, false, 36, (i - 1) * 12);
+			this._context.vertexAttribDivisor(i, 1);
 		}
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.texture);
+		this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.texture);
 
-		for (i = attributes.texture + 2; i >= attributes.texture; i--) {
-			gl.enableVertexAttribArray(i);
-			gl.vertexAttribPointer(i, 3, gl.FLOAT, false, 36, (i - 5) * 12);
-			gl.vertexAttribDivisor(i, 1);
+		for (i = this._attributes.texture + 2; i >= this._attributes.texture; i--) {
+			this._context.enableVertexAttribArray(i);
+			this._context.vertexAttribPointer(i, 3, this._context.FLOAT, false, 36, (i - 5) * 12);
+			this._context.vertexAttribDivisor(i, 1);
 		}
-	};
+	}
 
 	/**
 	 * @todo Put the subcomponent count within the scene argument to get a clean override?
@@ -113,8 +132,6 @@ export class GUIRenderer extends WebGLRenderer {
 	 */
 	render(scene, subcomponentCount) {
 		const
-			gl = this.getContext(),
-			buffers = this.getBuffers(),
 			worlds = new Float32Array(subcomponentCount * 9),
 			textureIndices = new Uint8Array(subcomponentCount),
 			textures = new Float32Array(subcomponentCount * 9),
@@ -146,29 +163,30 @@ export class GUIRenderer extends WebGLRenderer {
 			}
 		}
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.world);
-		gl.bufferData(gl.ARRAY_BUFFER, worlds, gl.STATIC_DRAW);
+		this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.world);
+		this._context.bufferData(this._context.ARRAY_BUFFER, worlds, this._context.STATIC_DRAW);
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureIndex);
-		gl.bufferData(gl.ARRAY_BUFFER, textureIndices, gl.STATIC_DRAW);
+		this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.textureIndex);
+		this._context.bufferData(this._context.ARRAY_BUFFER, textureIndices, this._context.STATIC_DRAW);
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.texture);
-		gl.bufferData(gl.ARRAY_BUFFER, textures, gl.STATIC_DRAW);
+		this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.texture);
+		this._context.bufferData(this._context.ARRAY_BUFFER, textures, this._context.STATIC_DRAW);
 
-		gl.bindBuffer(gl.ARRAY_BUFFER, buffers.colorMask);
-		gl.bufferData(gl.ARRAY_BUFFER, colorMasks, gl.STATIC_DRAW);
+		this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.colorMask);
+		this._context.bufferData(this._context.ARRAY_BUFFER, colorMasks, this._context.STATIC_DRAW);
 
-		gl.drawArraysInstanced(gl.TRIANGLE_FAN, 0, 4, subcomponentCount);
-	};
+		this._context.drawArraysInstanced(this._context.TRIANGLE_FAN, 0, 4, subcomponentCount);
+	}
 
 	/**
 	 * @todo Put in the base WebGLRenderer class?
 	 * 
-	 * @param {Vector2} viewport
+	 * @param {Vector4} viewport
 	 * @param {Matrix3} projection
 	 */
 	resize(viewport, projection) {
 		this.setViewport(viewport);
-		this.getContext().uniformMatrix3fv(this.getUniforms().projection, false, projection);
+
+		this._context.uniformMatrix3fv(this._uniforms.projection, false, projection);
 	}
 }

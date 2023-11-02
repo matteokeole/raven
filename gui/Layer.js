@@ -7,6 +7,8 @@ import {Composite} from "../index.js";
  */
 export class Layer {
 	/**
+	 * @todo Return a single component instead of an array; this will also simplify the compute step in the composite
+	 * 
 	 * @abstract
 	 * @param {Composite} context
 	 * @returns {Component[]}

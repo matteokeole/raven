@@ -1,10 +1,10 @@
-import {Layer} from "./index.js";
+import {GUIRenderer, Layer} from "./index.js";
 import {Component, ReactiveComponent, StructuralComponent, VisualComponent} from "./components/index.js";
-import {Composite, Instance, WebGLRenderer} from "../index.js";
+import {Composite, Instance} from "../index.js";
 import {Camera, OrthographicCamera} from "../cameras/index.js";
-import {Matrix3, Vector2} from "../math/index.js";
 import {Font} from "../fonts/index.js";
-import {Texture} from "../wrappers/index.js";
+import {Matrix3, Vector2} from "../math/index.js";
+import {TextureContainer} from "../wrappers/index.js";
 
 /**
  * @todo Clear queue?
@@ -66,7 +66,7 @@ export class GUIComposite extends Composite {
 
 	/**
 	 * @param {Object} options
-	 * @param {WebGLRenderer} options.renderer
+	 * @param {GUIRenderer} options.renderer
 	 * @param {Instance} options.instance
 	 * @param {Object.<String, Font>} options.fonts
 	 */
@@ -88,6 +88,14 @@ export class GUIComposite extends Composite {
 	}
 
 	/**
+	 * @inheritdoc
+	 * @returns {GUIRenderer}
+	 */
+	getRenderer() {
+		return super.getRenderer();
+	}
+
+	/**
 	 * @param {String} key
 	 * @returns {Font}
 	 * @throws {ReferenceError}
@@ -102,15 +110,15 @@ export class GUIComposite extends Composite {
 
 	/**
 	 * @param {String} key
-	 * @returns {Texture}
+	 * @returns {TextureContainer}
 	 * @throws {ReferenceError}
 	 */
 	getTexture(key) {
-		if (!(key in this.getRenderer().getUserTextures())) {
+		if (!(key in this.getRenderer().getTextures())) {
 			throw new ReferenceError(`Undefined texture key "${key}".`);
 		}
 
-		return this.getRenderer().getUserTextures()[key];
+		return this.getRenderer().getTextures()[key];
 	}
 
 	/**
@@ -123,21 +131,20 @@ export class GUIComposite extends Composite {
 			await this.#fonts[key].loadGlyphMap(glyphMapPath);
 		}
 
-		const scale = this.getInstance().getParameter("current_scale");
-
-		this.#camera.setProjection(
-			Matrix3
-				.orthographic(this.getInstance().getRenderer().getViewport())
-				.multiply(Matrix3.scale(new Vector2(scale, scale))),
+		const viewport = new Vector2(
+			this.getInstance().getRenderer().getViewport()[2],
+			this.getInstance().getRenderer().getViewport()[3],
 		);
+		const scale = this.getInstance().getParameter("current_scale");
+		const projection = Matrix3
+			.orthographic(viewport)
+			.multiply(Matrix3.scale(new Vector2(scale, scale)));
 
 		const renderer = this.getRenderer();
 
-		/**
-		 * @todo Thes methods don't belong to the base WebGLRenderer class
-		 */
 		renderer.setShaderPath(this.getInstance().getParameter("shader_path"));
-		renderer.setProjection(this.#camera.getProjection());
+		renderer.setProjection(projection);
+		this.#camera.setProjection(projection);
 
 		await renderer.build();
 	}
@@ -219,14 +226,15 @@ export class GUIComposite extends Composite {
 	 * @returns {this}
 	 */
 	compute() {
+		const instanceViewport = this
+			.getInstance()
+			.getRenderer()
+			.getViewport();
+
 		/**
 		 * @todo Create the viewport in the instance instead of there
 		 */
-		const parentSize = this
-			.getInstance()
-			.getRenderer()
-			.getViewport()
-			.clone()
+		const parentSize = new Vector2(instanceViewport[2], instanceViewport[3])
 			.divideScalar(this.getInstance().getParameter("current_scale"));
 
 		for (let i = 0, l = this.#rootComponents.length; i < l; i++) {
@@ -291,7 +299,7 @@ export class GUIComposite extends Composite {
 		 */
 		this.#camera.setProjection(
 			Matrix3
-				.orthographic(viewport)
+				.orthographic(new Vector2(viewport[2], viewport[3]))
 				.multiply(Matrix3.scale(new Vector2(scale, scale))),
 		);
 

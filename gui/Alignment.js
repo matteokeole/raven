@@ -1,4 +1,8 @@
 /**
+ * @todo Refactor in a class with static properties
+ */
+
+/**
  * @type {Number}
  */
 export const topLeft = 0b001001;
