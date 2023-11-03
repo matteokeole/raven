@@ -1,6 +1,6 @@
 import {Font} from "./Font.js";
 import {Subcomponent} from "../gui/index.js";
-import {min, Vector2, Vector4} from "../math/index.js";
+import {max, Vector2, Vector4} from "../math/index.js";
 
 /**
  * @typedef {Object} GlyphMapEntry
@@ -214,10 +214,7 @@ export class BitmapFont extends Font {
 				lineWidth += this.getTileWidth(line[j]) + this.#tileSpacing;
 			}
 
-			/**
-			 * @todo Wrong function name, swap min() and max()
-			 */
-			size[0] = min(size[0], lineWidth);
+			size[0] = max(size[0], lineWidth);
 			size[1] += this.#tileHeight + this.getLineSpacing();
 		}
 
