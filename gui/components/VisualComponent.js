@@ -60,6 +60,8 @@ export class VisualComponent extends Component {
 	}
 
 	/**
+	 * @todo Use yield to trigger multiple renders?
+	 * 
 	 * @abstract
 	 * @param {Composite} context
 	 * @param {Number} frameIndex
