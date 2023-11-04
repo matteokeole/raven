@@ -3,6 +3,8 @@ import {Vector4} from "./math/index.js";
 import {Scene} from "./Scene/Scene.js";
 
 /**
+ * @todo Composites shoudn't have access to the instance
+ * 
  * @abstract
  */
 export class Composite {

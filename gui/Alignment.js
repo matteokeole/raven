@@ -1,4 +1,6 @@
 /**
+ * @todo CRYING_SNAKE_CASE naming and JSDoc description for each constant
+ * 
  * @abstract
  */
 export class Alignment {

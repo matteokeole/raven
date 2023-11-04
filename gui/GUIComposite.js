@@ -14,11 +14,6 @@ export class GUIComposite extends Composite {
 	#camera;
 
 	/**
-	 * @type {Number}
-	 */
-	#subcomponentCount;
-
-	/**
 	 * @type {Layer[]}
 	 */
 	#layerStack;
@@ -82,13 +77,6 @@ export class GUIComposite extends Composite {
 	}
 
 	/**
-	 * @returns {GUIRenderer}
-	 */
-	getRenderer() {
-		return this._renderer;
-	}
-
-	/**
 	 * @param {String} key
 	 * @returns {Font}
 	 * @throws {ReferenceError}
@@ -107,11 +95,11 @@ export class GUIComposite extends Composite {
 	 * @throws {ReferenceError}
 	 */
 	getTexture(key) {
-		if (!(key in this.getRenderer().getTextures())) {
+		if (!(key in this._renderer.getTextures())) {
 			throw new ReferenceError(`Undefined texture key "${key}".`);
 		}
 
-		return this.getRenderer().getTextures()[key];
+		return this._renderer.getTextures()[key];
 	}
 
 	/**
@@ -133,13 +121,11 @@ export class GUIComposite extends Composite {
 			.orthographic(viewport)
 			.multiply(Matrix3.scale(new Vector2(scale, scale)));
 
-		const renderer = this.getRenderer();
-
-		renderer.setShaderPath(this.getInstance().getParameter("shader_path"));
-		renderer.setProjection(projection);
+		this._renderer.setShaderPath(this.getInstance().getParameter("shader_path"));
+		this._renderer.setProjection(projection);
 		this.#camera.setProjection(projection);
 
-		await renderer.build();
+		await this._renderer.build();
 	}
 
 	/**
@@ -263,10 +249,10 @@ export class GUIComposite extends Composite {
 	render() {
 		console.debug(`render(): ${this._scene.getQueue().length} (${this._scene.getSubcomponentCount()}) in queue`);
 
-		this.getRenderer().render(this._scene);
+		this._renderer.render(this._scene);
 
 		/**
-		 * @todo This is an example of why "scene" is not the best name for a render queue
+		 * @todo Rename "scene" by "render queue"?
 		 */
 		this._scene.clear();
 
@@ -275,7 +261,7 @@ export class GUIComposite extends Composite {
 		 */
 		this.getInstance().getRenderer().updateCompositeTexture(
 			this.getIndex(),
-			this.getRenderer().getCanvas(),
+			this._renderer.getCanvas(),
 		);
 	}
 
@@ -297,9 +283,7 @@ export class GUIComposite extends Composite {
 				.multiply(Matrix3.scale(new Vector2(scale, scale))),
 		);
 
-		this.getRenderer().resize(viewport, this.#camera.getProjection());
-
-		this._scene.resetSubcomponentCount();
+		this._renderer.resize(viewport, this.#camera.getProjection());
 
 		// Add all components to the render queue
 		for (let i = 0, l = this.#tree.length, component; i < l; i++) {
@@ -409,7 +393,7 @@ export class GUIComposite extends Composite {
 		if (this.#layerStack.length === 1) {
 			this.#rootComponents.length = 0;
 
-			this.getRenderer().clear();
+			this._renderer.clear();
 
 			return;
 		}
@@ -419,7 +403,7 @@ export class GUIComposite extends Composite {
 			addToTree: false,
 		});
 
-		this.getRenderer().clear();
+		this._renderer.clear();
 
 		this.compute().render();
 	}

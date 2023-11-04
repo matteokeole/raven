@@ -66,9 +66,9 @@ export class Instance {
 	#animationFrameRequestId;
 
 	/**
-	 * @type {Boolean}
+	 * @type {?Number}
 	 */
-	#isFirstResize;
+	#resizeTimeoutId;
 
 	/**
 	 * @type {Boolean}
@@ -82,6 +82,7 @@ export class Instance {
 		this.#renderer = renderer;
 		this.#composites = [];
 		this.#compositeCount = 0;
+		this.#resizeObserver = null;
 		this.#pointer = new Vector2();
 		this.#listeners = {
 			mouse_down: [],
@@ -101,7 +102,8 @@ export class Instance {
 		this.#frameIndex = 0;
 		this.#frameInterval = 60 / 1000;
 		this.#timeSinceLastFrame = 0;
-		this.#isFirstResize = true;
+		this.#animationFrameRequestId = null;
+		this.#resizeTimeoutId = null;
 		this.#isRunning = false;
 	}
 
@@ -187,20 +189,6 @@ export class Instance {
 		this.#framesPerSecond = framesPerSecond;
 	}
 
-	/**
-	 * @returns {Boolean}
-	 */
-	isFirstResize() {
-		return this.#isFirstResize;
-	}
-
-	/**
-	 * @param {Boolean} isFirstResize
-	 */
-	setFirstResize(isFirstResize) {
-		this.#isFirstResize = isFirstResize;
-	}
-
 	async build() {
 		this.#renderer.setCompositeCount(this.#compositeCount);
 		this.#renderer.setShaderPath(this._parameters["shader_path"]);
@@ -222,8 +210,41 @@ export class Instance {
 
 		const canvas = this.#renderer.getCanvas();
 
-		canvas.addEventListener("mousedown", this.#onMouseDown);
-		canvas.addEventListener("mousemove", this.#onMouseMove);
+		canvas.addEventListener("mousedown", this.#onMouseDown.bind(this));
+		canvas.addEventListener("mousemove", this.#onMouseMove.bind(this));
+
+		/**
+		 * @see {@link https://webgpufundamentals.org/webgpu/lessons/webgpu-resizing-the-canvas.html}
+		 */
+		this.#resizeObserver = new ResizeObserver(entries => {
+			clearTimeout(this.#resizeTimeoutId);
+
+			this.#resizeTimeoutId = setTimeout(
+				() => {
+					const canvasEntry = entries[0];
+
+					const dpr = devicePixelRatio;
+					const viewport = new Vector4(
+						0,
+						0,
+						canvasEntry.devicePixelContentBoxSize?.[0].inlineSize ?? canvasEntry.contentBoxSize[0].inlineSize * dpr,
+						canvasEntry.devicePixelContentBoxSize?.[0].blockSize ?? canvasEntry.contentBoxSize[0].blockSize * dpr,
+					).floor();
+
+					/**
+					 * @type {HTMLCanvasElement}
+					 */
+					// @ts-ignore
+					const canvas = canvasEntry.target;
+
+					canvas.width = viewport[2];
+					canvas.height = viewport[3];
+
+					this.resize(viewport, dpr);
+				},
+				this._parameters["resize_delay"],
+			);
+		});
 	}
 
 	/**
@@ -252,6 +273,8 @@ export class Instance {
 			throw new Error("This instance is already running.");
 		}
 
+		this.#initResizeObserver();
+
 		this.#frameIndex = 0;
 		this.#frameInterval = this.#framesPerSecond === 0 ?
 			0 :
@@ -262,17 +285,40 @@ export class Instance {
 		this.#loop();
 	}
 
+	/**
+	 * @abstract
+	 * @param {Vector4} viewport
+	 * @param {Number} dpr Device pixel ratio (included in the viewport)
+	 */
+	resize(viewport, dpr) {}
+
 	dispose() {
+		this.#renderer.getCanvas().remove();
+
 		for (let i = 0; i < this.#compositeCount; i++) {
 			this.#composites[i].getRenderer().dispose();
 		}
 
-		this.#renderer.getCanvas().remove();
 		this.#renderer.dispose();
 	}
 
-	#loop = function() {
-		this.#animationFrameRequestId = requestAnimationFrame(this.#loop);
+	/**
+	 * This method should be called after the canvas has been added to the DOM.
+	 */
+	#initResizeObserver() {
+		try {
+			this.#resizeObserver.observe(this.#renderer.getCanvas(), {
+				box: "device-pixel-content-box",
+			});
+		} catch {
+			this.#resizeObserver.observe(this.#renderer.getCanvas(), {
+				box: "content-box",
+			});
+		}
+	}
+
+	#loop() {
+		this.#animationFrameRequestId = requestAnimationFrame(this.#loop.bind(this));
 		const time = performance.now();
 		const delta = time - this.#timeSinceLastFrame;
 
@@ -292,20 +338,22 @@ export class Instance {
 				this.#isRunning = false;
 			}
 		}
-	}.bind(this);
+	}
 
 	/**
 	 * @param {Number} frameIndex
 	 */
 	#update(frameIndex) {
 		for (let i = 0; i < this.#compositeCount; i++) {
-			if (!this.#composites[i].isAnimatable()) continue;
+			if (!this.#composites[i].isAnimatable()) {
+				continue;
+			}
 
 			this.#composites[i].update(frameIndex);
 		}
 	}
 
-	#onMouseDown = function() {
+	#onMouseDown() {
 		for (let i = 0, l = this.#listeners.mouse_down_count, listener; i < l; i++) {
 			listener = this.#listeners.mouse_down[i];
 
@@ -317,14 +365,14 @@ export class Instance {
 
 			break;
 		}
-	}.bind(this);
+	}
 
 	/**
 	 * @param {Object} event
 	 * @param {Number} event.clientX
 	 * @param {Number} event.clientY
 	 */
-	#onMouseMove = function({clientX, clientY}) {
+	#onMouseMove({clientX, clientY}) {
 		this.#pointer[0] = clientX;
 		this.#pointer[1] = clientY;
 		this.#pointer
@@ -360,5 +408,5 @@ export class Instance {
 			listener.component.setHovered(false);
 			listener(this.#pointer);
 		}
-	}.bind(this);
+	}
 }
