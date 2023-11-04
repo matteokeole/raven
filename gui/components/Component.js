@@ -2,10 +2,6 @@ import {Alignment} from "../index.js";
 import {Matrix3, Vector2} from "../../math/index.js";
 
 /**
- * @typedef {Number} Alignment
- */
-
-/**
  * @abstract
  */
 export class Component {
@@ -15,7 +11,7 @@ export class Component {
 	#position;
 
 	/**
-	 * @type {Alignment}
+	 * @type {Number}
 	 */
 	#alignment;
 
@@ -31,7 +27,7 @@ export class Component {
 
 	/**
 	 * @param {Object} options
-	 * @param {Alignment} options.alignment
+	 * @param {Number} options.alignment
 	 * @param {Vector2} [options.margin]
 	 * @param {Vector2} options.size
 	 */
@@ -57,7 +53,7 @@ export class Component {
 	}
 
 	/**
-	 * @returns {Alignment}
+	 * @returns {Number}
 	 */
 	getAlignment() {
 		return this.#alignment;
