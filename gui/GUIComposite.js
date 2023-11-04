@@ -66,7 +66,9 @@ export class GUIComposite extends Composite {
 
 		this.setAnimatable(true);
 
-		this.#camera = new OrthographicCamera(this.getInstance().getRenderer().getViewport());
+		const instanceViewport = this.getInstance().getRenderer().getViewport();
+
+		this.#camera = new OrthographicCamera(new Vector2(instanceViewport[2], instanceViewport[3]));
 		this.#layerStack = [];
 		this.#rootComponents = [];
 		this.#animatedComponents = [];
@@ -247,7 +249,7 @@ export class GUIComposite extends Composite {
 	 * @inheritdoc
 	 */
 	render() {
-		console.debug(`render(): ${this._scene.getQueue().length} (${this._scene.getSubcomponentCount()}) in queue`);
+		// console.debug(`render(): ${this._scene.getQueue().length} (${this._scene.getSubcomponentCount()}) in queue`);
 
 		this._renderer.render(this._scene);
 
@@ -272,6 +274,8 @@ export class GUIComposite extends Composite {
 	 * @inheritdoc
 	 */
 	resize(viewport) {
+		super.resize(viewport);
+
 		const scale = this.getInstance().getParameter("current_scale");
 
 		/**
