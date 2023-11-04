@@ -97,6 +97,7 @@ export class Instance {
 			font_path: "",
 			shader_path: "",
 			texture_path: "",
+			resize_delay: 0,
 		};
 		this.#framesPerSecond = 60;
 		this.#frameIndex = 0;
