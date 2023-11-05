@@ -2,7 +2,12 @@ import {Component} from "./Component.js";
 import {Vector2} from "../../math/index.js";
 
 /**
- * @typedef {Number} Alignment
+ * @typedef {Object} StructuralComponentDescriptor
+ * @property {Number} alignment
+ * @property {?Vector2} [margin]
+ * @property {Vector2} size
+ * @property {?Object.<String, Function>} [on]
+ * @property {Component[]} children
  */
 
 /**
@@ -15,14 +20,10 @@ export class StructuralComponent extends Component {
 	#children;
 
 	/**
-	 * @param {Object} options
-	 * @param {Number} options.alignment
-	 * @param {Vector2} [options.margin]
-	 * @param {Vector2} options.size
-	 * @param {Component[]} options.children
+	 * @param {StructuralComponentDescriptor} descriptor
 	 */
-	constructor({alignment, margin, size, children}) {
-		super({alignment, margin, size});
+	constructor({alignment, margin, size, on, children}) {
+		super({alignment, margin, size, on});
 
 		this.#children = children;
 	}

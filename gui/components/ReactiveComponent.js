@@ -1,8 +1,21 @@
 import {VisualComponent} from "./VisualComponent.js";
 import {Vector2} from "../../math/index.js";
+import {TextureContainer} from "../../wrappers/index.js";
 
 /**
  * @typedef {(position: Vector2) => void} EventListener
+ */
+
+/**
+ * @typedef {Object} ReactiveComponentDescriptor
+ * @property {Number} alignment
+ * @property {?Vector2} [margin]
+ * @property {Vector2} size
+ * @property {?Object.<String, Function>} [on]
+ * @property {?TextureContainer} [texture]
+ * @property {?EventListener} [onMouseDown]
+ * @property {?EventListener} [onMouseEnter]
+ * @property {?EventListener} [onMouseLeave]
  */
 
 /**
@@ -45,16 +58,10 @@ export class ReactiveComponent extends VisualComponent {
 	#onMouseLeave;
 
 	/**
-	 * @param {Object} options
-	 * @param {Number} options.alignment
-	 * @param {Vector2} [options.margin]
-	 * @param {Vector2} options.size
-	 * @param {EventListener} [options.onMouseDown]
-	 * @param {EventListener} [options.onMouseEnter]
-	 * @param {EventListener} [options.onMouseLeave]
+	 * @param {ReactiveComponentDescriptor} descriptor
 	 */
-	constructor({alignment, margin, size, onMouseDown = null, onMouseEnter = null, onMouseLeave = null}) {
-		super({alignment, margin, size});
+	constructor({alignment, margin, size, on, texture, onMouseDown = null, onMouseEnter = null, onMouseLeave = null}) {
+		super({alignment, margin, size, on, texture});
 
 		this.#hovered = false;
 		this.#onMouseDown = this.#initEventListener(onMouseDown);

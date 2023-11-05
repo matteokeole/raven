@@ -1,9 +1,24 @@
+import {GUIComposite} from "../index.js";
+import {Event} from "../Event/index.js";
 import {Matrix3, Vector2} from "../../math/index.js";
+
+/**
+ * @typedef {Object} ComponentDescriptor
+ * @property {Number} alignment
+ * @property {?Vector2} [margin]
+ * @property {Vector2} size
+ * @property {?Object.<String, Function>} [on]
+ */
 
 /**
  * @abstract
  */
 export class Component {
+	/**
+	 * @type {?GUIComposite}
+	 */
+	#eventDispatcher;
+
 	/**
 	 * @type {?Vector2}
 	 */
@@ -25,16 +40,27 @@ export class Component {
 	#size;
 
 	/**
-	 * @param {Object} options
-	 * @param {Number} options.alignment
-	 * @param {Vector2} [options.margin]
-	 * @param {Vector2} options.size
+	 * @type {String[]}
 	 */
-	constructor({alignment, margin = new Vector2(), size}) {
+	#events;
+
+	/**
+	 * @param {ComponentDescriptor} descriptor
+	 */
+	constructor({alignment, margin = new Vector2(), size, on = []}) {
+		this.#eventDispatcher = null;
 		this.#position = null;
 		this.#alignment = alignment;
 		this.#margin = margin;
 		this.#size = size;
+		this.#events = on;
+	}
+
+	/**
+	 * @param {GUIComposite} eventDispatcher
+	 */
+	setEventDispatcher(eventDispatcher) {
+		this.#eventDispatcher = eventDispatcher;
 	}
 
 	/**
@@ -80,6 +106,13 @@ export class Component {
 	}
 
 	/**
+	 * @returns {String[]}
+	 */
+	getEvents() {
+		return this.#events;
+	}
+
+	/**
 	 * Calculates the component absolute position.
 	 * 
 	 * @param {Vector2} initial Cloned parent top left corner
@@ -87,7 +120,7 @@ export class Component {
 	 */
 	compute(initial, parentSize) {
 		const x = ((this.#alignment & 0b111000) >> 4) * .5;
-		const y = ((this.#alignment & 0b111) >> 1) * .5;
+		const y = ((this.#alignment & 0b000111) >> 1) * .5;
 
 		const displacement = parentSize
 			.subtract(this.#size)
@@ -112,5 +145,12 @@ export class Component {
 		return Matrix3
 			.translation(this.#position)
 			.multiply(Matrix3.scale(this.#size));
+	}
+
+	/**
+	 * @param {Event} event
+	 */
+	dispatchEvent(event) {
+		this.#eventDispatcher.dispatchEvent(event);
 	}
 }

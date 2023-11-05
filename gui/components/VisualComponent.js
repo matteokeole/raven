@@ -5,44 +5,36 @@ import {Vector2} from "../../math/index.js";
 import {TextureContainer} from "../../wrappers/index.js";
 
 /**
+ * @typedef {Object} VisualComponentDescriptor
+ * @property {Number} alignment
+ * @property {?Vector2} [margin]
+ * @property {Vector2} size
+ * @property {?Object.<String, Function>} [on]
+ * @property {?TextureContainer} [texture]
+ */
+
+/**
  * @abstract
  */
 export class VisualComponent extends Component {
-	/**
-	 * @type {Subcomponent[]}
-	 */
-	#subcomponents;
-
 	/**
 	 * @type {?TextureContainer}
 	 */
 	#texture;
 
 	/**
-	 * @param {Object} options
-	 * @param {Number} options.alignment
-	 * @param {Vector2} [options.margin]
-	 * @param {Vector2} options.size
+	 * @type {Subcomponent[]}
 	 */
-	constructor({alignment, margin, size}) {
-		super({alignment, margin, size});
+	#subcomponents;
+
+	/**
+	 * @param {VisualComponentDescriptor} descriptor
+	 */
+	constructor({alignment, margin, size, on, texture = null}) {
+		super({alignment, margin, size, on});
 
 		this.#subcomponents = [];
-		this.#texture = null;
-	}
-
-	/**
-	 * @returns {Subcomponent[]}
-	 */
-	getSubcomponents() {
-		return this.#subcomponents;
-	}
-
-	/**
-	 * @param {Subcomponent[]} subcomponents
-	 */
-	setSubcomponents(subcomponents) {
-		this.#subcomponents = subcomponents;
+		this.#texture = texture;
 	}
 
 	/**
@@ -60,7 +52,21 @@ export class VisualComponent extends Component {
 	}
 
 	/**
-	 * @todo Use yield to trigger multiple renders?
+	 * @returns {Subcomponent[]}
+	 */
+	getSubcomponents() {
+		return this.#subcomponents;
+	}
+
+	/**
+	 * @param {Subcomponent[]} subcomponents
+	 */
+	setSubcomponents(subcomponents) {
+		this.#subcomponents = subcomponents;
+	}
+
+	/**
+	 * @todo `yield` instead of `return` to trigger multiple renders?
 	 * 
 	 * @abstract
 	 * @param {Composite} context
