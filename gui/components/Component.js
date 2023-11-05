@@ -1,4 +1,3 @@
-import {Alignment} from "../index.js";
 import {Matrix3, Vector2} from "../../math/index.js";
 
 /**
