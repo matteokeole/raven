@@ -9,7 +9,7 @@ import {TextureContainer} from "../../wrappers/index.js";
  * @property {Number} alignment
  * @property {?Vector2} [margin]
  * @property {Vector2} size
- * @property {?Object.<String, Function>} [on]
+ * @property {?Object.<String, Function>} [events]
  * @property {?TextureContainer} [texture]
  */
 
@@ -30,8 +30,8 @@ export class VisualComponent extends Component {
 	/**
 	 * @param {VisualComponentDescriptor} descriptor
 	 */
-	constructor({alignment, margin, size, on, texture = null}) {
-		super({alignment, margin, size, on});
+	constructor({alignment, margin, size, events, texture = null}) {
+		super({alignment, margin, size, events});
 
 		this.#subcomponents = [];
 		this.#texture = texture;

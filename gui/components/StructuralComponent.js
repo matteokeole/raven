@@ -6,7 +6,7 @@ import {Vector2} from "../../math/index.js";
  * @property {Number} alignment
  * @property {?Vector2} [margin]
  * @property {Vector2} size
- * @property {?Object.<String, Function>} [on]
+ * @property {?Object.<String, Function>} [events]
  * @property {Component[]} children
  */
 
@@ -22,8 +22,8 @@ export class StructuralComponent extends Component {
 	/**
 	 * @param {StructuralComponentDescriptor} descriptor
 	 */
-	constructor({alignment, margin, size, on, children}) {
-		super({alignment, margin, size, on});
+	constructor({alignment, margin, size, events, children}) {
+		super({alignment, margin, size, events});
 
 		this.#children = children;
 	}

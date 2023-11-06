@@ -5,6 +5,8 @@
  * @template T
  */
 export class Event {
+	static NAME = "default";
+
 	/**
 	 * The data that this event carries.
 	 */

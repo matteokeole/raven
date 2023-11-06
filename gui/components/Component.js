@@ -7,7 +7,7 @@ import {Matrix3, Vector2} from "../../math/index.js";
  * @property {Number} alignment
  * @property {?Vector2} [margin]
  * @property {Vector2} size
- * @property {?Object.<String, Function>} [on]
+ * @property {?Object.<String, Function>} [events]
  */
 
 /**
@@ -47,13 +47,13 @@ export class Component {
 	/**
 	 * @param {ComponentDescriptor} descriptor
 	 */
-	constructor({alignment, margin = new Vector2(), size, on = []}) {
+	constructor({alignment, margin = new Vector2(), size, events = []}) {
 		this.#eventDispatcher = null;
 		this.#position = null;
 		this.#alignment = alignment;
 		this.#margin = margin;
 		this.#size = size;
-		this.#events = on;
+		this.#events = events;
 	}
 
 	/**

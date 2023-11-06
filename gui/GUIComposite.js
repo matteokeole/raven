@@ -140,8 +140,6 @@ export class GUIComposite extends Composite {
 	/**
 	 * Computes the absolute position for each component of the render queue,
 	 * all layers included.
-	 * 
-	 * @returns {this}
 	 */
 	compute() {
 		const instanceViewport = this
@@ -158,8 +156,6 @@ export class GUIComposite extends Composite {
 		for (let i = 0, l = this.#rootComponents.length; i < l; i++) {
 			this.#rootComponents[i].compute(new Vector2(), parentSize.clone());
 		}
-
-		return this;
 	}
 
 	/**
@@ -243,7 +239,8 @@ export class GUIComposite extends Composite {
 			this._scene.add(component);
 		}
 
-		this.compute().render();
+		this.compute();
+		this.render();
 	}
 
 	/**
@@ -258,7 +255,10 @@ export class GUIComposite extends Composite {
 	push(layer) {
 		this.#layerStack.push(layer);
 
-		// Discard event listeners of `ReactiveComponent` instances in the previous layers
+		/**
+		 * Discard event listeners of `ReactiveComponent` instances in the previous layers.
+		 * Note: This only concerns the legacy event API and will be removed when DOM events are ready.
+		 */
 		this.#removeListeners(this.#reactiveComponents);
 
 		this._scene.resetSubcomponentCount();
@@ -268,11 +268,7 @@ export class GUIComposite extends Composite {
 		// Mark the tree length as the extraction index for this layer
 		this.#lastInsertionIndices.push(this.#tree.length);
 
-		const rootComponent = layer.build(this);
-
-		if (!(rootComponent instanceof Component)) {
-			throw new Error("The layer must return an instance of Component.");
-		}
+		const rootComponent = this.#buildLayer(layer);
 
 		this.#rootComponents.push(rootComponent);
 		this.#addChildrenToRenderQueue([rootComponent], {
@@ -280,7 +276,8 @@ export class GUIComposite extends Composite {
 			addToTree: true,
 		});
 
-		this.compute().render();
+		this.compute();
+		this.render();
 	}
 
 	/**
@@ -289,7 +286,6 @@ export class GUIComposite extends Composite {
 	 * Registers the component in the render queue.
 	 * 
 	 * @param {Component} component
-	 * @returns {this}
 	 */
 	pushToRenderQueue(component) {
 		if (component instanceof StructuralComponent) {
@@ -299,23 +295,24 @@ export class GUIComposite extends Composite {
 				this.pushToRenderQueue(children[i]);
 			}
 
-			return this;
+			return;
 		}
 
 		this._scene.add(component);
-
-		return this;
 	}
 
 	/**
 	 * @param {Event} event
 	 */
 	dispatchEvent(event) {
-		if (!(event.constructor.name in this.#eventListeners)) {
+		// @ts-ignore
+		const eventName = event.constructor.NAME;
+
+		if (!(eventName in this.#eventListeners)) {
 			return;
 		}
 
-		const eventListeners = this.#eventListeners[event.constructor.name];
+		const eventListeners = this.#eventListeners[eventName];
 
 		for (let i = 0, length = eventListeners.length; i < length; i++) {
 			eventListeners[i](event.getCarry(), this);
@@ -362,7 +359,8 @@ export class GUIComposite extends Composite {
 
 		this._renderer.clear();
 
-		this.compute().render();
+		this.compute();
+		this.render();
 	}
 
 	/**
@@ -428,6 +426,22 @@ export class GUIComposite extends Composite {
 	}
 
 	/**
+	 * @param {Layer} layer
+	 * @throws {Error} if the layer did not return a component
+	 */
+	#buildLayer(layer) {
+		const rootComponent = layer.build(this);
+
+		if (!(rootComponent instanceof Component)) {
+			throw new Error(`Could not build ${layer.constructor.name}: the layer did not return a component.`);
+		}
+
+		return rootComponent;
+	}
+
+	/**
+	 * @deprecated
+	 * 
 	 * Initializes the event listeners for the provided component.
 	 * 
 	 * @param {ReactiveComponent} component
@@ -441,6 +455,8 @@ export class GUIComposite extends Composite {
 	}
 
 	/**
+	 * @deprecated
+	 * 
 	 * Discards event listeners for the provided components.
 	 * 
 	 * @param {Component[]} components
@@ -452,6 +468,7 @@ export class GUIComposite extends Composite {
 			/**
 			 * @type {ReactiveComponent}
 			 */
+			// @ts-ignore
 			const component = components[i];
 
 			if ((listener = component.getOnMouseDown()) !== null) this.getInstance().removeListener("mouse_down", listener);

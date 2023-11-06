@@ -3,19 +3,15 @@ import {Vector2} from "../../math/index.js";
 import {TextureContainer} from "../../wrappers/index.js";
 
 /**
- * @typedef {(position: Vector2) => void} EventListener
- */
-
-/**
  * @typedef {Object} ReactiveComponentDescriptor
  * @property {Number} alignment
  * @property {?Vector2} [margin]
  * @property {Vector2} size
- * @property {?Object.<String, Function>} [on]
+ * @property {?Object.<String, Function>} [events]
  * @property {?TextureContainer} [texture]
- * @property {?EventListener} [onMouseDown]
- * @property {?EventListener} [onMouseEnter]
- * @property {?EventListener} [onMouseLeave]
+ * @property {?Function} [onMouseDown]
+ * @property {?Function} [onMouseEnter]
+ * @property {?Function} [onMouseLeave]
  */
 
 /**
@@ -23,8 +19,10 @@ import {TextureContainer} from "../../wrappers/index.js";
  */
 export class ReactiveComponent extends VisualComponent {
 	/**
-	 * @param {?EventListener} eventListener
-	 * @returns {?EventListener}
+	 * @deprecated
+	 * 
+	 * @param {?Function} eventListener
+	 * @returns {?Function}
 	 */
 	#initEventListener(eventListener) {
 		if (eventListener === null) {
@@ -43,25 +41,31 @@ export class ReactiveComponent extends VisualComponent {
 	#hovered;
 
 	/**
-	 * @type {?EventListener}
+	 * @deprecated
+	 * 
+	 * @type {?Function}
 	 */
 	#onMouseDown;
 
 	/**
-	 * @type {?EventListener}
+	 * @deprecated
+	 * 
+	 * @type {?Function}
 	 */
 	#onMouseEnter;
 
 	/**
-	 * @type {?EventListener}
+	 * @deprecated
+	 * 
+	 * @type {?Function}
 	 */
 	#onMouseLeave;
 
 	/**
 	 * @param {ReactiveComponentDescriptor} descriptor
 	 */
-	constructor({alignment, margin, size, on, texture, onMouseDown = null, onMouseEnter = null, onMouseLeave = null}) {
-		super({alignment, margin, size, on, texture});
+	constructor({alignment, margin, size, events, texture, onMouseDown = null, onMouseEnter = null, onMouseLeave = null}) {
+		super({alignment, margin, size, events, texture});
 
 		this.#hovered = false;
 		this.#onMouseDown = this.#initEventListener(onMouseDown);
@@ -84,42 +88,54 @@ export class ReactiveComponent extends VisualComponent {
 	}
 
 	/**
-	 * @returns {?EventListener}
+	 * @deprecated
+	 * 
+	 * @returns {?Function}
 	 */
 	getOnMouseDown() {
 		return this.#onMouseDown;
 	}
 
 	/**
-	 * @param {?EventListener} onMouseDown
+	 * @deprecated
+	 * 
+	 * @param {?Function} onMouseDown
 	 */
 	setOnMouseDown(onMouseDown) {
 		this.#onMouseDown = this.#initEventListener(onMouseDown);
 	}
 
 	/**
-	 * @returns {?EventListener}
+	 * @deprecated
+	 * 
+	 * @returns {?Function}
 	 */
 	getOnMouseEnter() {
 		return this.#onMouseEnter;
 	}
 
 	/**
-	 * @param {?EventListener} onMouseEnter
+	 * @deprecated
+	 * 
+	 * @param {?Function} onMouseEnter
 	 */
 	setOnMouseEnter(onMouseEnter) {
 		this.#onMouseEnter = this.#initEventListener(onMouseEnter);
 	}
 
 	/**
-	 * @returns {?EventListener}
+	 * @deprecated
+	 * 
+	 * @returns {?Function}
 	 */
 	getOnMouseLeave() {
 		return this.#onMouseLeave;
 	}
 
 	/**
-	 * @param {?EventListener} onMouseLeave
+	 * @deprecated
+	 * 
+	 * @param {?Function} onMouseLeave
 	 */
 	setOnMouseLeave(onMouseLeave) {
 		this.#onMouseLeave = this.#initEventListener(onMouseLeave);
