@@ -47,7 +47,7 @@ export class GUIComposite extends Composite {
 	#lastInsertionIndices;
 
 	/**
-	 * @type {Object.<String, Function>}
+	 * @type {Object.<String, Function[]>}
 	 */
 	#eventListeners;
 
@@ -312,10 +312,11 @@ export class GUIComposite extends Composite {
 			return;
 		}
 
+		const carry = event.getCarry();
 		const eventListeners = this.#eventListeners[eventName];
 
 		for (let i = 0, length = eventListeners.length; i < length; i++) {
-			eventListeners[i](event.getCarry(), this);
+			eventListeners[i](carry, this);
 		}
 	}
 
