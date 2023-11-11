@@ -1,5 +1,6 @@
 import {WebGLRenderer} from "./WebGLRenderer.js";
 import {NoWebGL2Error} from "./errors/index.js";
+import {ShaderSourceLoader} from "./Loader/index.js";
 
 /**
  * @abstract
@@ -13,19 +14,19 @@ export class InstanceRenderer extends WebGLRenderer {
 	/**
 	 * @type {Number}
 	 */
-	_compositeCount;
+	#compositeCount;
 
 	/**
 	 * @type {String}
 	 */
-	_shaderPath;
+	#shaderPath;
 
 	constructor() {
 		super();
 
 		this._canvas = null;
-		this._compositeCount = 0;
-		this._shaderPath = "";
+		this.#compositeCount = 0;
+		this.#shaderPath = "";
 	}
 
 	/**
@@ -39,35 +40,58 @@ export class InstanceRenderer extends WebGLRenderer {
 	 * @param {Number} compositeCount
 	 */
 	setCompositeCount(compositeCount) {
-		this._compositeCount = compositeCount;
+		this.#compositeCount = compositeCount;
 	}
 
 	/**
 	 * @param {String} shaderPath
 	 */
 	setShaderPath(shaderPath) {
-		this._shaderPath = shaderPath;
+		this.#shaderPath = shaderPath;
 	}
 
-	/**
-	 * @inheritdoc
-	 */
-	build() {
-		super.build();
-
+	async build() {
 		this._canvas = document.createElement("canvas");
 		this._context = this._canvas.getContext("webgl2");
 
 		if (this._context === null) {
 			throw new NoWebGL2Error();
 		}
+
+		this._context.pixelStorei(this._context.UNPACK_FLIP_Y_WEBGL, true);
+		this._context.enable(this._context.BLEND);
+		this._context.blendFunc(this._context.SRC_ALPHA, this._context.ONE_MINUS_SRC_ALPHA);
+
+		const loader = new ShaderSourceLoader(this.#shaderPath);
+		const vertexShaderSource = await loader.load("composite.vert");
+		const fragmentShaderSource = await loader.load("composite.frag");
+
+		const program = this._createProgram(vertexShaderSource, fragmentShaderSource);
+
+		this._context.useProgram(program);
+
+		this._programs.push(program);
+		this._attributes.vertex = 0;
+		this._buffers.vertex = this._context.createBuffer();
+
+		this._context.enableVertexAttribArray(this._attributes.vertex);
+		this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.vertex);
+		this._context.vertexAttribPointer(this._attributes.vertex, 2, this._context.FLOAT, false, 0, 0);
+		this._context.bufferData(this._context.ARRAY_BUFFER, new Float32Array([
+			 1,  1,
+			-1,  1,
+			-1, -1,
+			 1, -1,
+		]), this._context.STATIC_DRAW);
+
+		for (let i = 0; i < this.#compositeCount; i++) {
+			this._context.bindTexture(this._context.TEXTURE_2D, this._textures[i] = this._context.createTexture());
+			this._context.texParameteri(this._context.TEXTURE_2D, this._context.TEXTURE_MIN_FILTER, this._context.LINEAR);
+		}
 	}
 
-	/**
-	 * @inheritdoc
-	 */
 	render() {
-		for (let i = 0; i < this._compositeCount; i++) {
+		for (let i = 0; i < this.#compositeCount; i++) {
 			this._context.bindTexture(this._context.TEXTURE_2D, this._textures[i]);
 			this._context.drawArrays(this._context.TRIANGLE_FAN, 0, 4);
 		}
