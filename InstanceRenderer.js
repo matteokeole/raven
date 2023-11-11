@@ -1,6 +1,9 @@
 import {WebGLRenderer} from "./WebGLRenderer.js";
 import {NoWebGL2Error} from "./errors/index.js";
 
+/**
+ * @abstract
+ */
 export class InstanceRenderer extends WebGLRenderer {
 	/**
 	 * @type {?HTMLCanvasElement}
