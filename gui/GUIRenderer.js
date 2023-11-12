@@ -126,6 +126,8 @@ export class GUIRenderer extends WebGLRenderer {
 	}
 
 	/**
+	 * @todo Create typed arrays with .of() instead of new?
+	 * 
 	 * @inheritdoc
 	 * @param {GUIScene} scene
 	 */

@@ -1,5 +1,5 @@
 import {GUIRenderer, Layer} from "./index.js";
-import {Component, ReactiveComponent, StructuralComponent, VisualComponent} from "./components/index.js";
+import {Component, ReactiveComponent, StructuralComponent, VisualComponent} from "./Component/index.js";
 import {Event} from "./Event/index.js";
 import {Composite, Instance} from "../index.js";
 import {Camera, OrthographicCamera} from "../cameras/index.js";

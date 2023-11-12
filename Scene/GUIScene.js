@@ -1,5 +1,5 @@
 import {Scene} from "./Scene.js";
-import {VisualComponent} from "../gui/components/index.js";
+import {VisualComponent} from "../gui/Component/index.js";
 
 export class GUIScene extends Scene {
 	/**
