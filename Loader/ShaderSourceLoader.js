@@ -4,7 +4,6 @@ export class ShaderSourceLoader extends Loader {
 	/**
 	 * Loads and returns shader code from a source file.
 	 * 
-	 * @inheritdoc
 	 * @param {String} path
 	 * @returns {Promise.<String>}
 	 * @throws {Error} if the request fails

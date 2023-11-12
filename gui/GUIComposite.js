@@ -111,9 +111,6 @@ export class GUIComposite extends Composite {
 		return this._renderer.getTextures()[key];
 	}
 
-	/**
-	 * @inheritdoc
-	 */
 	async build() {
 		const glyphMapPath = this.getInstance().getParameter("font_path");
 
@@ -158,9 +155,6 @@ export class GUIComposite extends Composite {
 		}
 	}
 
-	/**
-	 * @inheritdoc
-	 */
 	update(frameIndex) {
 		for (let i = 0, length = this.#animatedComponents.length, component; i < length; i++) {
 			component = this.#animatedComponents[i];
@@ -179,9 +173,6 @@ export class GUIComposite extends Composite {
 		this.render();
 	}
 
-	/**
-	 * @inheritdoc
-	 */
 	render() {
 		// console.debug(`render(): ${this._scene.getQueue().length} (${this._scene.getSubcomponentCount()}) in queue`);
 
@@ -204,8 +195,6 @@ export class GUIComposite extends Composite {
 	/**
 	 * Resizes the viewport of the renderer and triggers a new render.
 	 * NOTE: Resize events render ALL the components from the layer stack.
-	 * 
-	 * @inheritdoc
 	 */
 	resize(viewport) {
 		super.resize(viewport);

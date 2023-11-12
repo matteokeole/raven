@@ -23,7 +23,6 @@ export class MonospacedBitmapFont extends BitmapFont {
 	}
 
 	/**
-	 * @inheritdoc
 	 * @returns {Number}
 	 */
 	getTileWidth() {

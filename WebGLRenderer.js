@@ -74,9 +74,6 @@ export class WebGLRenderer {
 		return this._canvas;
 	}
 
-	/**
-	 * @returns {Vector4}
-	 */
 	getViewport() {
 		return this.#viewport;
 	}
@@ -97,9 +94,6 @@ export class WebGLRenderer {
 		);
 	}
 
-	/**
-	 * @returns {Object.<String, TextureContainer>}
-	 */
 	getTextures() {
 		return this._textures;
 	}
@@ -125,7 +119,6 @@ export class WebGLRenderer {
 	/**
 	 * @param {String} vertexShaderSource
 	 * @param {String} fragmentShaderSource
-	 * @returns {WebGLProgram}
 	 * @throws {ShaderCompilationError} if the program linking was not successful
 	 */
 	_createProgram(vertexShaderSource, fragmentShaderSource) {
@@ -254,7 +247,6 @@ export class WebGLRenderer {
 	/**
 	 * @param {GLint} type
 	 * @param {String} source
-	 * @returns {WebGLShader}
 	 */
 	#createShader(type, source) {
 		const shader = this._context.createShader(type);

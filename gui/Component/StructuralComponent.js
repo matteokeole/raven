@@ -35,9 +35,6 @@ export class StructuralComponent extends Component {
 		return this.#children;
 	}
 
-	/**
-	 * @inheritdoc
-	 */
 	compute(initial, parentSize) {
 		super.compute(initial, parentSize);
 

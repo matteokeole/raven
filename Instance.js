@@ -108,16 +108,10 @@ export class Instance {
 		this.#isRunning = false;
 	}
 
-	/**
-	 * @returns {InstanceRenderer}
-	 */
 	getRenderer() {
 		return this.#renderer;
 	}
 
-	/**
-	 * @returns {Composite[]}
-	 */
 	getComposites() {
 		return this.#composites;
 	}
@@ -136,9 +130,6 @@ export class Instance {
 		}
 	};
 
-	/**
-	 * @returns {ResizeObserver}
-	 */
 	getResizeObserver() {
 		return this.#resizeObserver;
 	}
@@ -152,7 +143,6 @@ export class Instance {
 
 	/**
 	 * @param {String} key
-	 * @returns {*}
 	 * @throws {ReferenceError}
 	 */
 	getParameter(key) {
@@ -176,9 +166,6 @@ export class Instance {
 		this._parameters[key] = value;
 	}
 
-	/**
-	 * @returns {Number}
-	 */
 	getFramesPerSecond() {
 		return this.#framesPerSecond;
 	}

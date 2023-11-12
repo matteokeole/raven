@@ -20,9 +20,6 @@ export class GUIScene extends Scene {
 		return super.getQueue();
 	}
 
-	/**
-	 * @returns {Number}
-	 */
 	getSubcomponentCount() {
 		return this.#subcomponentCount;
 	}

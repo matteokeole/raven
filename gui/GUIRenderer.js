@@ -48,9 +48,6 @@ export class GUIRenderer extends WebGLRenderer {
 		this.#projection = projection;
 	}
 
-	/**
-	 * @inheritdoc
-	 */
 	async build() {
 		super.build();
 
@@ -128,7 +125,6 @@ export class GUIRenderer extends WebGLRenderer {
 	/**
 	 * @todo Create typed arrays with .of() instead of new?
 	 * 
-	 * @inheritdoc
 	 * @param {GUIScene} scene
 	 */
 	render(scene) {
