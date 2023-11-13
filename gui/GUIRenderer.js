@@ -1,5 +1,5 @@
 import {WebGLRenderer} from "../index.js";
-import {ShaderSourceLoader} from "../Loader/index.js";
+import {ShaderLoader} from "../Loader/index.js";
 import {Matrix3, Vector4} from "../math/index.js";
 import {GUIScene} from "../Scene/index.js";
 
@@ -57,7 +57,7 @@ export class GUIRenderer extends WebGLRenderer {
 		this._context.enable(this._context.BLEND);
 		this._context.blendFunc(this._context.SRC_ALPHA, this._context.ONE_MINUS_SRC_ALPHA);
 
-		const loader = new ShaderSourceLoader(this.#shaderPath);
+		const loader = new ShaderLoader(this.#shaderPath);
 		const vertexShaderSource = await loader.load("subcomponent.vert");
 		const fragmentShaderSource = await loader.load("subcomponent.frag");
 

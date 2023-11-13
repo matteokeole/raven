@@ -1,6 +1,6 @@
 import {WebGLRenderer} from "./WebGLRenderer.js";
 import {NoWebGL2Error} from "./errors/index.js";
-import {ShaderSourceLoader} from "./Loader/index.js";
+import {ShaderLoader} from "./Loader/index.js";
 
 /**
  * @abstract
@@ -62,7 +62,7 @@ export class InstanceRenderer extends WebGLRenderer {
 		this._context.enable(this._context.BLEND);
 		this._context.blendFunc(this._context.SRC_ALPHA, this._context.ONE_MINUS_SRC_ALPHA);
 
-		const loader = new ShaderSourceLoader(this.#shaderPath);
+		const loader = new ShaderLoader(this.#shaderPath);
 		const vertexShaderSource = await loader.load("composite.vert");
 		const fragmentShaderSource = await loader.load("composite.frag");
 
