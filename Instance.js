@@ -307,6 +307,7 @@ export class Instance {
 
 	#loop() {
 		this.#animationFrameRequestId = requestAnimationFrame(this.#loop.bind(this));
+
 		const time = performance.now();
 		const delta = time - this.#timeSinceLastFrame;
 
@@ -341,60 +342,27 @@ export class Instance {
 		}
 	}
 
-	#onMouseDown() {
-		for (let i = 0, l = this.#listeners.mouse_down_count, listener; i < l; i++) {
-			listener = this.#listeners.mouse_down[i];
-
-			if (!intersects(this.#pointer, listener.component.getPosition(), listener.component.getSize())) {
-				continue;
-			}
-
-			listener(this.#pointer);
-
-			break;
+	/**
+	 * @param {MouseEvent} event
+	 */
+	#onMouseDown(event) {
+		for (let i = 0; i < this.#compositeCount; i++) {
+			this.#composites[i].onMouseDown(event);
 		}
 	}
 
 	/**
-	 * @param {Object} event
-	 * @param {Number} event.clientX
-	 * @param {Number} event.clientY
+	 * @param {MouseEvent} event
 	 */
-	#onMouseMove({clientX, clientY}) {
-		this.#pointer[0] = clientX;
-		this.#pointer[1] = clientY;
+	#onMouseMove(event) {
+		this.#pointer[0] = event.clientX;
+		this.#pointer[1] = event.clientY;
 		this.#pointer
 			.multiplyScalar(devicePixelRatio)
 			.divideScalar(this._parameters["current_scale"]);
 
-		let i, l, listener;
-
-		for (i = 0, l = this.#listeners.mouse_enter_count; i < l; i++) {
-			listener = this.#listeners.mouse_enter[i];
-
-			if (!intersects(this.#pointer, listener.component.getPosition(), listener.component.getSize())) {
-				continue;
-			}
-			if (listener.component.isHovered()) {
-				continue;
-			}
-
-			listener.component.setHovered(true);
-			listener(this.#pointer);
-		}
-
-		for (i = 0, l = this.#listeners.mouse_leave_count; i < l; i++) {
-			listener = this.#listeners.mouse_leave[i];
-
-			if (intersects(this.#pointer, listener.component.getPosition(), listener.component.getSize())) {
-				continue;
-			}
-			if (!listener.component.isHovered()) {
-				continue;
-			}
-
-			listener.component.setHovered(false);
-			listener(this.#pointer);
+		for (let i = 0; i < this.#compositeCount; i++) {
+			this.#composites[i].onMouseMove(event);
 		}
 	}
 }

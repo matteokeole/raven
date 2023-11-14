@@ -1,12 +1,13 @@
 import {GUIRenderer, Layer} from "./index.js";
 import {Component, ReactiveComponent, StructuralComponent, VisualComponent} from "./Component/index.js";
-import {Event} from "./Event/index.js";
+import {Event, MouseDownEvent, MouseMoveEvent} from "./Event/index.js";
+import {BucketQueue} from "./Queue/BucketQueue.js";
 import {Composite, Instance} from "../index.js";
 import {Camera, OrthographicCamera} from "../cameras/index.js";
 import {Font} from "../fonts/index.js";
-import {Matrix3, Vector2} from "../math/index.js";
-import {TextureContainer} from "../wrappers/index.js";
+import {Matrix3, Vector2, intersects} from "../math/index.js";
 import {GUIScene} from "../Scene/index.js";
+import {TextureContainer} from "../wrappers/index.js";
 
 export class GUIComposite extends Composite {
 	/**
@@ -47,7 +48,7 @@ export class GUIComposite extends Composite {
 	#lastInsertionIndices;
 
 	/**
-	 * @type {Object.<String, Function[]>}
+	 * @type {Object.<String, BucketQueue.<Function>>}
 	 */
 	#eventListeners;
 
@@ -264,6 +265,7 @@ export class GUIComposite extends Composite {
 			addListeners: true,
 			addToTree: true,
 		});
+		this.#sealEventListenerBuckets();
 
 		this.compute();
 		this.render();
@@ -322,6 +324,7 @@ export class GUIComposite extends Composite {
 		}
 
 		this.#removeListeners(this.#reactiveComponents);
+		this.#popEventListenerBucket();
 
 		/**
 		 * @todo Also truncate the root components?
@@ -353,6 +356,14 @@ export class GUIComposite extends Composite {
 		this.render();
 	}
 
+	onMouseDown(event) {
+		this.dispatchEvent(new MouseDownEvent(new Vector2(event.clientX, event.clientY)));
+	}
+
+	onMouseMove(event) {
+		this.dispatchEvent(new MouseMoveEvent(new Vector2(event.clientX, event.clientY)));
+	}
+
 	/**
 	 * Populates recursively the component tree.
 	 * 
@@ -366,7 +377,7 @@ export class GUIComposite extends Composite {
 			component = children[i];
 			component.setEventDispatcher(this);
 
-			this.#addEventListeners(component);
+			this.#pushEventListeners(component);
 
 			if (!(component instanceof StructuralComponent)) {
 				this._scene.add(component);
@@ -395,23 +406,76 @@ export class GUIComposite extends Composite {
 	/**
 	 * @param {Component} component
 	 */
-	#addEventListeners(component) {
+	#pushEventListeners(component) {
 		const events = component.getEvents();
 
 		for (let i = 0, length = events.length, eventName, eventListener; i < length; i++) {
 			eventName = events[i];
 
-			if (!(eventName in component)) {
+			if (typeof component[eventName] !== "function") {
 				throw new Error(`Event listener not found for event "${eventName}" in ${component.constructor.name} instance`);
+			}
+
+			if (!(eventName in this.#eventListeners)) {
+				this.#eventListeners[eventName] = new BucketQueue();
 			}
 
 			eventListener = component[eventName].bind(component);
 
-			if (eventName in this.#eventListeners) {
-				this.#eventListeners[eventName].push(eventListener);
-			} else {
-				this.#eventListeners[eventName] = [eventListener];
+			/**
+			 * @todo Refactor
+			 */
+			if ([MouseDownEvent.NAME, MouseMoveEvent.NAME].includes(eventName)) {
+				eventListener = this.#createMouseEventListener(component, eventListener);
 			}
+
+			this.#eventListeners[eventName].push(eventListener);
+		}
+	}
+
+	/**
+	 * @param {Component} component
+	 * @param {Function} eventListener
+	 */
+	#createMouseEventListener(component, eventListener) {
+		/**
+		 * @param {Vector2} carry
+		 * @param {GUIComposite} context
+		 */
+		return function(carry, context) {
+			if (!intersects(carry, component.getPosition(), component.getSize())) {
+				return;
+			}
+
+			eventListener(carry, context);
+		};
+	}
+
+	/**
+	 * @todo Find a way to remove the `Object.values` call
+	 */
+	#sealEventListenerBuckets() {
+		/**
+		 * @type {BucketQueue[]}
+		 */
+		const eventListenerQueues = Object.values(this.#eventListeners);
+
+		for (let i = 0, length = eventListenerQueues.length; i < length; i++) {
+			eventListenerQueues[i].sealBucket();
+		}
+	}
+
+	/**
+	 * @todo Find a way to remove the `Object.values` call
+	 */
+	#popEventListenerBucket() {
+		/**
+		 * @type {BucketQueue[]}
+		 */
+		const eventListenerQueues = Object.values(this.#eventListeners);
+
+		for (let i = 0, length = eventListenerQueues.length; i < length; i++) {
+			eventListenerQueues[i].popBucket();
 		}
 	}
 

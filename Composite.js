@@ -96,4 +96,16 @@ export class Composite {
 	 * @param {Vector4} viewport
 	 */
 	resize(viewport) {}
+
+	/**
+	 * @abstract
+	 * @param {MouseEvent} event
+	 */
+	onMouseDown(event) {}
+
+	/**
+	 * @abstract
+	 * @param {MouseEvent} event
+	 */
+	onMouseMove(event) {}
 }
