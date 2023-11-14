@@ -1,11 +1,11 @@
 import {GUIRenderer, Layer} from "./index.js";
 import {Component, ReactiveComponent, StructuralComponent, VisualComponent} from "./Component/index.js";
 import {Event, MouseDownEvent, MouseMoveEvent} from "./Event/index.js";
-import {BucketQueue} from "./Queue/BucketQueue.js";
 import {Composite, Instance} from "../index.js";
 import {Camera, OrthographicCamera} from "../cameras/index.js";
 import {Font} from "../fonts/index.js";
 import {Matrix3, Vector2, intersects} from "../math/index.js";
+import {BucketQueue} from "../Queue/index.js";
 import {GUIScene} from "../Scene/index.js";
 import {TextureContainer} from "../wrappers/index.js";
 
