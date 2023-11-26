@@ -31,12 +31,12 @@ export class Instance {
 	#pointer;
 
 	/**
-	 * @type {Object.<String, *>}
+	 * @type {Record.<String, *>}
 	 */
 	#listeners;
 
 	/**
-	 * @type {Object.<String, *>}
+	 * @type {Record.<String, *>}
 	 */
 	_parameters;
 

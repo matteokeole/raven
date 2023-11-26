@@ -27,9 +27,6 @@ export class GUIRenderer extends WebGLRenderer {
 		this.#projection = Matrix3.identity();
 	}
 
-	/**
-	 * @returns {?OffscreenCanvas}
-	 */
 	getCanvas() {
 		return this._canvas;
 	}

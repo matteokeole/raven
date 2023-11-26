@@ -9,7 +9,7 @@ import {TextureContainer} from "../../wrappers/index.js";
  * @property {Number} alignment
  * @property {?Vector2} [margin]
  * @property {Vector2} size
- * @property {?Object.<String, Function>} [events]
+ * @property {?Record.<String, Function>} [events]
  * @property {?TextureContainer} [texture]
  */
 
@@ -30,16 +30,13 @@ export class VisualComponent extends Component {
 	/**
 	 * @param {VisualComponentDescriptor} descriptor
 	 */
-	constructor({alignment, margin, size, events, texture = null}) {
-		super({alignment, margin, size, events});
+	constructor(descriptor) {
+		super(descriptor);
 
 		this.#subcomponents = [];
-		this.#texture = texture;
+		this.#texture = descriptor.texture ?? null;
 	}
 
-	/**
-	 * @returns {?TextureContainer}
-	 */
 	getTexture() {
 		return this.#texture;
 	}
@@ -51,9 +48,6 @@ export class VisualComponent extends Component {
 		this.#texture = texture;
 	}
 
-	/**
-	 * @returns {Subcomponent[]}
-	 */
 	getSubcomponents() {
 		return this.#subcomponents;
 	}
@@ -66,7 +60,7 @@ export class VisualComponent extends Component {
 	}
 
 	/**
-	 * @todo `yield` instead of `return` to trigger multiple renders?
+	 * @todo `yield` instead of `return` to trigger multiple renders cleanly?
 	 * 
 	 * @abstract
 	 * @param {Composite} context

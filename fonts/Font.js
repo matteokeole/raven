@@ -15,9 +15,6 @@ export class Font {
 		this.#lineSpacing = lineSpacing;
 	}
 
-	/**
-	 * @returns {Number}
-	 */
 	getLineSpacing() {
 		return this.#lineSpacing;
 	}

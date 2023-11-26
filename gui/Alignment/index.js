@@ -1,5 +1,5 @@
 /**
- * @todo Describe how behaves the margin relative to the component alignment?
+ * @todo Document how behaves the margin relative to the component alignment?
  */
 
 /**

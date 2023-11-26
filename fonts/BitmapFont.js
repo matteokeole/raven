@@ -20,12 +20,12 @@ export class BitmapFont extends Font {
 	#texturePath;
 
 	/**
-	 * @type {?Object.<String, GlyphMapEntry>}
+	 * @type {?Record.<String, GlyphMapEntry>}
 	 */
 	#glyphMap;
 
 	/**
-	 * @type {?Object.<String, Subcomponent>}
+	 * @type {?Record.<String, Subcomponent>}
 	 */
 	#glyphs;
 
@@ -40,7 +40,7 @@ export class BitmapFont extends Font {
 	#tileSpacing;
 
 	/**
-	 * @type {Object.<String, Number>}
+	 * @type {Record.<String, Number>}
 	 */
 	#customTileWidths;
 
@@ -51,7 +51,7 @@ export class BitmapFont extends Font {
 	 * @param {Number} options.tileHeight
 	 * @param {Number} [options.tileSpacing]
 	 * @param {Number} [options.lineSpacing]
-	 * @param {Object.<String, Number>} [options.customTileWidths]
+	 * @param {Record.<String, Number>} [options.customTileWidths]
 	 */
 	constructor({glyphMapPath, texturePath, tileHeight, tileSpacing = 0, lineSpacing = 0, customTileWidths = {}}) {
 		super({lineSpacing});
@@ -65,30 +65,18 @@ export class BitmapFont extends Font {
 		this.#customTileWidths = customTileWidths;
 	}
 
-	/**
-	 * @returns {String}
-	 */
 	getGlyphMapPath() {
 		return this.#glyphMapPath;
 	}
 
-	/**
-	 * @returns {String}
-	 */
 	getTexturePath() {
 		return this.#texturePath;
 	}
 
-	/**
-	 * @returns {?Object.<String, GlyphMapEntry>}
-	 */
 	getGlyphMap() {
 		return this.#glyphMap;
 	}
 
-	/**
-	 * @returns {?Object.<String, Subcomponent>}
-	 */
 	getGlyphs() {
 		return this.#glyphs;
 	}
@@ -101,23 +89,14 @@ export class BitmapFont extends Font {
 		return this.#customTileWidths[glyph] ?? this.#glyphs[glyph].getSize()[0];
 	}
 
-	/**
-	 * @returns {Number}
-	 */
 	getTileHeight() {
 		return this.#tileHeight;
 	}
 
-	/**
-	 * @returns {Number}
-	 */
 	getTileSpacing() {
 		return this.#tileSpacing;
 	}
 
-	/**
-	 * @returns {Object.<String, Number>}
-	 */
 	getCustomTileWidths() {
 		return this.#customTileWidths;
 	}
