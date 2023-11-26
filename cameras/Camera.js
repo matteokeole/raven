@@ -25,9 +25,6 @@ export class Camera {
 		this.#rotation = new Vector3();
 	}
 
-	/**
-	 * @returns {Matrix3}
-	 */
 	getProjection() {
 		return this.#projection;
 	}
@@ -39,9 +36,6 @@ export class Camera {
 		this.#projection = projection;
 	}
 
-	/**
-	 * @returns {Vector3}
-	 */
 	getPosition() {
 		return this.#position;
 	}
@@ -53,9 +47,6 @@ export class Camera {
 		this.#position = position;
 	}
 
-	/**
-	 * @returns {Vector3}
-	 */
 	getRotation() {
 		return this.#rotation;
 	}

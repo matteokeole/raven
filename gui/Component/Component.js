@@ -7,7 +7,7 @@ import {Matrix3, Vector2} from "../../math/index.js";
  * @property {Number} alignment
  * @property {?Vector2} [margin]
  * @property {Vector2} size
- * @property {?Object.<String, Function>} [events]
+ * @property {?Record.<String, Function>} [events]
  */
 
 /**
@@ -47,13 +47,13 @@ export class Component {
 	/**
 	 * @param {ComponentDescriptor} descriptor
 	 */
-	constructor({alignment, margin = new Vector2(), size, events = []}) {
+	constructor(descriptor) {
 		this.#eventDispatcher = null;
 		this.#position = null;
-		this.#alignment = alignment;
-		this.#margin = margin;
-		this.#size = size;
-		this.#events = events;
+		this.#alignment = descriptor.alignment;
+		this.#margin = descriptor.margin ?? new Vector2();
+		this.#size = descriptor.size;
+		this.#events = descriptor.events ?? [];
 	}
 
 	/**
@@ -63,9 +63,6 @@ export class Component {
 		this.#eventDispatcher = eventDispatcher;
 	}
 
-	/**
-	 * @returns {?Vector2}
-	 */
 	getPosition() {
 		return this.#position;
 	}
@@ -77,23 +74,14 @@ export class Component {
 		this.#position = position;
 	}
 
-	/**
-	 * @returns {Number}
-	 */
 	getAlignment() {
 		return this.#alignment;
 	}
 
-	/**
-	 * @returns {Vector2}
-	 */
 	getMargin() {
 		return this.#margin;
 	}
 
-	/**
-	 * @returns {Vector2}
-	 */
 	getSize() {
 		return this.#size;
 	}
@@ -105,9 +93,6 @@ export class Component {
 		this.#size = size;
 	}
 
-	/**
-	 * @returns {String[]}
-	 */
 	getEvents() {
 		return this.#events;
 	}
@@ -138,9 +123,6 @@ export class Component {
 			.floor();
 	}
 
-	/**
-	 * @returns {Matrix3}
-	 */
 	getWorld() {
 		return Matrix3
 			.translation(this.#position)

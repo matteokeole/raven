@@ -35,11 +35,11 @@ export class Subcomponent {
 	/**
 	 * @param {SubcomponentDescriptor} descriptor
 	 */
-	constructor({size, offset = new Vector2(), uv = new Vector2(), colorMask = new Vector4(255, 255, 255, 255)}) {
-		this.#size = size;
-		this.#offset = offset;
-		this.#uv = uv;
-		this.#colorMask = colorMask;
+	constructor(descriptor) {
+		this.#size = descriptor.size;
+		this.#offset = descriptor.offset ?? new Vector2();
+		this.#uv = descriptor.uv ?? new Vector2();
+		this.#colorMask = descriptor.colorMask ?? new Vector4(255, 255, 255, 255);
 	}
 
 	getSize() {

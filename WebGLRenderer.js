@@ -33,17 +33,17 @@ export class WebGLRenderer {
 	_programs;
 
 	/**
-	 * @type {Object.<String, Number>}
+	 * @type {Record.<String, Number>}
 	 */
 	_attributes;
 
 	/**
-	 * @type {Object.<String, WebGLUniformLocation>}
+	 * @type {Record.<String, WebGLUniformLocation>}
 	 */
 	_uniforms;
 
 	/**
-	 * @type {Object.<String, WebGLBuffer>}
+	 * @type {Record.<String, WebGLBuffer>}
 	 */
 	_buffers;
 
@@ -52,7 +52,7 @@ export class WebGLRenderer {
 	 * but rather the images uploaded by the user using `WebGLRenderer#createTextureArray`
 	 * (that are stored inside a `TEXTURE_2D_ARRAY` texture).
 	 * 
-	 * @type {Object.<String, TextureContainer>}
+	 * @type {Record.<String, TextureContainer>}
 	 */
 	_textures;
 
@@ -67,9 +67,6 @@ export class WebGLRenderer {
 		this._textures = {};
 	}
 
-	/**
-	 * @returns {null|HTMLCanvasElement|OffscreenCanvas}
-	 */
 	getCanvas() {
 		return this._canvas;
 	}

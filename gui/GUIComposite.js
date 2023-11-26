@@ -43,12 +43,12 @@ export class GUIComposite extends Composite {
 	#lastInsertionIndices;
 
 	/**
-	 * @type {Object.<String, BucketQueue.<Function>>}
+	 * @type {Record.<String, BucketQueue.<Function>>}
 	 */
 	#eventListeners;
 
 	/**
-	 * @type {Object.<String, Font>}
+	 * @type {Record.<String, Font>}
 	 */
 	#fonts;
 
@@ -56,7 +56,7 @@ export class GUIComposite extends Composite {
 	 * @param {Object} options
 	 * @param {GUIRenderer} options.renderer
 	 * @param {Instance} options.instance
-	 * @param {Object.<String, Font>} options.fonts
+	 * @param {Record.<String, Font>} options.fonts
 	 */
 	constructor({renderer, instance, fonts}) {
 		super({renderer, instance});
@@ -333,10 +333,16 @@ export class GUIComposite extends Composite {
 		this.render();
 	}
 
+	/**
+	 * @param {MouseEvent} event
+	 */
 	onMouseDown(event) {
 		this.dispatchEvent(new MouseDownEvent(new Vector2(event.clientX, event.clientY)));
 	}
 
+	/**
+	 * @param {MouseEvent} event
+	 */
 	onMouseMove(event) {
 		this.dispatchEvent(new MouseMoveEvent(new Vector2(event.clientX, event.clientY)));
 	}

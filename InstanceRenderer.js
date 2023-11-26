@@ -29,9 +29,6 @@ export class InstanceRenderer extends WebGLRenderer {
 		this.#shaderPath = "";
 	}
 
-	/**
-	 * @returns {?HTMLCanvasElement}
-	 */
 	getCanvas() {
 		return this._canvas;
 	}

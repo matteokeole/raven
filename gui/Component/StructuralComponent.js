@@ -6,7 +6,7 @@ import {Vector2} from "../../math/index.js";
  * @property {Number} alignment
  * @property {?Vector2} [margin]
  * @property {Vector2} size
- * @property {?Object.<String, Function>} [events]
+ * @property {?Record.<String, Function>} [events]
  * @property {Component[]} children
  */
 
@@ -22,19 +22,20 @@ export class StructuralComponent extends Component {
 	/**
 	 * @param {StructuralComponentDescriptor} descriptor
 	 */
-	constructor({alignment, margin, size, events, children}) {
-		super({alignment, margin, size, events});
+	constructor(descriptor) {
+		super(descriptor);
 
-		this.#children = children;
+		this.#children = descriptor.children;
 	}
 
-	/**
-	 * @returns {Component[]}
-	 */
 	getChildren() {
 		return this.#children;
 	}
 
+	/**
+	 * @param {Vector2} initial Cloned parent top left corner
+	 * @param {Vector2} parentSize Cloned parent size
+	 */
 	compute(initial, parentSize) {
 		super.compute(initial, parentSize);
 
