@@ -1,11 +1,13 @@
 import {GUIRenderer, Layer} from "./index.js";
-import {Component, ReactiveComponent, StructuralComponent, VisualComponent} from "./components/index.js";
+import {Component, StructuralComponent, VisualComponent} from "./Component/index.js";
+import {Event, MouseDownEvent, MouseMoveEvent} from "./Event/index.js";
 import {Composite, Instance} from "../index.js";
 import {Camera, OrthographicCamera} from "../cameras/index.js";
 import {Font} from "../fonts/index.js";
-import {Matrix3, Vector2} from "../math/index.js";
-import {TextureContainer} from "../wrappers/index.js";
+import {Matrix3, Vector2, intersects} from "../math/index.js";
+import {BucketQueue} from "../Queue/index.js";
 import {GUIScene} from "../Scene/index.js";
+import {TextureContainer} from "../wrappers/index.js";
 
 export class GUIComposite extends Composite {
 	/**
@@ -29,11 +31,6 @@ export class GUIComposite extends Composite {
 	#animatedComponents;
 
 	/**
-	 * @type {ReactiveComponent[]}
-	 */
-	#reactiveComponents;
-
-	/**
 	 * Children of currently built layers.
 	 * 
 	 * @type {Component[]}
@@ -44,6 +41,11 @@ export class GUIComposite extends Composite {
 	 * @type {Number[]}
 	 */
 	#lastInsertionIndices;
+
+	/**
+	 * @type {Object.<String, BucketQueue.<Function>>}
+	 */
+	#eventListeners;
 
 	/**
 	 * @type {Object.<String, Font>}
@@ -72,9 +74,9 @@ export class GUIComposite extends Composite {
 		this.#layerStack = [];
 		this.#rootComponents = [];
 		this.#animatedComponents = [];
-		this.#reactiveComponents = [];
 		this.#tree = [];
 		this.#lastInsertionIndices = [];
+		this.#eventListeners = {};
 		this.#fonts = fonts;
 	}
 
@@ -104,9 +106,6 @@ export class GUIComposite extends Composite {
 		return this._renderer.getTextures()[key];
 	}
 
-	/**
-	 * @inheritdoc
-	 */
 	async build() {
 		const glyphMapPath = this.getInstance().getParameter("font_path");
 
@@ -131,79 +130,8 @@ export class GUIComposite extends Composite {
 	}
 
 	/**
-	 * Populates recursively the component tree.
-	 * 
-	 * @param {Component[]} children
-	 * @param {Object} options
-	 * @param {Boolean} [options.addListeners=false]
-	 * @param {Boolean} [options.addToTree=false]
-	 */
-	addChildrenToRenderQueue(children, {addListeners = false, addToTree = false}) {
-		for (let i = 0, l = children.length, component; i < l; i++) {
-			component = children[i];
-
-			if (!(component instanceof StructuralComponent)) {
-				this._scene.add(component);
-
-				this.#animatedComponents.push(component);
-
-				if (component instanceof ReactiveComponent) {
-					this.#reactiveComponents.push(component);
-
-					if (addListeners) {
-						this.addListeners(component);
-					}
-				}
-
-				if (addToTree) {
-					this.#tree.push(component);
-				}
-
-				continue;
-			}
-
-			this.addChildrenToRenderQueue(component.getChildren(), {addListeners, addToTree});
-		}
-	}
-
-	/**
-	 * Initializes the event listeners for the provided component.
-	 * 
-	 * @param {ReactiveComponent} component
-	 */
-	addListeners(component) {
-		let listener;
-
-		if ((listener = component.getOnMouseDown()) !== null) this.getInstance().addListener("mouse_down", listener);
-		if ((listener = component.getOnMouseEnter()) !== null) this.getInstance().addListener("mouse_enter", listener);
-		if ((listener = component.getOnMouseLeave()) !== null) this.getInstance().addListener("mouse_leave", listener);
-	}
-
-	/**
-	 * Discards event listeners for the provided components.
-	 * 
-	 * @param {Component[]} components
-	 */
-	removeListeners(components) {
-		for (let i = 0, l = components.length, listener; i < l; i++) {
-			if (!(components[i] instanceof ReactiveComponent)) continue;
-
-			/**
-			 * @type {ReactiveComponent}
-			 */
-			const component = components[i];
-
-			if ((listener = component.getOnMouseDown()) !== null) this.getInstance().removeListener("mouse_down", listener);
-			if ((listener = component.getOnMouseEnter()) !== null) this.getInstance().removeListener("mouse_enter", listener);
-			if ((listener = component.getOnMouseLeave()) !== null) this.getInstance().removeListener("mouse_leave", listener);
-		}
-	}
-
-	/**
 	 * Computes the absolute position for each component of the render queue,
 	 * all layers included.
-	 * 
-	 * @returns {this}
 	 */
 	compute() {
 		const instanceViewport = this
@@ -220,13 +148,8 @@ export class GUIComposite extends Composite {
 		for (let i = 0, l = this.#rootComponents.length; i < l; i++) {
 			this.#rootComponents[i].compute(new Vector2(), parentSize.clone());
 		}
-
-		return this;
 	}
 
-	/**
-	 * @inheritdoc
-	 */
 	update(frameIndex) {
 		for (let i = 0, length = this.#animatedComponents.length, component; i < length; i++) {
 			component = this.#animatedComponents[i];
@@ -245,9 +168,6 @@ export class GUIComposite extends Composite {
 		this.render();
 	}
 
-	/**
-	 * @inheritdoc
-	 */
 	render() {
 		// console.debug(`render(): ${this._scene.getQueue().length} (${this._scene.getSubcomponentCount()}) in queue`);
 
@@ -270,8 +190,6 @@ export class GUIComposite extends Composite {
 	/**
 	 * Resizes the viewport of the renderer and triggers a new render.
 	 * NOTE: Resize events render ALL the components from the layer stack.
-	 * 
-	 * @inheritdoc
 	 */
 	resize(viewport) {
 		super.resize(viewport);
@@ -294,10 +212,7 @@ export class GUIComposite extends Composite {
 			component = this.#tree[i];
 
 			if (component instanceof StructuralComponent) {
-				this.addChildrenToRenderQueue(component.getChildren(), {
-					addListeners: false,
-					addToTree: false,
-				});
+				this.#addChildrenToRenderQueue(component.getChildren(), false);
 
 				continue;
 			}
@@ -305,7 +220,8 @@ export class GUIComposite extends Composite {
 			this._scene.add(component);
 		}
 
-		this.compute().render();
+		this.compute();
+		this.render();
 	}
 
 	/**
@@ -320,29 +236,21 @@ export class GUIComposite extends Composite {
 	push(layer) {
 		this.#layerStack.push(layer);
 
-		// Discard event listeners of `ReactiveComponent` instances in the previous layers
-		this.removeListeners(this.#reactiveComponents);
 
 		this._scene.resetSubcomponentCount();
 		this.#animatedComponents.length = 0;
-		this.#reactiveComponents.length = 0;
 
 		// Mark the tree length as the extraction index for this layer
 		this.#lastInsertionIndices.push(this.#tree.length);
 
-		const rootComponent = layer.build(this);
-
-		if (!(rootComponent instanceof Component)) {
-			throw new Error("The layer must return an instance of Component.");
-		}
+		const rootComponent = this.#buildLayer(layer);
 
 		this.#rootComponents.push(rootComponent);
-		this.addChildrenToRenderQueue([rootComponent], {
-			addListeners: true,
-			addToTree: true,
-		});
+		this.#addChildrenToRenderQueue([rootComponent], true);
+		this.#sealEventListenerBuckets();
 
-		this.compute().render();
+		this.compute();
+		this.render();
 	}
 
 	/**
@@ -351,7 +259,6 @@ export class GUIComposite extends Composite {
 	 * Registers the component in the render queue.
 	 * 
 	 * @param {Component} component
-	 * @returns {this}
 	 */
 	pushToRenderQueue(component) {
 		if (component instanceof StructuralComponent) {
@@ -361,12 +268,29 @@ export class GUIComposite extends Composite {
 				this.pushToRenderQueue(children[i]);
 			}
 
-			return this;
+			return;
 		}
 
 		this._scene.add(component);
+	}
 
-		return this;
+	/**
+	 * @param {Event} event
+	 */
+	dispatchEvent(event) {
+		// @ts-ignore
+		const eventName = event.constructor.NAME;
+
+		if (!(eventName in this.#eventListeners)) {
+			return;
+		}
+
+		const carry = event.getCarry();
+		const eventListeners = this.#eventListeners[eventName];
+
+		for (let i = 0, length = eventListeners.length; i < length; i++) {
+			eventListeners[i](carry, this);
+		}
 	}
 
 	/**
@@ -381,7 +305,7 @@ export class GUIComposite extends Composite {
 			throw new Error("Could not pop: no layers registered.");
 		}
 
-		this.removeListeners(this.#reactiveComponents);
+		this.#popEventListenerBucket();
 
 		/**
 		 * @todo Also truncate the root components?
@@ -392,7 +316,6 @@ export class GUIComposite extends Composite {
 
 		this._scene.clear();
 		this.#animatedComponents.length = 0;
-		this.#reactiveComponents.length = 0;
 
 		if (this.#layerStack.length === 1) {
 			this.#rootComponents.length = 0;
@@ -402,13 +325,139 @@ export class GUIComposite extends Composite {
 			return;
 		}
 
-		this.addChildrenToRenderQueue(this.#tree, {
-			addListeners: true,
-			addToTree: false,
-		});
+		this.#addChildrenToRenderQueue(this.#tree, false);
 
 		this._renderer.clear();
 
-		this.compute().render();
+		this.compute();
+		this.render();
+	}
+
+	onMouseDown(event) {
+		this.dispatchEvent(new MouseDownEvent(new Vector2(event.clientX, event.clientY)));
+	}
+
+	onMouseMove(event) {
+		this.dispatchEvent(new MouseMoveEvent(new Vector2(event.clientX, event.clientY)));
+	}
+
+	/**
+	 * Populates recursively the component tree.
+	 * 
+	 * @param {Component[]} children
+	 * @param {Object} options
+	 * @param {Boolean} [options.addListeners]
+	 * @param {Boolean} [options.addToTree]
+	 */
+	#addChildrenToRenderQueue(children, addToTree = false) {
+		for (let i = 0, l = children.length, component; i < l; i++) {
+			component = children[i];
+			component.setEventDispatcher(this);
+
+			this.#pushEventListeners(component);
+
+			if (!(component instanceof StructuralComponent)) {
+				this._scene.add(component);
+				this.#animatedComponents.push(component);
+
+				if (addToTree) {
+					this.#tree.push(component);
+				}
+
+				continue;
+			}
+
+			this.#addChildrenToRenderQueue(component.getChildren(), addToTree);
+		}
+	}
+
+	/**
+	 * @param {Component} component
+	 */
+	#pushEventListeners(component) {
+		const events = component.getEvents();
+
+		for (let i = 0, length = events.length, eventName, eventListener; i < length; i++) {
+			eventName = events[i];
+
+			if (typeof component[eventName] !== "function") {
+				throw new Error(`Event listener not found for event "${eventName}" in ${component.constructor.name} instance`);
+			}
+
+			if (!(eventName in this.#eventListeners)) {
+				this.#eventListeners[eventName] = new BucketQueue();
+			}
+
+			eventListener = component[eventName].bind(component);
+
+			/**
+			 * @todo Refactor
+			 */
+			if ([MouseDownEvent.NAME, MouseMoveEvent.NAME].includes(eventName)) {
+				eventListener = this.#createMouseEventListener(component, eventListener);
+			}
+
+			this.#eventListeners[eventName].push(eventListener);
+		}
+	}
+
+	/**
+	 * @param {Component} component
+	 * @param {Function} eventListener
+	 */
+	#createMouseEventListener(component, eventListener) {
+		/**
+		 * @param {Vector2} carry
+		 * @param {GUIComposite} context
+		 */
+		return function(carry, context) {
+			if (!intersects(carry, component.getPosition(), component.getSize())) {
+				return;
+			}
+
+			eventListener(carry, context);
+		};
+	}
+
+	/**
+	 * @todo Find a way to remove the `Object.values` call
+	 */
+	#sealEventListenerBuckets() {
+		/**
+		 * @type {BucketQueue[]}
+		 */
+		const eventListenerQueues = Object.values(this.#eventListeners);
+
+		for (let i = 0, length = eventListenerQueues.length; i < length; i++) {
+			eventListenerQueues[i].sealBucket();
+		}
+	}
+
+	/**
+	 * @todo Find a way to remove the `Object.values` call
+	 */
+	#popEventListenerBucket() {
+		/**
+		 * @type {BucketQueue[]}
+		 */
+		const eventListenerQueues = Object.values(this.#eventListeners);
+
+		for (let i = 0, length = eventListenerQueues.length; i < length; i++) {
+			eventListenerQueues[i].popBucket();
+		}
+	}
+
+	/**
+	 * @param {Layer} layer
+	 * @throws {Error} if the layer did not return a component
+	 */
+	#buildLayer(layer) {
+		const rootComponent = layer.build(this);
+
+		if (!(rootComponent instanceof Component)) {
+			throw new Error(`Could not build ${layer.constructor.name}: the layer did not return a component.`);
+		}
+
+		return rootComponent;
 	}
 }

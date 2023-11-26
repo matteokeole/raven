@@ -1,8 +1,15 @@
 import {Vector2} from "../math/index.js";
 
+/**
+ * @typedef {Object} TextureContainerDescriptor
+ * @property {HTMLImageElement|Uint8Array} image
+ * @property {Vector2} viewport
+ * @property {Number} index
+ */
+
 export class TextureContainer {
 	/**
-	 * @type {Uint8Array|HTMLImageElement}
+	 * @type {HTMLImageElement|Uint8Array}
 	 */
 	#image;
 
@@ -17,10 +24,7 @@ export class TextureContainer {
 	#index;
 
 	/**
-	 * @param {Object} options
-	 * @param {Uint8Array|HTMLImageElement} options.image
-	 * @param {Vector2} options.viewport
-	 * @param {Number} options.index
+	 * @param {TextureContainerDescriptor} descriptor
 	 */
 	constructor({image, viewport, index}) {
 		this.#image = image;
@@ -28,23 +32,14 @@ export class TextureContainer {
 		this.#index = index;
 	}
 
-	/**
-	 * @returns {Uint8Array|HTMLImageElement}
-	 */
 	getImage() {
 		return this.#image;
 	}
 
-	/**
-	 * @returns {Vector2}
-	 */
 	getViewport() {
 		return this.#viewport;
 	}
 
-	/**
-	 * @returns {Number}
-	 */
 	getIndex() {
 		return this.#index;
 	}
