@@ -9,7 +9,7 @@ import {TextureContainer} from "../../wrappers/index.js";
  * @property {Number} alignment
  * @property {?Vector2} [margin]
  * @property {Vector2} size
- * @property {?Record.<String, Function>} [events]
+ * @property {?String[]} [events]
  * @property {?TextureContainer} [texture]
  */
 

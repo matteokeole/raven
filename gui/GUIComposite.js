@@ -150,6 +150,9 @@ export class GUIComposite extends Composite {
 		}
 	}
 
+	/**
+	 * @param {Number} frameIndex
+	 */
 	update(frameIndex) {
 		for (let i = 0, length = this.#animatedComponents.length, component; i < length; i++) {
 			component = this.#animatedComponents[i];
@@ -396,33 +399,8 @@ export class GUIComposite extends Composite {
 
 			eventListener = component[eventName].bind(component);
 
-			/**
-			 * @todo Refactor
-			 */
-			if ([MouseDownEvent.NAME, MouseMoveEvent.NAME].includes(eventName)) {
-				eventListener = this.#createMouseEventListener(component, eventListener);
-			}
-
 			this.#eventListeners[eventName].push(eventListener);
 		}
-	}
-
-	/**
-	 * @param {Component} component
-	 * @param {Function} eventListener
-	 */
-	#createMouseEventListener(component, eventListener) {
-		/**
-		 * @param {Vector2} carry
-		 * @param {GUIComposite} context
-		 */
-		return function(carry, context) {
-			if (!intersects(carry, component.getPosition(), component.getSize())) {
-				return;
-			}
-
-			eventListener(carry, context);
-		};
 	}
 
 	/**
