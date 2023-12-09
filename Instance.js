@@ -33,11 +33,6 @@ export class Instance {
 	/**
 	 * @type {Record.<String, *>}
 	 */
-	#listeners;
-
-	/**
-	 * @type {Record.<String, *>}
-	 */
 	_parameters;
 
 	/**
@@ -84,14 +79,6 @@ export class Instance {
 		this.#compositeCount = 0;
 		this.#resizeObserver = null;
 		this.#pointer = new Vector2();
-		this.#listeners = {
-			mouse_down: [],
-			mouse_down_count: 0,
-			mouse_enter: [],
-			mouse_enter_count: 0,
-			mouse_leave: [],
-			mouse_leave_count: 0,
-		};
 		this._parameters = {
 			current_scale: 0,
 			font_path: "",
@@ -101,7 +88,7 @@ export class Instance {
 		};
 		this.#framesPerSecond = 60;
 		this.#frameIndex = 0;
-		this.#frameInterval = 60 / 1000;
+		this.#frameInterval = 1000 / 60;
 		this.#timeSinceLastFrame = 0;
 		this.#animationFrameRequestId = null;
 		this.#resizeTimeoutId = null;
@@ -235,24 +222,6 @@ export class Instance {
 				this._parameters["resize_delay"],
 			);
 		});
-	}
-
-	/**
-	 * @param {String} event
-	 * @param {Function} listener
-	 */
-	addListener(event, listener) {
-		this.#listeners[event].push(listener);
-		this.#listeners[`${event}_count`]++;
-	}
-
-	/**
-	 * @param {String} event
-	 * @param {Function} listener
-	 */
-	removeListener(event, listener) {
-		this.#listeners[event].splice(this.#listeners[event].indexOf(listener), 1);
-		this.#listeners[`${event}_count`]--;
 	}
 
 	/**

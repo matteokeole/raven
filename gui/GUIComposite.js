@@ -369,7 +369,6 @@ export class GUIComposite extends Composite {
 	 * 
 	 * @param {Component[]} children
 	 * @param {Object} options
-	 * @param {Boolean} [options.addListeners]
 	 * @param {Boolean} [options.addToTree]
 	 */
 	#addChildrenToRenderQueue(children, addToTree = false) {
