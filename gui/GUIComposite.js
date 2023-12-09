@@ -1,6 +1,6 @@
 import {GUIRenderer, Layer} from "./index.js";
 import {Component, StructuralComponent, VisualComponent} from "./Component/index.js";
-import {Event, MouseDownEvent, MouseMoveEvent} from "./Event/index.js";
+import {Event, KeyDownEvent, KeyUpEvent, MouseDownEvent, MouseMoveEvent} from "./Event/index.js";
 import {Composite, Instance} from "../index.js";
 import {Camera, OrthographicCamera} from "../cameras/index.js";
 import {Font} from "../fonts/index.js";
@@ -334,6 +334,20 @@ export class GUIComposite extends Composite {
 
 		this.compute();
 		this.render();
+	}
+
+	/**
+	 * @param {KeyboardEvent} event
+	 */
+	onKeyDown(event) {
+		this.dispatchEvent(new KeyDownEvent(event.code));
+	}
+
+	/**
+	 * @param {KeyboardEvent} event
+	 */
+	onKeyUp(event) {
+		this.dispatchEvent(new KeyUpEvent(event.code));
 	}
 
 	/**

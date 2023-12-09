@@ -99,6 +99,18 @@ export class Composite {
 
 	/**
 	 * @abstract
+	 * @param {KeyboardEvent} event
+	 */
+	onKeyDown(event) {}
+
+	/**
+	 * @abstract
+	 * @param {KeyboardEvent} event
+	 */
+	onKeyUp(event) {}
+
+	/**
+	 * @abstract
 	 * @param {MouseEvent} event
 	 */
 	onMouseDown(event) {}

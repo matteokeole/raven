@@ -198,6 +198,8 @@ export class Instance {
 
 		const canvas = this.#renderer.getCanvas();
 
+		addEventListener("keydown", this.#onKeyDown.bind(this));
+		addEventListener("keyup", this.#onKeyUp.bind(this));
 		canvas.addEventListener("mousedown", this.#onMouseDown.bind(this));
 		canvas.addEventListener("mousemove", this.#onMouseMove.bind(this));
 
@@ -339,6 +341,24 @@ export class Instance {
 			}
 
 			this.#composites[i].update(frameIndex);
+		}
+	}
+
+	/**
+	 * @param {KeyboardEvent} event
+	 */
+	#onKeyDown(event) {
+		for (let i = 0; i < this.#compositeCount; i++) {
+			this.#composites[i].onKeyDown(event);
+		}
+	}
+
+	/**
+	 * @param {KeyboardEvent} event
+	 */
+	#onKeyUp(event) {
+		for (let i = 0; i < this.#compositeCount; i++) {
+			this.#composites[i].onKeyUp(event);
 		}
 	}
 
