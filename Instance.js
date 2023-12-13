@@ -1,5 +1,5 @@
 import {Composite, InstanceRenderer} from "./index.js";
-import {intersects, Vector2, Vector4} from "./math/index.js";
+import {Vector2, Vector4} from "./math/index.js";
 
 /**
  * @abstract
@@ -319,7 +319,7 @@ export class Instance {
 	#onKeyDown(event) {
 		for (let i = 0; i < this.#compositeCount; i++) {
 			this.#composites[i].onKeyDown(event);
-		}
+		}	
 	}
 
 	/**
