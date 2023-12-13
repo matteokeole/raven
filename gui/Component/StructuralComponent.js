@@ -6,7 +6,7 @@ import {Vector2} from "../../math/index.js";
  * @property {Number} alignment
  * @property {?Vector2} [margin]
  * @property {Vector2} size
- * @property {?Record.<String, Function>} [events]
+ * @property {?String[]} [events]
  * @property {Component[]} children
  */
 
