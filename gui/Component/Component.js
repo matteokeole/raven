@@ -82,6 +82,13 @@ export class Component {
 		return this.#margin;
 	}
 
+	/**
+	 * @param {Vector2} margin
+	 */
+	setMargin(margin) {
+		this.#margin = margin;
+	}
+
 	getSize() {
 		return this.#size;
 	}

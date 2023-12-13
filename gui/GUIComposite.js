@@ -1,6 +1,6 @@
 import {GUIRenderer, Layer} from "./index.js";
 import {Component, StructuralComponent, VisualComponent} from "./Component/index.js";
-import {Event, KeyDownEvent, KeyUpEvent, MouseDownEvent, MouseMoveEvent} from "./Event/index.js";
+import {Event, KeyPressEvent, KeyReleaseEvent, KeyRepeatEvent, MouseDownEvent, MouseMoveEvent} from "./Event/index.js";
 import {Composite, Instance} from "../index.js";
 import {Camera, OrthographicCamera} from "../cameras/index.js";
 import {Font} from "../fonts/index.js";
@@ -239,9 +239,8 @@ export class GUIComposite extends Composite {
 	push(layer) {
 		this.#layerStack.push(layer);
 
-
 		this._scene.resetSubcomponentCount();
-		this.#animatedComponents.length = 0;
+		// this.#animatedComponents.length = 0;
 
 		// Mark the tree length as the extraction index for this layer
 		this.#lastInsertionIndices.push(this.#tree.length);
@@ -291,8 +290,14 @@ export class GUIComposite extends Composite {
 		const carry = event.getCarry();
 		const eventListeners = this.#eventListeners[eventName];
 
-		for (let i = 0, length = eventListeners.length; i < length; i++) {
-			eventListeners[i](carry, this);
+		for (let i = eventListeners.length - 1; i >= 0; i--) {
+			const eventListener = eventListeners[i];
+
+			if (!eventListener) {
+				break;
+			}
+
+			eventListener(carry, this);
 		}
 	}
 
@@ -308,7 +313,8 @@ export class GUIComposite extends Composite {
 			throw new Error("Could not pop: no layers registered.");
 		}
 
-		this.#popEventListenerBucket();
+		this.#layerStack.pop();
+		this.#popEventListenerBuckets();
 
 		/**
 		 * @todo Also truncate the root components?
@@ -320,7 +326,7 @@ export class GUIComposite extends Composite {
 		this._scene.clear();
 		this.#animatedComponents.length = 0;
 
-		if (this.#layerStack.length === 1) {
+		if (this.#layerStack.length === 0) {
 			this.#rootComponents.length = 0;
 
 			this._renderer.clear();
@@ -339,15 +345,22 @@ export class GUIComposite extends Composite {
 	/**
 	 * @param {KeyboardEvent} event
 	 */
-	onKeyDown(event) {
-		this.dispatchEvent(new KeyDownEvent(event.code));
+	onKeyPress(event) {
+		this.dispatchEvent(new KeyPressEvent(event.code));
 	}
 
 	/**
 	 * @param {KeyboardEvent} event
 	 */
-	onKeyUp(event) {
-		this.dispatchEvent(new KeyUpEvent(event.code));
+	onKeyRepeat(event) {
+		this.dispatchEvent(new KeyRepeatEvent(event.code));
+	}
+
+	/**
+	 * @param {KeyboardEvent} event
+	 */
+	onKeyRelease(event) {
+		this.dispatchEvent(new KeyReleaseEvent(event.code));
 	}
 
 	/**
@@ -433,7 +446,7 @@ export class GUIComposite extends Composite {
 	/**
 	 * @todo Find a way to remove the `Object.values` call
 	 */
-	#popEventListenerBucket() {
+	#popEventListenerBuckets() {
 		/**
 		 * @type {BucketQueue[]}
 		 */

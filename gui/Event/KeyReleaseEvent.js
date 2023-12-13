@@ -5,6 +5,6 @@ import {Event} from "./index.js";
  * 
  * @extends {Event<String>}
  */
-export class KeyUpEvent extends Event {
-	static NAME = "key_up";
+export class KeyReleaseEvent extends Event {
+	static NAME = "key_release";
 }

@@ -8,14 +8,21 @@ export class BucketQueue extends Array {
 	 */
 	#bucketIndices;
 
+	/**
+	 * @type {Number}
+	 */
+	#lastBucketLength;
+
 	constructor() {
 		super();
 
 		this.#bucketIndices = [];
+		this.#lastBucketLength = 0;
 	}
 
 	sealBucket() {
-		this.#bucketIndices.push(this.length);
+		this.#bucketIndices.push(this.#lastBucketLength);
+		this.#lastBucketLength = this.length;
 	}
 
 	/**
@@ -26,6 +33,7 @@ export class BucketQueue extends Array {
 			throw new Error("Cannot pop bucket: no buckets found.");
 		}
 
-		this.length = this.#bucketIndices.pop();
+		this.#lastBucketLength = this.#bucketIndices.pop();
+		this.length = this.#lastBucketLength;
 	}
 }

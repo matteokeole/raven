@@ -71,6 +71,11 @@ export class Instance {
 	#isRunning;
 
 	/**
+	 * @type {Object.<String, Boolean>}
+	 */
+	#currentPressedKeys;
+
+	/**
 	 * @param {InstanceRenderer} renderer
 	 */
 	constructor(renderer) {
@@ -93,6 +98,7 @@ export class Instance {
 		this.#animationFrameRequestId = null;
 		this.#resizeTimeoutId = null;
 		this.#isRunning = false;
+		this.#currentPressedKeys = {};
 	}
 
 	getRenderer() {
@@ -185,8 +191,8 @@ export class Instance {
 
 		const canvas = this.#renderer.getCanvas();
 
-		addEventListener("keydown", this.#onKeyDown.bind(this));
-		addEventListener("keyup", this.#onKeyUp.bind(this));
+		addEventListener("keydown", this.#onKeyPressAndRepeat.bind(this));
+		addEventListener("keyup", this.#onKeyRelease.bind(this));
 		canvas.addEventListener("mousedown", this.#onMouseDown.bind(this));
 		canvas.addEventListener("mousemove", this.#onMouseMove.bind(this));
 
@@ -316,18 +322,31 @@ export class Instance {
 	/**
 	 * @param {KeyboardEvent} event
 	 */
-	#onKeyDown(event) {
+	#onKeyPressAndRepeat(event) {
+		if (this.#currentPressedKeys[event.code]) {
+			// Keyrepeat event
+			for (let i = 0; i < this.#compositeCount; i++) {
+				this.#composites[i].onKeyRepeat(event);
+			}
+
+			return;
+		}
+
+		this.#currentPressedKeys[event.code] = true;
+
 		for (let i = 0; i < this.#compositeCount; i++) {
-			this.#composites[i].onKeyDown(event);
-		}	
+			this.#composites[i].onKeyPress(event);
+		}
 	}
 
 	/**
 	 * @param {KeyboardEvent} event
 	 */
-	#onKeyUp(event) {
+	#onKeyRelease(event) {
+		this.#currentPressedKeys[event.code] = false;
+
 		for (let i = 0; i < this.#compositeCount; i++) {
-			this.#composites[i].onKeyUp(event);
+			this.#composites[i].onKeyRelease(event);
 		}
 	}
 
