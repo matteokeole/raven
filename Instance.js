@@ -71,7 +71,7 @@ export class Instance {
 	#isRunning;
 
 	/**
-	 * @type {Object.<String, Boolean>}
+	 * @type {Record.<String, Boolean>}
 	 */
 	#currentPressedKeys;
 
