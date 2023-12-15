@@ -19,7 +19,6 @@ export class TextureLoader extends Loader {
 	 * Loads and returns a list of textures from a source file.
 	 * Continues to the next image if a source cannot be decoded.
 	 * 
-	 * @inheritdoc
 	 * @param {String} path
 	 * @returns {Promise.<Image[]>}
 	 * @throws {Error} if the request fails

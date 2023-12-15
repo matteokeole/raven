@@ -1,5 +1,5 @@
 import {Composite, InstanceRenderer} from "./index.js";
-import {intersects, Vector2, Vector4} from "./math/index.js";
+import {Vector2, Vector4} from "./math/index.js";
 
 /**
  * @abstract
@@ -31,12 +31,7 @@ export class Instance {
 	#pointer;
 
 	/**
-	 * @type {Object.<String, *>}
-	 */
-	#listeners;
-
-	/**
-	 * @type {Object.<String, *>}
+	 * @type {Record.<String, *>}
 	 */
 	_parameters;
 
@@ -76,6 +71,11 @@ export class Instance {
 	#isRunning;
 
 	/**
+	 * @type {Record.<String, Boolean>}
+	 */
+	#currentPressedKeys;
+
+	/**
 	 * @param {InstanceRenderer} renderer
 	 */
 	constructor(renderer) {
@@ -84,14 +84,6 @@ export class Instance {
 		this.#compositeCount = 0;
 		this.#resizeObserver = null;
 		this.#pointer = new Vector2();
-		this.#listeners = {
-			mouse_down: [],
-			mouse_down_count: 0,
-			mouse_enter: [],
-			mouse_enter_count: 0,
-			mouse_leave: [],
-			mouse_leave_count: 0,
-		};
 		this._parameters = {
 			current_scale: 0,
 			font_path: "",
@@ -101,23 +93,18 @@ export class Instance {
 		};
 		this.#framesPerSecond = 60;
 		this.#frameIndex = 0;
-		this.#frameInterval = 60 / 1000;
+		this.#frameInterval = 1000 / 60;
 		this.#timeSinceLastFrame = 0;
 		this.#animationFrameRequestId = null;
 		this.#resizeTimeoutId = null;
 		this.#isRunning = false;
+		this.#currentPressedKeys = {};
 	}
 
-	/**
-	 * @returns {InstanceRenderer}
-	 */
 	getRenderer() {
 		return this.#renderer;
 	}
 
-	/**
-	 * @returns {Composite[]}
-	 */
 	getComposites() {
 		return this.#composites;
 	}
@@ -136,9 +123,6 @@ export class Instance {
 		}
 	};
 
-	/**
-	 * @returns {ResizeObserver}
-	 */
 	getResizeObserver() {
 		return this.#resizeObserver;
 	}
@@ -152,7 +136,6 @@ export class Instance {
 
 	/**
 	 * @param {String} key
-	 * @returns {*}
 	 * @throws {ReferenceError}
 	 */
 	getParameter(key) {
@@ -176,9 +159,6 @@ export class Instance {
 		this._parameters[key] = value;
 	}
 
-	/**
-	 * @returns {Number}
-	 */
 	getFramesPerSecond() {
 		return this.#framesPerSecond;
 	}
@@ -211,6 +191,8 @@ export class Instance {
 
 		const canvas = this.#renderer.getCanvas();
 
+		addEventListener("keydown", this.#onKeyPressAndRepeat.bind(this));
+		addEventListener("keyup", this.#onKeyRelease.bind(this));
 		canvas.addEventListener("mousedown", this.#onMouseDown.bind(this));
 		canvas.addEventListener("mousemove", this.#onMouseMove.bind(this));
 
@@ -246,24 +228,6 @@ export class Instance {
 				this._parameters["resize_delay"],
 			);
 		});
-	}
-
-	/**
-	 * @param {String} event
-	 * @param {Function} listener
-	 */
-	addListener(event, listener) {
-		this.#listeners[event].push(listener);
-		this.#listeners[`${event}_count`]++;
-	}
-
-	/**
-	 * @param {String} event
-	 * @param {Function} listener
-	 */
-	removeListener(event, listener) {
-		this.#listeners[event].splice(this.#listeners[event].indexOf(listener), 1);
-		this.#listeners[`${event}_count`]--;
 	}
 
 	/**
@@ -320,6 +284,7 @@ export class Instance {
 
 	#loop() {
 		this.#animationFrameRequestId = requestAnimationFrame(this.#loop.bind(this));
+
 		const time = performance.now();
 		const delta = time - this.#timeSinceLastFrame;
 
@@ -354,60 +319,58 @@ export class Instance {
 		}
 	}
 
-	#onMouseDown() {
-		for (let i = 0, l = this.#listeners.mouse_down_count, listener; i < l; i++) {
-			listener = this.#listeners.mouse_down[i];
-
-			if (!intersects(this.#pointer, listener.component.getPosition(), listener.component.getSize())) {
-				continue;
+	/**
+	 * @param {KeyboardEvent} event
+	 */
+	#onKeyPressAndRepeat(event) {
+		if (this.#currentPressedKeys[event.code]) {
+			// Keyrepeat event
+			for (let i = 0; i < this.#compositeCount; i++) {
+				this.#composites[i].onKeyRepeat(event);
 			}
 
-			listener(this.#pointer);
+			return;
+		}
 
-			break;
+		this.#currentPressedKeys[event.code] = true;
+
+		for (let i = 0; i < this.#compositeCount; i++) {
+			this.#composites[i].onKeyPress(event);
 		}
 	}
 
 	/**
-	 * @param {Object} event
-	 * @param {Number} event.clientX
-	 * @param {Number} event.clientY
+	 * @param {KeyboardEvent} event
 	 */
-	#onMouseMove({clientX, clientY}) {
-		this.#pointer[0] = clientX;
-		this.#pointer[1] = clientY;
+	#onKeyRelease(event) {
+		this.#currentPressedKeys[event.code] = false;
+
+		for (let i = 0; i < this.#compositeCount; i++) {
+			this.#composites[i].onKeyRelease(event);
+		}
+	}
+
+	/**
+	 * @param {MouseEvent} event
+	 */
+	#onMouseDown(event) {
+		for (let i = 0; i < this.#compositeCount; i++) {
+			this.#composites[i].onMouseDown(event);
+		}
+	}
+
+	/**
+	 * @param {MouseEvent} event
+	 */
+	#onMouseMove(event) {
+		this.#pointer[0] = event.clientX;
+		this.#pointer[1] = event.clientY;
 		this.#pointer
 			.multiplyScalar(devicePixelRatio)
 			.divideScalar(this._parameters["current_scale"]);
 
-		let i, l, listener;
-
-		for (i = 0, l = this.#listeners.mouse_enter_count; i < l; i++) {
-			listener = this.#listeners.mouse_enter[i];
-
-			if (!intersects(this.#pointer, listener.component.getPosition(), listener.component.getSize())) {
-				continue;
-			}
-			if (listener.component.isHovered()) {
-				continue;
-			}
-
-			listener.component.setHovered(true);
-			listener(this.#pointer);
-		}
-
-		for (i = 0, l = this.#listeners.mouse_leave_count; i < l; i++) {
-			listener = this.#listeners.mouse_leave[i];
-
-			if (intersects(this.#pointer, listener.component.getPosition(), listener.component.getSize())) {
-				continue;
-			}
-			if (!listener.component.isHovered()) {
-				continue;
-			}
-
-			listener.component.setHovered(false);
-			listener(this.#pointer);
+		for (let i = 0; i < this.#compositeCount; i++) {
+			this.#composites[i].onMouseMove(event);
 		}
 	}
 }

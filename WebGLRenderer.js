@@ -1,7 +1,7 @@
 import {ShaderCompilationError} from "./errors/index.js";
 import {Vector2, Vector4} from "./math/index.js";
 import {Scene} from "./Scene/Scene.js";
-import {TextureContainer} from "./wrappers/index.js";
+import {TextureWrapper} from "./wrappers/index.js";
 
 /**
  * @abstract
@@ -33,17 +33,17 @@ export class WebGLRenderer {
 	_programs;
 
 	/**
-	 * @type {Object.<String, Number>}
+	 * @type {Record.<String, Number>}
 	 */
 	_attributes;
 
 	/**
-	 * @type {Object.<String, WebGLUniformLocation>}
+	 * @type {Record.<String, WebGLUniformLocation>}
 	 */
 	_uniforms;
 
 	/**
-	 * @type {Object.<String, WebGLBuffer>}
+	 * @type {Record.<String, WebGLBuffer>}
 	 */
 	_buffers;
 
@@ -52,7 +52,7 @@ export class WebGLRenderer {
 	 * but rather the images uploaded by the user using `WebGLRenderer#createTextureArray`
 	 * (that are stored inside a `TEXTURE_2D_ARRAY` texture).
 	 * 
-	 * @type {Object.<String, TextureContainer>}
+	 * @type {Record.<String, TextureWrapper>}
 	 */
 	_textures;
 
@@ -67,16 +67,10 @@ export class WebGLRenderer {
 		this._textures = {};
 	}
 
-	/**
-	 * @returns {null|HTMLCanvasElement|OffscreenCanvas}
-	 */
 	getCanvas() {
 		return this._canvas;
 	}
 
-	/**
-	 * @returns {Vector4}
-	 */
 	getViewport() {
 		return this.#viewport;
 	}
@@ -97,16 +91,13 @@ export class WebGLRenderer {
 		);
 	}
 
-	/**
-	 * @returns {Object.<String, TextureContainer>}
-	 */
 	getTextures() {
 		return this._textures;
 	}
 
 	/**
 	 * @param {String} name
-	 * @returns {?TextureContainer}
+	 * @returns {?TextureWrapper}
 	 * @throws {ReferenceError} if no texture has this name
 	 */
 	getTexture(name) {
@@ -125,7 +116,6 @@ export class WebGLRenderer {
 	/**
 	 * @param {String} vertexShaderSource
 	 * @param {String} fragmentShaderSource
-	 * @returns {WebGLProgram}
 	 * @throws {ShaderCompilationError} if the program linking was not successful
 	 */
 	_createProgram(vertexShaderSource, fragmentShaderSource) {
@@ -191,7 +181,7 @@ export class WebGLRenderer {
 				texture.image,
 			);
 
-			this._textures[texture.name] = new TextureContainer({
+			this._textures[texture.name] = new TextureWrapper({
 				image: texture.image,
 				index: i,
 				viewport: texture.viewport,
@@ -254,7 +244,6 @@ export class WebGLRenderer {
 	/**
 	 * @param {GLint} type
 	 * @param {String} source
-	 * @returns {WebGLShader}
 	 */
 	#createShader(type, source) {
 		const shader = this._context.createShader(type);

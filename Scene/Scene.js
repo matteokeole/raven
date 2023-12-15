@@ -11,9 +11,6 @@ export class Scene {
 		this._queue = [];
 	}
 
-	/**
-	 * @returns {Array}
-	 */
 	getQueue() {
 		return this._queue;
 	}

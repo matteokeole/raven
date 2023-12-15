@@ -1,1 +1,1 @@
-export {TextureContainer} from "./TextureContainer.js";
+export {TextureWrapper} from "./TextureWrapper.js";

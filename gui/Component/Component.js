@@ -1,10 +1,24 @@
-import {Alignment} from "../index.js";
+import {GUIComposite} from "../index.js";
+import {Event} from "../Event/index.js";
 import {Matrix3, Vector2} from "../../math/index.js";
+
+/**
+ * @typedef {Object} ComponentDescriptor
+ * @property {Number} alignment
+ * @property {?Vector2} [margin]
+ * @property {Vector2} size
+ * @property {?String[]} [events]
+ */
 
 /**
  * @abstract
  */
 export class Component {
+	/**
+	 * @type {?GUIComposite}
+	 */
+	#eventDispatcher;
+
 	/**
 	 * @type {?Vector2}
 	 */
@@ -26,21 +40,29 @@ export class Component {
 	#size;
 
 	/**
-	 * @param {Object} options
-	 * @param {Number} options.alignment
-	 * @param {Vector2} [options.margin]
-	 * @param {Vector2} options.size
+	 * @type {String[]}
 	 */
-	constructor({alignment, margin = new Vector2(), size}) {
+	#events;
+
+	/**
+	 * @param {ComponentDescriptor} descriptor
+	 */
+	constructor(descriptor) {
+		this.#eventDispatcher = null;
 		this.#position = null;
-		this.#alignment = alignment;
-		this.#margin = margin;
-		this.#size = size;
+		this.#alignment = descriptor.alignment;
+		this.#margin = descriptor.margin ?? new Vector2();
+		this.#size = descriptor.size;
+		this.#events = descriptor.events ?? [];
 	}
 
 	/**
-	 * @returns {?Vector2}
+	 * @param {GUIComposite} eventDispatcher
 	 */
+	setEventDispatcher(eventDispatcher) {
+		this.#eventDispatcher = eventDispatcher;
+	}
+
 	getPosition() {
 		return this.#position;
 	}
@@ -52,23 +74,21 @@ export class Component {
 		this.#position = position;
 	}
 
-	/**
-	 * @returns {Number}
-	 */
 	getAlignment() {
 		return this.#alignment;
 	}
 
-	/**
-	 * @returns {Vector2}
-	 */
 	getMargin() {
 		return this.#margin;
 	}
 
 	/**
-	 * @returns {Vector2}
+	 * @param {Vector2} margin
 	 */
+	setMargin(margin) {
+		this.#margin = margin;
+	}
+
 	getSize() {
 		return this.#size;
 	}
@@ -80,6 +100,10 @@ export class Component {
 		this.#size = size;
 	}
 
+	getEvents() {
+		return this.#events;
+	}
+
 	/**
 	 * Calculates the component absolute position.
 	 * 
@@ -88,7 +112,7 @@ export class Component {
 	 */
 	compute(initial, parentSize) {
 		const x = ((this.#alignment & 0b111000) >> 4) * .5;
-		const y = ((this.#alignment & 0b111) >> 1) * .5;
+		const y = ((this.#alignment & 0b000111) >> 1) * .5;
 
 		const displacement = parentSize
 			.subtract(this.#size)
@@ -106,12 +130,16 @@ export class Component {
 			.floor();
 	}
 
-	/**
-	 * @returns {Matrix3}
-	 */
 	getWorld() {
 		return Matrix3
 			.translation(this.#position)
 			.multiply(Matrix3.scale(this.#size));
+	}
+
+	/**
+	 * @param {Event} event
+	 */
+	dispatchEvent(event) {
+		this.#eventDispatcher.dispatchEvent(event);
 	}
 }

@@ -45,23 +45,14 @@ export class Composite {
 		this.#isAnimatable = false;
 	}
 
-	/**
-	 * @returns {WebGLRenderer}
-	 */
 	getRenderer() {
 		return this._renderer;
 	}
 
-	/**
-	 * @returns {Instance}
-	 */
 	getInstance() {
 		return this.#instance;
 	}
 
-	/**
-	 * @returns {?Number}
-	 */
 	getIndex() {
 		return this.#index;
 	}
@@ -73,9 +64,6 @@ export class Composite {
 		this.#index = index;
 	}
 
-	/**
-	 * @returns {Boolean}
-	 */
 	isAnimatable() {
 		return this.#isAnimatable;
 	}
@@ -108,4 +96,34 @@ export class Composite {
 	 * @param {Vector4} viewport
 	 */
 	resize(viewport) {}
+
+	/**
+	 * @abstract
+	 * @param {KeyboardEvent} event
+	 */
+	onKeyPress(event) {}
+
+	/**
+	 * @abstract
+	 * @param {KeyboardEvent} event
+	 */
+	onKeyRepeat(event) {}
+
+	/**
+	 * @abstract
+	 * @param {KeyboardEvent} event
+	 */
+	onKeyRelease(event) {}
+
+	/**
+	 * @abstract
+	 * @param {MouseEvent} event
+	 */
+	onMouseDown(event) {}
+
+	/**
+	 * @abstract
+	 * @param {MouseEvent} event
+	 */
+	onMouseMove(event) {}
 }

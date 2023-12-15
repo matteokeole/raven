@@ -1,5 +1,5 @@
-import {Component} from "./components/index.js";
-import {Composite} from "../index.js";
+import {GUIComposite} from "./index.js";
+import {Component} from "./Component/index.js";
 import {NotImplementedError} from "../errors/index.js";
 
 /**
@@ -9,7 +9,7 @@ import {NotImplementedError} from "../errors/index.js";
 export class Layer {
 	/**
 	 * @abstract
-	 * @param {Composite} context
+	 * @param {GUIComposite} context
 	 * @returns {Component}
 	 */
 	build(context) {
