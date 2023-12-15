@@ -1,13 +1,13 @@
 import {Vector2} from "../math/index.js";
 
 /**
- * @typedef {Object} TextureContainerDescriptor
+ * @typedef {Object} TextureWrapperDescriptor
  * @property {HTMLImageElement|Uint8Array} image
  * @property {Vector2} viewport
  * @property {Number} index
  */
 
-export class TextureContainer {
+export class TextureWrapper {
 	/**
 	 * @type {HTMLImageElement|Uint8Array}
 	 */
@@ -24,7 +24,7 @@ export class TextureContainer {
 	#index;
 
 	/**
-	 * @param {TextureContainerDescriptor} descriptor
+	 * @param {TextureWrapperDescriptor} descriptor
 	 */
 	constructor({image, viewport, index}) {
 		this.#image = image;

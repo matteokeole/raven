@@ -7,7 +7,7 @@ import {Font} from "../fonts/index.js";
 import {Matrix3, Vector2, intersects} from "../math/index.js";
 import {BucketQueue} from "../Queue/index.js";
 import {GUIScene} from "../Scene/index.js";
-import {TextureContainer} from "../wrappers/index.js";
+import {TextureWrapper} from "../wrappers/index.js";
 
 export class GUIComposite extends Composite {
 	/**
@@ -95,7 +95,7 @@ export class GUIComposite extends Composite {
 
 	/**
 	 * @param {String} key
-	 * @returns {TextureContainer}
+	 * @returns {TextureWrapper}
 	 * @throws {ReferenceError}
 	 */
 	getTexture(key) {

@@ -2,7 +2,7 @@ import {Component} from "./Component.js";
 import {Subcomponent} from "../index.js";
 import {Composite} from "../../index.js";
 import {Vector2} from "../../math/index.js";
-import {TextureContainer} from "../../wrappers/index.js";
+import {TextureWrapper} from "../../wrappers/index.js";
 
 /**
  * @typedef {Object} VisualComponentDescriptor
@@ -10,7 +10,7 @@ import {TextureContainer} from "../../wrappers/index.js";
  * @property {?Vector2} [margin]
  * @property {Vector2} size
  * @property {?String[]} [events]
- * @property {?TextureContainer} [texture]
+ * @property {?TextureWrapper} [texture]
  */
 
 /**
@@ -18,7 +18,7 @@ import {TextureContainer} from "../../wrappers/index.js";
  */
 export class VisualComponent extends Component {
 	/**
-	 * @type {?TextureContainer}
+	 * @type {?TextureWrapper}
 	 */
 	#texture;
 
@@ -42,7 +42,7 @@ export class VisualComponent extends Component {
 	}
 
 	/**
-	 * @param {?TextureContainer} texture
+	 * @param {?TextureWrapper} texture
 	 */
 	setTexture(texture) {
 		this.#texture = texture;
