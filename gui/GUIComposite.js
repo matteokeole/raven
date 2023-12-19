@@ -4,8 +4,8 @@ import {Event, KeyPressEvent, KeyReleaseEvent, KeyRepeatEvent, MouseDownEvent, M
 import {Composite, Instance} from "../index.js";
 import {Camera, OrthographicCamera} from "../cameras/index.js";
 import {Font} from "../fonts/index.js";
-import {Matrix3, Vector2, intersects} from "../math/index.js";
-import {BucketQueue} from "../Queue/index.js";
+import {Matrix3, Vector2} from "../math/index.js";
+import {BucketStack} from "../Stack/index.js";
 import {GUIScene} from "../Scene/index.js";
 import {TextureWrapper} from "../wrappers/index.js";
 
@@ -43,7 +43,7 @@ export class GUIComposite extends Composite {
 	#lastInsertionIndices;
 
 	/**
-	 * @type {Record.<String, BucketQueue.<Function>>}
+	 * @type {Record.<String, BucketStack.<Function>>}
 	 */
 	#eventListeners;
 
@@ -420,7 +420,7 @@ export class GUIComposite extends Composite {
 			}
 
 			if (!(eventName in this.#eventListeners)) {
-				this.#eventListeners[eventName] = new BucketQueue();
+				this.#eventListeners[eventName] = new BucketStack();
 			}
 
 			eventListener = component[eventName].bind(component);
@@ -434,12 +434,12 @@ export class GUIComposite extends Composite {
 	 */
 	#sealEventListenerBuckets() {
 		/**
-		 * @type {BucketQueue[]}
+		 * @type {BucketStack[]}
 		 */
-		const eventListenerQueues = Object.values(this.#eventListeners);
+		const eventListenerStacks = Object.values(this.#eventListeners);
 
-		for (let i = 0, length = eventListenerQueues.length; i < length; i++) {
-			eventListenerQueues[i].sealBucket();
+		for (let i = 0, length = eventListenerStacks.length; i < length; i++) {
+			eventListenerStacks[i].sealBucket();
 		}
 	}
 
@@ -448,12 +448,12 @@ export class GUIComposite extends Composite {
 	 */
 	#popEventListenerBuckets() {
 		/**
-		 * @type {BucketQueue[]}
+		 * @type {BucketStack[]}
 		 */
-		const eventListenerQueues = Object.values(this.#eventListeners);
+		const eventListenerStacks = Object.values(this.#eventListeners);
 
-		for (let i = 0, length = eventListenerQueues.length; i < length; i++) {
-			eventListenerQueues[i].popBucket();
+		for (let i = 0, length = eventListenerStacks.length; i < length; i++) {
+			eventListenerStacks[i].popBucket();
 		}
 	}
 
