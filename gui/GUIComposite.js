@@ -215,7 +215,7 @@ export class GUIComposite extends Composite {
 			component = this.#tree[i];
 
 			if (component instanceof StructuralComponent) {
-				this.#addChildrenToRenderQueue(component.getChildren(), false);
+				this.#addChildrenToRenderQueue(component.getChildren(), false, true);
 
 				continue;
 			}
@@ -248,7 +248,7 @@ export class GUIComposite extends Composite {
 		const rootComponent = this.#buildLayer(layer);
 
 		this.#rootComponents.push(rootComponent);
-		this.#addChildrenToRenderQueue([rootComponent], true);
+		this.#addChildrenToRenderQueue([rootComponent], true, true);
 		this.#sealEventListenerBuckets();
 
 		this.compute();
@@ -334,7 +334,7 @@ export class GUIComposite extends Composite {
 			return;
 		}
 
-		this.#addChildrenToRenderQueue(this.#tree, false);
+		this.#addChildrenToRenderQueue(this.#tree, false, false);
 
 		this._renderer.clear();
 
@@ -381,15 +381,17 @@ export class GUIComposite extends Composite {
 	 * Populates recursively the component tree.
 	 * 
 	 * @param {Component[]} children
-	 * @param {Object} options
-	 * @param {Boolean} [options.addToTree]
+	 * @param {Boolean} addToTree
+	 * @param {Boolean} registerEvents
 	 */
-	#addChildrenToRenderQueue(children, addToTree = false) {
+	#addChildrenToRenderQueue(children, addToTree, registerEvents) {
 		for (let i = 0, l = children.length, component; i < l; i++) {
 			component = children[i];
 			component.setEventDispatcher(this);
 
-			this.#pushEventListeners(component);
+			if (registerEvents) {
+				this.#pushEventListeners(component);
+			}
 
 			if (!(component instanceof StructuralComponent)) {
 				this._scene.add(component);
@@ -402,7 +404,7 @@ export class GUIComposite extends Composite {
 				continue;
 			}
 
-			this.#addChildrenToRenderQueue(component.getChildren(), addToTree);
+			this.#addChildrenToRenderQueue(component.getChildren(), addToTree, registerEvents);
 		}
 	}
 
