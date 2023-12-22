@@ -382,14 +382,18 @@ export class GUIComposite extends Composite {
 	 * @param {MouseEvent} event
 	 */
 	onMouseDown(event) {
-		this.dispatchEvent(new MouseDownEvent(new Vector2(event.clientX, event.clientY)));
+		const carry = new Vector2(event.clientX, event.clientY);
+
+		this.dispatchEvent(new MouseDownEvent(carry));
 	}
 
 	/**
 	 * @param {MouseEvent} event
 	 */
 	onMouseMove(event) {
-		this.dispatchEvent(new MouseMoveEvent(new Vector2(event.clientX, event.clientY)));
+		const carry = new Vector2(event.clientX, event.clientY);
+
+		this.dispatchEvent(new MouseMoveEvent(carry));
 	}
 
 	/**
