@@ -346,21 +346,36 @@ export class GUIComposite extends Composite {
 	 * @param {KeyboardEvent} event
 	 */
 	onKeyPress(event) {
-		this.dispatchEvent(new KeyPressEvent(event.code));
+		const carry = {
+			key: event.key,
+			code: event.code,
+		};
+
+		this.dispatchEvent(new KeyPressEvent(carry));
 	}
 
 	/**
 	 * @param {KeyboardEvent} event
 	 */
 	onKeyRepeat(event) {
-		this.dispatchEvent(new KeyRepeatEvent(event.code));
+		const carry = {
+			key: event.key,
+			code: event.code,
+		};
+
+		this.dispatchEvent(new KeyRepeatEvent(carry));
 	}
 
 	/**
 	 * @param {KeyboardEvent} event
 	 */
 	onKeyRelease(event) {
-		this.dispatchEvent(new KeyReleaseEvent(event.code));
+		const carry = {
+			key: event.key,
+			code: event.code,
+		};
+
+		this.dispatchEvent(new KeyReleaseEvent(carry));
 	}
 
 	/**
