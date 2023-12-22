@@ -25,12 +25,13 @@ export class BucketStack extends Array {
 		this.#lastBucketLength = this.length;
 	}
 
-	/**
-	 * @throws {Error} if there are no buckets
-	 */
 	popBucket() {
+		/**
+		 * If this instance is more recent than others, the numbers of buckets may not match.
+		 * This prevents crashing if no bucket indices are found.
+		 */
 		if (this.#bucketIndices.length === 0) {
-			throw new Error("Cannot pop bucket: no buckets found.");
+			return;
 		}
 
 		this.#lastBucketLength = this.#bucketIndices.pop();
