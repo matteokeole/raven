@@ -4,8 +4,8 @@ import {Event, KeyPressEvent, KeyReleaseEvent, KeyRepeatEvent, MouseDownEvent, M
 import {Composite, Instance} from "../index.js";
 import {Camera, OrthographicCamera} from "../cameras/index.js";
 import {Font} from "../fonts/index.js";
-import {Matrix3, Vector2, intersects} from "../math/index.js";
-import {BucketQueue} from "../Queue/index.js";
+import {Matrix3, Vector2} from "../math/index.js";
+import {BucketStack} from "../Stack/index.js";
 import {GUIScene} from "../Scene/index.js";
 import {TextureWrapper} from "../wrappers/index.js";
 
@@ -43,7 +43,7 @@ export class GUIComposite extends Composite {
 	#lastInsertionIndices;
 
 	/**
-	 * @type {Record.<String, BucketQueue.<Function>>}
+	 * @type {Record.<String, BucketStack.<Function>>}
 	 */
 	#eventListeners;
 
@@ -215,7 +215,7 @@ export class GUIComposite extends Composite {
 			component = this.#tree[i];
 
 			if (component instanceof StructuralComponent) {
-				this.#addChildrenToRenderQueue(component.getChildren(), false);
+				this.#addChildrenToRenderQueue(component.getChildren(), false, true);
 
 				continue;
 			}
@@ -248,7 +248,7 @@ export class GUIComposite extends Composite {
 		const rootComponent = this.#buildLayer(layer);
 
 		this.#rootComponents.push(rootComponent);
-		this.#addChildrenToRenderQueue([rootComponent], true);
+		this.#addChildrenToRenderQueue([rootComponent], true, true);
 		this.#sealEventListenerBuckets();
 
 		this.compute();
@@ -334,7 +334,7 @@ export class GUIComposite extends Composite {
 			return;
 		}
 
-		this.#addChildrenToRenderQueue(this.#tree, false);
+		this.#addChildrenToRenderQueue(this.#tree, false, false);
 
 		this._renderer.clear();
 
@@ -346,21 +346,36 @@ export class GUIComposite extends Composite {
 	 * @param {KeyboardEvent} event
 	 */
 	onKeyPress(event) {
-		this.dispatchEvent(new KeyPressEvent(event.code));
+		const carry = {
+			key: event.key,
+			code: event.code,
+		};
+
+		this.dispatchEvent(new KeyPressEvent(carry));
 	}
 
 	/**
 	 * @param {KeyboardEvent} event
 	 */
 	onKeyRepeat(event) {
-		this.dispatchEvent(new KeyRepeatEvent(event.code));
+		const carry = {
+			key: event.key,
+			code: event.code,
+		};
+
+		this.dispatchEvent(new KeyRepeatEvent(carry));
 	}
 
 	/**
 	 * @param {KeyboardEvent} event
 	 */
 	onKeyRelease(event) {
-		this.dispatchEvent(new KeyReleaseEvent(event.code));
+		const carry = {
+			key: event.key,
+			code: event.code,
+		};
+
+		this.dispatchEvent(new KeyReleaseEvent(carry));
 	}
 
 	/**
@@ -381,15 +396,17 @@ export class GUIComposite extends Composite {
 	 * Populates recursively the component tree.
 	 * 
 	 * @param {Component[]} children
-	 * @param {Object} options
-	 * @param {Boolean} [options.addToTree]
+	 * @param {Boolean} addToTree
+	 * @param {Boolean} registerEvents
 	 */
-	#addChildrenToRenderQueue(children, addToTree = false) {
+	#addChildrenToRenderQueue(children, addToTree, registerEvents) {
 		for (let i = 0, l = children.length, component; i < l; i++) {
 			component = children[i];
 			component.setEventDispatcher(this);
 
-			this.#pushEventListeners(component);
+			if (registerEvents) {
+				this.#pushEventListeners(component);
+			}
 
 			if (!(component instanceof StructuralComponent)) {
 				this._scene.add(component);
@@ -402,7 +419,7 @@ export class GUIComposite extends Composite {
 				continue;
 			}
 
-			this.#addChildrenToRenderQueue(component.getChildren(), addToTree);
+			this.#addChildrenToRenderQueue(component.getChildren(), addToTree, registerEvents);
 		}
 	}
 
@@ -420,7 +437,7 @@ export class GUIComposite extends Composite {
 			}
 
 			if (!(eventName in this.#eventListeners)) {
-				this.#eventListeners[eventName] = new BucketQueue();
+				this.#eventListeners[eventName] = new BucketStack();
 			}
 
 			eventListener = component[eventName].bind(component);
@@ -434,12 +451,12 @@ export class GUIComposite extends Composite {
 	 */
 	#sealEventListenerBuckets() {
 		/**
-		 * @type {BucketQueue[]}
+		 * @type {BucketStack[]}
 		 */
-		const eventListenerQueues = Object.values(this.#eventListeners);
+		const eventListenerStacks = Object.values(this.#eventListeners);
 
-		for (let i = 0, length = eventListenerQueues.length; i < length; i++) {
-			eventListenerQueues[i].sealBucket();
+		for (let i = 0, length = eventListenerStacks.length; i < length; i++) {
+			eventListenerStacks[i].sealBucket();
 		}
 	}
 
@@ -448,12 +465,12 @@ export class GUIComposite extends Composite {
 	 */
 	#popEventListenerBuckets() {
 		/**
-		 * @type {BucketQueue[]}
+		 * @type {BucketStack[]}
 		 */
-		const eventListenerQueues = Object.values(this.#eventListeners);
+		const eventListenerStacks = Object.values(this.#eventListeners);
 
-		for (let i = 0, length = eventListenerQueues.length; i < length; i++) {
-			eventListenerQueues[i].popBucket();
+		for (let i = 0, length = eventListenerStacks.length; i < length; i++) {
+			eventListenerStacks[i].popBucket();
 		}
 	}
 

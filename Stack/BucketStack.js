@@ -2,7 +2,7 @@
  * @template T
  * @extends {Array<T>}
  */
-export class BucketQueue extends Array {
+export class BucketStack extends Array {
 	/**
 	 * @type {Number[]}
 	 */

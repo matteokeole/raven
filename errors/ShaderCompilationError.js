@@ -1,4 +1,6 @@
 /**
+ * @deprecated
+ * 
  * References an error when the binding of a `WebGLProgram` on a
  * `WebGLRenderingContext` fails due to a `WebGLShader` compilation error.
  * 
