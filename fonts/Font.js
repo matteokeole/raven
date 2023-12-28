@@ -1,4 +1,9 @@
 /**
+ * @typedef {Object} FontDescriptor
+ * @property {Number} lineSpacing
+ */
+
+/**
  * @abstract
  */
 export class Font {
@@ -8,11 +13,10 @@ export class Font {
 	#lineSpacing;
 
 	/**
-	 * @param {Object} options
-	 * @param {Number} options.lineSpacing
+	 * @param {FontDescriptor} descriptor
 	 */
-	constructor({lineSpacing}) {
-		this.#lineSpacing = lineSpacing;
+	constructor(descriptor) {
+		this.#lineSpacing = descriptor.lineSpacing;
 	}
 
 	getLineSpacing() {

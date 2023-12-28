@@ -3,6 +3,16 @@ import {Subcomponent} from "../gui/index.js";
 import {max, Vector2, Vector4} from "../math/index.js";
 
 /**
+ * @typedef {Object} BitmapFontDescriptor
+ * @property {String} glyphMapPath
+ * @property {String} texturePath
+ * @property {Number} tileHeight
+ * @property {Number} [tileSpacing]
+ * @property {Number} [lineSpacing]
+ * @property {Record.<String, Number>} [customTileWidths]
+ */
+
+/**
  * @typedef {Object} GlyphMapEntry
  * @property {Number} width
  * @property {[Number, Number]} uv
@@ -45,24 +55,20 @@ export class BitmapFont extends Font {
 	#customTileWidths;
 
 	/**
-	 * @param {Object} options
-	 * @param {String} options.glyphMapPath
-	 * @param {String} options.texturePath
-	 * @param {Number} options.tileHeight
-	 * @param {Number} [options.tileSpacing]
-	 * @param {Number} [options.lineSpacing]
-	 * @param {Record.<String, Number>} [options.customTileWidths]
+	 * @param {BitmapFontDescriptor} descriptor
 	 */
-	constructor({glyphMapPath, texturePath, tileHeight, tileSpacing = 0, lineSpacing = 0, customTileWidths = {}}) {
-		super({lineSpacing});
+	constructor(descriptor) {
+		super({
+			lineSpacing: descriptor.lineSpacing ?? 0,
+		});
 
-		this.#glyphMapPath = glyphMapPath;
-		this.#texturePath = texturePath;
+		this.#glyphMapPath = descriptor.glyphMapPath;
+		this.#texturePath = descriptor.texturePath;
 		this.#glyphMap = null;
 		this.#glyphs = null;
-		this.#tileHeight = tileHeight;
-		this.#tileSpacing = tileSpacing;
-		this.#customTileWidths = customTileWidths;
+		this.#tileHeight = descriptor.tileHeight;
+		this.#tileSpacing = descriptor.tileSpacing ?? 0;
+		this.#customTileWidths = descriptor.customTileWidths ?? {};
 	}
 
 	getGlyphMapPath() {

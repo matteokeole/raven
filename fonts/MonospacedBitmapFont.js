@@ -1,5 +1,16 @@
 import {BitmapFont} from "./BitmapFont.js";
 
+/**
+ * @typedef {Object} MonospacedBitmapFontDescriptor
+ * @property {String} glyphMapPath
+ * @property {String} texturePath
+ * @property {Number} tileWidth
+ * @property {Number} tileHeight
+ * @property {Number} [tileSpacing]
+ * @property {Number} [lineSpacing]
+ * @property {Record.<String, Number>} [customTileWidths]
+ */
+
 export class MonospacedBitmapFont extends BitmapFont {
 	/**
 	 * @type {Number}
@@ -7,19 +18,12 @@ export class MonospacedBitmapFont extends BitmapFont {
 	#tileWidth;
 
 	/**
-	 * @param {Object} options
-	 * @param {String} options.glyphMapPath
-	 * @param {String} options.texturePath
-	 * @param {Number} options.tileWidth
-	 * @param {Number} options.tileHeight
-	 * @param {Number} [options.tileSpacing]
-	 * @param {Number} [options.lineSpacing]
-	 * @param {Record.<String, Number>} [options.customTileWidths]
+	 * @param {MonospacedBitmapFontDescriptor} descriptor
 	 */
-	constructor({glyphMapPath, texturePath, tileWidth, tileHeight, tileSpacing = 0, lineSpacing = 0, customTileWidths = {}}) {
-		super({glyphMapPath, texturePath, tileHeight, tileSpacing, lineSpacing, customTileWidths});
+	constructor(descriptor) {
+		super(descriptor);
 
-		this.#tileWidth = tileWidth;
+		this.#tileWidth = descriptor.tileWidth;
 	}
 
 	getTileWidth() {
