@@ -10,6 +10,7 @@ import {max, Vector2, Vector4} from "../math/index.js";
  * @property {Number} [tileSpacing]
  * @property {Number} [lineSpacing]
  * @property {Record.<String, Number>} [customTileWidths]
+ * @property {Record.<String, Number>} [customTileOffsets]
  */
 
 /**
@@ -55,6 +56,11 @@ export class BitmapFont extends Font {
 	#customTileWidths;
 
 	/**
+	 * @type {Record.<String, Number>}
+	 */
+	#customTileOffsets;
+
+	/**
 	 * @param {BitmapFontDescriptor} descriptor
 	 */
 	constructor(descriptor) {
@@ -69,6 +75,7 @@ export class BitmapFont extends Font {
 		this.#tileHeight = descriptor.tileHeight;
 		this.#tileSpacing = descriptor.tileSpacing ?? 0;
 		this.#customTileWidths = descriptor.customTileWidths ?? {};
+		this.#customTileOffsets = descriptor.customTileOffsets ?? {};
 	}
 
 	getGlyphMapPath() {
@@ -89,14 +96,28 @@ export class BitmapFont extends Font {
 
 	/**
 	 * @param {String} glyph
-	 * @returns {Number}
 	 */
 	getTileWidth(glyph) {
-		return this.#customTileWidths[glyph] ?? this.#glyphs[glyph].getSize()[0];
+		if (!(glyph in this.#customTileWidths)) {
+			return this.#glyphs[glyph].getSize()[0];
+		}
+
+		return this.#customTileWidths[glyph];
 	}
 
 	getTileHeight() {
 		return this.#tileHeight;
+	}
+
+	/**
+	 * @param {String} glyph
+	 */
+	getTileOffset(glyph) {
+		if (!(glyph in this.#customTileOffsets)) {
+			return 0;
+		}
+
+		return this.#customTileOffsets[glyph];
 	}
 
 	getTileSpacing() {
@@ -118,10 +139,14 @@ export class BitmapFont extends Font {
 		this.#glyphs = {};
 
 		for (let i = 0, glyphs = Object.entries(this.#glyphMap), l = glyphs.length, glyph, tile; i < l; i++) {
-			/** @type {String} */
+			/**
+			 * @type {String}
+			 */
 			glyph = glyphs[i][0];
 
-			/** @type {GlyphMapEntry} */
+			/**
+			 * @type {GlyphMapEntry}
+			 */
 			tile = glyphs[i][1];
 
 			this.#glyphs[glyph] = new Subcomponent({
@@ -134,17 +159,17 @@ export class BitmapFont extends Font {
 
 	/**
 	 * @todo Typedef the return object or return directly a Text component?
+	 * @see {generateGlyphsFromMultilineString} for handling multi-line strings
 	 * 
-	 * Note: Newlines are not supported.
+	 * Generates an array of glyph subcomponents from a single-line string.
 	 * 
 	 * @param {String} string
 	 * @param {Vector4} colorMask
-	 * @returns {Object}
-	 * @throws {Error}
+	 * @throws {Error} if the string contains newlines
 	 */
 	generateGlyphsFromString(string, colorMask) {
 		if (string.includes("\n")) {
-			throw new Error("Newlines are not supported.");
+			throw new Error("Please use generateGlyphsFromMultilineString to include newlines in your string.");
 		}
 
 		const glyphs = [];
@@ -156,7 +181,7 @@ export class BitmapFont extends Font {
 			}
 
 			glyph = this.#glyphs[string[i]].clone();
-			glyph.setOffset(new Vector2(size[0], 0));
+			glyph.setOffset(new Vector2(size[0] + this.getTileOffset(string[i]), 0));
 			glyph.setColorMask(colorMask.clone());
 
 			glyphs.push(glyph);
@@ -170,9 +195,10 @@ export class BitmapFont extends Font {
 	/**
 	 * @todo Typedef the return object or return directly a Text component?
 	 * 
+	 * Generates an array of glyph subcomponents from a multi-line string.
+	 * 
 	 * @param {String} string Can be multiline
 	 * @param {Vector4} colorMask
-	 * @returns {Object}
 	 */
 	generateGlyphsFromMultilineString(string, colorMask) {
 		const lines = string.split("\n");
@@ -191,7 +217,7 @@ export class BitmapFont extends Font {
 				}
 
 				glyph = this.#glyphs[line[j]].clone();
-				glyph.setOffset(new Vector2(lineWidth, size[1]));
+				glyph.setOffset(new Vector2(lineWidth + this.getTileOffset(line[j]), size[1]));
 				glyph.setColorMask(colorMask.clone());
 
 				glyphs.push(glyph);

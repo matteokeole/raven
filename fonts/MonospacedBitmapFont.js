@@ -9,6 +9,7 @@ import {BitmapFont} from "./BitmapFont.js";
  * @property {Number} [tileSpacing]
  * @property {Number} [lineSpacing]
  * @property {Record.<String, Number>} [customTileWidths]
+ * @property {Record.<String, Number>} [customTileOffsets]
  */
 
 export class MonospacedBitmapFont extends BitmapFont {
