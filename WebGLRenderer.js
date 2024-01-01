@@ -214,7 +214,6 @@ export class WebGLRenderer {
 		this._context.bindTexture(this._context.TEXTURE_2D_ARRAY, null);
 
 		const buffers = Object.values(this._buffers);
-		const textures = Object.values(this._textures);
 
 		this._programs.length = 0;
 		this._attributes = {};
@@ -230,10 +229,6 @@ export class WebGLRenderer {
 
 		for (i = 0, length = buffers.length; i < length; i++) {
 			this._context.deleteBuffer(buffers[i]);
-		}
-
-		for (i = 0, length = textures.length; i < length; i++) {
-			this._context.deleteTexture(textures[i]);
 		}
 
 		this._context.getExtension("WEBGL_lose_context").loseContext();
