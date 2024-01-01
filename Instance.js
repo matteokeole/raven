@@ -258,13 +258,27 @@ export class Instance {
 	resize(viewport, dpr) {}
 
 	dispose() {
-		this.#renderer.getCanvas().remove();
+		if (this.#animationFrameRequestId !== null) {
+			cancelAnimationFrame(this.#animationFrameRequestId);
 
-		for (let i = 0; i < this.#compositeCount; i++) {
-			this.#composites[i].getRenderer().dispose();
+			this.#animationFrameRequestId = null;
 		}
 
-		this.#renderer.dispose();
+		/**
+		 * @todo Better dispose system
+		 * 
+		 * Dirty hack to avoid unreferenced object errors from context calls
+		 */
+		setTimeout(() => {
+			this.#renderer.getCanvas().remove();
+			this.#resizeObserver.disconnect();
+
+			for (let i = 0; i < this.#compositeCount; i++) {
+				this.#composites[i].getRenderer().dispose();
+			}
+
+			this.#renderer.dispose();
+		}, 0);
 	}
 
 	/**
