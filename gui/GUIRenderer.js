@@ -146,7 +146,7 @@ export class GUIRenderer extends WebGLRenderer {
 				size = subcomponent.getSize();
 				world = Matrix3
 					.translation(position.clone().add(subcomponent.getOffset()))
-					.multiply(Matrix3.scale(size));
+					.multiply(Matrix3.scale(size.clone().multiply(subcomponent.getScale())));
 				texture = Matrix3
 					.translation(subcomponent.getUV().clone().divide(WebGLRenderer.MAX_TEXTURE_SIZE))
 					.multiply(Matrix3.scale(size.clone().divide(WebGLRenderer.MAX_TEXTURE_SIZE)));
