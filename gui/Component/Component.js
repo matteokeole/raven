@@ -130,6 +130,9 @@ export class Component {
 			.floor();
 	}
 
+	/**
+	 * @todo Use within the GUI renderer to create the subcomponent world matrix
+	 */
 	getWorld() {
 		return Matrix3
 			.translation(this.#position)
