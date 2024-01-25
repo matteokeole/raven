@@ -164,10 +164,11 @@ export class BitmapFont extends Font {
 	 * Generates an array of glyph subcomponents from a single-line string.
 	 * 
 	 * @param {String} string
+	 * @param {Number} fontSize
 	 * @param {Vector4} colorMask
 	 * @throws {Error} if the string contains newlines
 	 */
-	generateGlyphsFromString(string, colorMask) {
+	generateGlyphsFromString(string, fontSize, colorMask) {
 		if (string.includes("\n")) {
 			throw new Error("Please use generateGlyphsFromMultilineString to include newlines in your string.");
 		}
@@ -182,11 +183,12 @@ export class BitmapFont extends Font {
 
 			glyph = this.#glyphs[string[i]].clone();
 			glyph.setOffset(new Vector2(size[0] + this.getTileOffset(string[i]), 0));
+			glyph.setScale(new Vector2(fontSize, fontSize));
 			glyph.setColorMask(colorMask.clone());
 
 			glyphs.push(glyph);
 
-			size[0] += this.getTileWidth(string[i]) + this.#tileSpacing;
+			size[0] += (this.getTileWidth(string[i]) + this.#tileSpacing) * fontSize;
 		}
 
 		return {glyphs, size};
@@ -198,9 +200,10 @@ export class BitmapFont extends Font {
 	 * Generates an array of glyph subcomponents from a multi-line string.
 	 * 
 	 * @param {String} string Can be multiline
+	 * @param {Number} fontSize
 	 * @param {Vector4} colorMask
 	 */
-	generateGlyphsFromMultilineString(string, colorMask) {
+	generateGlyphsFromMultilineString(string, fontSize, colorMask) {
 		const lines = string.split("\n");
 
 		const glyphs = [];
@@ -218,15 +221,16 @@ export class BitmapFont extends Font {
 
 				glyph = this.#glyphs[line[j]].clone();
 				glyph.setOffset(new Vector2(lineWidth + this.getTileOffset(line[j]), size[1]));
+				glyph.setScale(new Vector2(fontSize, fontSize));
 				glyph.setColorMask(colorMask.clone());
 
 				glyphs.push(glyph);
 
-				lineWidth += this.getTileWidth(line[j]) + this.#tileSpacing;
+				lineWidth += (this.getTileWidth(line[j]) + this.#tileSpacing) * fontSize;
 			}
 
 			size[0] = max(size[0], lineWidth);
-			size[1] += this.#tileHeight + this.getLineSpacing();
+			size[1] += (this.#tileHeight + this.getLineSpacing()) * fontSize;
 		}
 
 		return {glyphs, size};
