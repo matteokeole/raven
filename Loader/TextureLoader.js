@@ -30,25 +30,54 @@ export class TextureLoader extends Loader {
 			throw new Error(`Could not fetch the source file: request failed with status ${response.status}.`);
 		}
 
+		/**
+		 * @type {String[]}
+		 */
 		const json = await response.json();
+
+		/**
+		 * @type {Promise.<Image>[]}
+		 */
+		const texturePromises = [];
+
+		/**
+		 * @type {Image[]}
+		 */
 		const textures = [];
 
-		for (let i = 0, length = json.length, path, image; i < length; i++) {
-			path = json[i];
-			image = new Image();
+		for (let i = 0; i < json.length; i++) {
+			const path = json[i];
+			const image = new Image();
+
 			image.src = `${this._basePath}${path}`;
 
-			try {
-				await image.decode();
-			} catch {
+			const texturePromise = new Promise(async function(resolve, reject) {
+				try {
+					await image.decode();
+
+					resolve({
+						name: path,
+						image,
+						viewport: new Vector2(image.width, image.height),
+					});
+				} catch {
+					reject("Could not decode the image source.");
+				}
+			});
+
+			texturePromises.push(texturePromise);
+		}
+
+		const settledTexturePromises = await Promise.allSettled(texturePromises);
+
+		for (let i = 0; i < settledTexturePromises.length; i++) {
+			const settledTexturePromise = settledTexturePromises[i];
+
+			if (settledTexturePromise.status === "rejected") {
 				continue;
 			}
 
-			textures.push({
-				name: path,
-				image,
-				viewport: new Vector2(image.width, image.height),
-			});
+			textures.push(settledTexturePromise.value);
 		}
 
 		return textures;
