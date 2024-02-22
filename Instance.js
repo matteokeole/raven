@@ -85,10 +85,10 @@ export class Instance {
 		this.#resizeObserver = null;
 		this.#pointer = new Vector2();
 		this._parameters = {
-			current_scale: 0,
-			font_path: "",
-			shader_path: "",
-			texture_path: "",
+			current_scale: 1,
+			font_path: "/",
+			shader_path: "/",
+			texture_path: "/",
 			resize_delay: 0,
 		};
 		this.#framesPerSecond = 60;
