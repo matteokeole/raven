@@ -2,6 +2,7 @@ import {GUIComposite, GUIRenderer} from "../src/gui/index.js";
 import {TextureLoader} from "../src/Loader/index.js";
 import {DemoInstance} from "./DemoInstance.js";
 import {DemoInstanceRenderer} from "./DemoInstanceRenderer.js";
+import {DemoLayer} from "./Layer/DemoLayer.js";
 
 const instanceRenderer = new DemoInstanceRenderer();
 const instance = new DemoInstance(instanceRenderer);
@@ -29,3 +30,5 @@ guiRenderer.createTextureArray(textures, false);
 document.body.appendChild(instance.getRenderer().getCanvas());
 
 instance.loop();
+
+guiComposite.push(new DemoLayer());
