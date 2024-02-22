@@ -1,4 +1,5 @@
 import {GUIComposite, GUIRenderer} from "../src/gui/index.js";
+import {TextureLoader} from "../src/Loader/index.js";
 import {DemoInstance} from "./DemoInstance.js";
 import {DemoInstanceRenderer} from "./DemoInstanceRenderer.js";
 
@@ -10,8 +11,9 @@ instance.setParameter("font_path", "assets/fonts/");
 instance.setParameter("shader_path", "assets/shaders/");
 instance.setParameter("texture_path", "assets/textures/");
 
+const guiRenderer = new GUIRenderer();
 const guiComposite = new GUIComposite({
-	renderer: new GUIRenderer(),
+	renderer: guiRenderer,
 	instance,
 	fonts: {},
 });
@@ -19,6 +21,11 @@ const guiComposite = new GUIComposite({
 instance.setComposites([guiComposite]);
 
 await instance.build();
+
+const textureLoader = new TextureLoader(instance.getParameter("texture_path"));
+const textures = await textureLoader.load("textures.json");
+
+guiRenderer.createTextureArray(textures, false);
 
 document.body.appendChild(instance.getRenderer().getCanvas());
 
