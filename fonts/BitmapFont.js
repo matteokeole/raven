@@ -128,6 +128,10 @@ export class BitmapFont extends Font {
 		return this.#customTileWidths;
 	}
 
+	getCustomTileOffsets() {
+		return this.#customTileOffsets;
+	}
+
 	/**
 	 * @param {String} basePath
 	 */
