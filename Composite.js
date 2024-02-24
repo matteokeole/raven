@@ -107,13 +107,13 @@ export class Composite {
 	 * @abstract
 	 * @param {KeyboardEvent} event
 	 */
-	onKeyRepeat(event) {}
+	onKeyRelease(event) {}
 
 	/**
 	 * @abstract
 	 * @param {KeyboardEvent} event
 	 */
-	onKeyRelease(event) {}
+	onKeyRepeat(event) {}
 
 	/**
 	 * @abstract
