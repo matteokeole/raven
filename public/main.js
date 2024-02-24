@@ -1,3 +1,4 @@
+import {WebGLRenderer} from "../src/index.js";
 import {GUIComposite, GUIRenderer} from "../src/gui/index.js";
 import {TextureLoader} from "../src/Loader/index.js";
 import {DemoInstance} from "./DemoInstance.js";
@@ -25,7 +26,17 @@ await instance.build();
 const textureLoader = new TextureLoader(instance.getParameter("texture_path"));
 const textures = await textureLoader.load("textures.json");
 
-guiRenderer.createTextureArray(textures, false);
+const colors = textureLoader.loadColors([
+	{
+		name: "red",
+		value: Uint8Array.of(255, 0, 0, 255),
+	}, {
+		name: "yellow",
+		value: Uint8Array.of(255, 255, 0, 255),
+	},
+], WebGLRenderer.MAX_TEXTURE_SIZE);
+
+guiRenderer.createTextureArray(textures.concat(colors), false);
 
 document.body.appendChild(instance.getRenderer().getCanvas());
 
