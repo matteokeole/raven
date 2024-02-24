@@ -4,7 +4,7 @@ import {MouseDownEvent} from "../../src/gui/Event/index.js";
 import {Vector2, intersects} from "../../src/math/index.js";
 import {IncrementCountEvent} from "../Event/IncrementCountEvent.js";
 
-export class TexturedBox extends VisualComponent {
+export class Button extends VisualComponent {
 	/**
 	 * @type {Number}
 	 */
