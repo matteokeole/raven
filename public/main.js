@@ -1,4 +1,5 @@
 import {WebGLRenderer} from "../src/index.js";
+import {BitmapFont} from "../src/fonts/index.js";
 import {GUIComposite, GUIRenderer} from "../src/gui/index.js";
 import {TextureLoader} from "../src/Loader/index.js";
 import {DemoInstance} from "./DemoInstance.js";
@@ -16,7 +17,14 @@ const guiRenderer = new GUIRenderer();
 const guiComposite = new GUIComposite({
 	renderer: guiRenderer,
 	instance,
-	fonts: {},
+	fonts: {
+		quiver: new BitmapFont({
+			glyphMapPath: "quiver.json",
+			texturePath: "quiver.png",
+			tileHeight: 12,
+			tileSpacing: 1,
+		}),
+	},
 });
 
 instance.setComposites([guiComposite]);

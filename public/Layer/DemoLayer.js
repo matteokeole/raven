@@ -2,6 +2,7 @@ import {GUIComposite, Layer} from "../../src/gui/index.js";
 import * as Alignment from "../../src/gui/Alignment/index.js";
 import {Vector2} from "../../src/math/index.js";
 import {Group} from "../Component/Group.js";
+import {Text} from "../Component/Text.js";
 import {TexturedBox} from "../Component/TexturedBox.js";
 
 export class DemoLayer extends Layer {
@@ -18,6 +19,12 @@ export class DemoLayer extends Layer {
 					alignment: Alignment.left | Alignment.top,
 					size: new Vector2(64, 64),
 					texture: context.getTexture("64x64.png"),
+				}),
+				new Text("0 clicks", {
+					alignment: Alignment.left | Alignment.center,
+					margin: new Vector2(80, 0),
+					font: context.getFont("quiver"),
+					context,
 				}),
 			],
 		});
