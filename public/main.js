@@ -36,11 +36,8 @@ const textures = await textureLoader.load("textures.json");
 
 const colors = textureLoader.loadColors([
 	{
-		name: "red",
-		value: Uint8Array.of(255, 0, 0, 255),
-	}, {
-		name: "yellow",
-		value: Uint8Array.of(255, 255, 0, 255),
+		name: "white",
+		value: Uint8Array.of(255, 255, 255, 255),
 	},
 ], WebGLRenderer.MAX_TEXTURE_SIZE);
 
