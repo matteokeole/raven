@@ -1,7 +1,7 @@
 import {Subcomponent} from "../../src/gui/index.js";
 import {VisualComponent} from "../../src/gui/Component/index.js";
 
-export class ColoredBox extends VisualComponent {
+export class TexturedBox extends VisualComponent {
 	/**
 	 * @param {import("../../src/gui/Component/VisualComponent.js").VisualComponentDescriptor} descriptor
 	 */
