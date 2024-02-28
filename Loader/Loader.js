@@ -1,4 +1,4 @@
-import {NotImplementedError} from "../errors/index.js";
+import {NotImplementedError} from "../Error/index.js";
 
 /**
  * @abstract
