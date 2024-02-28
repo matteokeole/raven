@@ -3,7 +3,7 @@ import {Component, StructuralComponent, VisualComponent} from "./Component/index
 import {Event, KeyPressEvent, KeyReleaseEvent, KeyRepeatEvent, MouseDownEvent, MouseMoveEvent} from "./Event/index.js";
 import {Composite, Instance} from "../index.js";
 import {Camera, OrthographicCamera} from "../cameras/index.js";
-import {Font} from "../fonts/index.js";
+import {BitmapFont} from "../fonts/index.js";
 import {Matrix3, Vector2} from "../math/index.js";
 import {BucketStack} from "../Stack/index.js";
 import {GUIScene} from "../Scene/index.js";
@@ -48,7 +48,7 @@ export class GUIComposite extends Composite {
 	#eventListeners;
 
 	/**
-	 * @type {Record.<String, Font>}
+	 * @type {Record.<String, BitmapFont>}
 	 */
 	#fonts;
 
@@ -56,7 +56,7 @@ export class GUIComposite extends Composite {
 	 * @param {Object} options
 	 * @param {GUIRenderer} options.renderer
 	 * @param {Instance} options.instance
-	 * @param {Record.<String, Font>} options.fonts
+	 * @param {Record.<String, BitmapFont>} options.fonts
 	 */
 	constructor({renderer, instance, fonts}) {
 		super({renderer, instance});
@@ -81,8 +81,10 @@ export class GUIComposite extends Composite {
 	}
 
 	/**
+	 * Note: Only {@link BitmapFont} instances are supported.
+	 * 
 	 * @param {String} key
-	 * @returns {Font}
+	 * @returns {BitmapFont}
 	 * @throws {ReferenceError}
 	 */
 	getFont(key) {
