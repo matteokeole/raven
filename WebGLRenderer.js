@@ -1,4 +1,4 @@
-import {ShaderCompilationError} from "./errors/index.js";
+import {ShaderCompilationError} from "./Error/index.js";
 import {Vector2, Vector4} from "./math/index.js";
 import {Scene} from "./Scene/Scene.js";
 import {TextureWrapper} from "./wrappers/index.js";
