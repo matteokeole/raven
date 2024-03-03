@@ -1,16 +1,16 @@
-import {Component} from "./Component.js";
-import {Subcomponent} from "../index.js";
-import {Composite} from "../../index.js";
-import {Vector2} from "../../math/index.js";
-import {TextureWrapper} from "../../wrappers/index.js";
+import {Component} from "../Component.js";
+import {Subcomponent} from "../../index.js";
+import {Composite} from "../../../index.js";
+import {Vector2} from "../../../math/index.js";
+import {TextureWrapper} from "../../../wrappers/index.js";
 
 /**
  * @typedef {Object} VisualComponentDescriptor
  * @property {Number} alignment
- * @property {?Vector2} [margin]
+ * @property {Vector2} [margin]
  * @property {Vector2} size
- * @property {?String[]} [events]
- * @property {?TextureWrapper} [texture]
+ * @property {String[]} [events]
+ * @property {TextureWrapper} [texture]
  */
 
 /**

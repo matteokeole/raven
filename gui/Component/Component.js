@@ -5,9 +5,9 @@ import {Matrix3, Vector2} from "../../math/index.js";
 /**
  * @typedef {Object} ComponentDescriptor
  * @property {Number} alignment
- * @property {?Vector2} [margin]
+ * @property {Vector2} [margin]
  * @property {Vector2} size
- * @property {?String[]} [events]
+ * @property {String[]} [events]
  */
 
 /**
