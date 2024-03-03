@@ -11,11 +11,6 @@ export class GUIRenderer extends WebGLRenderer {
 	_canvas;
 
 	/**
-	 * @type {String}
-	 */
-	#shaderPath;
-
-	/**
 	 * @type {Matrix3}
 	 */
 	#projection;
@@ -24,19 +19,11 @@ export class GUIRenderer extends WebGLRenderer {
 		super();
 
 		this._canvas = null;
-		this.#shaderPath = "";
 		this.#projection = Matrix3.identity();
 	}
 
 	getCanvas() {
 		return this._canvas;
-	}
-
-	/**
-	 * @param {String} shaderPath
-	 */
-	setShaderPath(shaderPath) {
-		this.#shaderPath = shaderPath;
 	}
 
 	/**
@@ -46,8 +33,11 @@ export class GUIRenderer extends WebGLRenderer {
 		this.#projection = projection;
 	}
 
-	async build() {
-		super.build();
+	/**
+	 * @param {String} shaderPath
+	 */
+	async build(shaderPath) {
+		super.build(shaderPath);
 
 		this._canvas = new OffscreenCanvas(0, 0);
 		this._context = this._canvas.getContext("webgl2");
@@ -55,9 +45,9 @@ export class GUIRenderer extends WebGLRenderer {
 		this._context.enable(this._context.BLEND);
 		this._context.blendFunc(this._context.SRC_ALPHA, this._context.ONE_MINUS_SRC_ALPHA);
 
-		const loader = new ShaderLoader(this.#shaderPath);
-		const vertexShaderSource = await loader.load("subcomponent.vert");
-		const fragmentShaderSource = await loader.load("subcomponent.frag");
+		const loader = new ShaderLoader(shaderPath);
+		const vertexShaderSource = await loader.load("gui.vert");
+		const fragmentShaderSource = await loader.load("gui.frag");
 
 		const program = this._createProgram(vertexShaderSource, fragmentShaderSource);
 

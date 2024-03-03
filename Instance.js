@@ -83,8 +83,8 @@ export class Instance {
 		this.#pointer = new Vector2();
 		this._parameters = {
 			current_scale: 1,
+			root_path: "/",
 			font_path: "/",
-			shader_path: "/",
 			texture_path: "/",
 			resize_delay: 0,
 		};
@@ -133,11 +133,10 @@ export class Instance {
 
 	/**
 	 * @param {String} key
-	 * @throws {ReferenceError}
 	 */
 	getParameter(key) {
 		if (!(key in this._parameters)) {
-			throw new ReferenceError(`Undefined parameter key "${key}".`);
+			return undefined;
 		}
 
 		return this._parameters[key];
@@ -146,11 +145,10 @@ export class Instance {
 	/**
 	 * @param {String} key
 	 * @param {*} value
-	 * @throws {ReferenceError}
 	 */
 	setParameter(key, value) {
 		if (!(key in this._parameters)) {
-			throw new ReferenceError(`Undefined parameter key "${key}".`);
+			return;
 		}
 
 		this._parameters[key] = value;
@@ -169,8 +167,7 @@ export class Instance {
 
 	async build() {
 		this.#renderer.setCompositeCount(this.#compositeCount);
-		this.#renderer.setShaderPath(this._parameters["shader_path"]);
-		this.#renderer.build();
+		this.#renderer.build(`${this._parameters["root_path"]}shaders/`);
 
 		const viewport = new Vector4(0, 0, innerWidth, innerHeight)
 			.multiplyScalar(devicePixelRatio)

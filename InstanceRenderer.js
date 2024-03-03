@@ -20,18 +20,12 @@ export class InstanceRenderer extends WebGLRenderer {
 	 */
 	#compositeCount;
 
-	/**
-	 * @type {String}
-	 */
-	#shaderPath;
-
 	constructor() {
 		super();
 
 		this._canvas = null;
 		this._textures = [];
 		this.#compositeCount = 0;
-		this.#shaderPath = "";
 	}
 
 	getCanvas() {
@@ -48,11 +42,7 @@ export class InstanceRenderer extends WebGLRenderer {
 	/**
 	 * @param {String} shaderPath
 	 */
-	setShaderPath(shaderPath) {
-		this.#shaderPath = shaderPath;
-	}
-
-	async build() {
+	async build(shaderPath) {
 		this._canvas = document.createElement("canvas");
 		this._context = this._canvas.getContext("webgl2");
 
@@ -64,9 +54,9 @@ export class InstanceRenderer extends WebGLRenderer {
 		this._context.enable(this._context.BLEND);
 		this._context.blendFunc(this._context.SRC_ALPHA, this._context.ONE_MINUS_SRC_ALPHA);
 
-		const loader = new ShaderLoader(this.#shaderPath);
-		const vertexShaderSource = await loader.load("composite.vert");
-		const fragmentShaderSource = await loader.load("composite.frag");
+		const loader = new ShaderLoader(shaderPath);
+		const vertexShaderSource = await loader.load("instance.vert");
+		const fragmentShaderSource = await loader.load("instance.frag");
 
 		const program = this._createProgram(vertexShaderSource, fragmentShaderSource);
 
