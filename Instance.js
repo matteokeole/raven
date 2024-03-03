@@ -1,9 +1,6 @@
 import {Composite, InstanceRenderer} from "./index.js";
 import {Vector2, Vector4} from "./math/index.js";
 
-/**
- * @abstract
- */
 export class Instance {
 	/**
 	 * @type {InstanceRenderer}
