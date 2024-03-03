@@ -3,6 +3,12 @@ import {Vector4} from "./math/index.js";
 import {Scene} from "./Scene/Scene.js";
 
 /**
+ * @typedef {Object} CompositeDescriptor
+ * @property {WebGLRenderer} renderer
+ * @property {Instance} instance
+ */
+
+/**
  * @todo Composites shoudn't have access to the instance
  * 
  * @abstract
@@ -34,14 +40,12 @@ export class Composite {
 	#isAnimatable;
 
 	/**
-	 * @param {Object} options
-	 * @param {WebGLRenderer} options.renderer
-	 * @param {Instance} options.instance
+	 * @param {CompositeDescriptor} descriptor
 	 */
-	constructor({renderer, instance}) {
-		this._renderer = renderer;
+	constructor(descriptor) {
+		this._renderer = descriptor.renderer;
 		this._scene = new Scene();
-		this.#instance = instance;
+		this.#instance = descriptor.instance;
 		this.#isAnimatable = false;
 	}
 
