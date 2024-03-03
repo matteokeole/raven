@@ -124,7 +124,6 @@ export class GUIComposite extends Composite {
 			.orthographic(viewport)
 			.multiply(Matrix3.scale(new Vector2(scale, scale)));
 
-		this._renderer.setShaderPath(this.getInstance().getParameter("shader_path"));
 		this._renderer.setProjection(projection);
 		this.#camera.setProjection(projection);
 

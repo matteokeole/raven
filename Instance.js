@@ -87,7 +87,6 @@ export class Instance {
 		this._parameters = {
 			current_scale: 1,
 			font_path: "/",
-			shader_path: "/",
 			texture_path: "/",
 			resize_delay: 0,
 		};
@@ -172,7 +171,6 @@ export class Instance {
 
 	async build() {
 		this.#renderer.setCompositeCount(this.#compositeCount);
-		this.#renderer.setShaderPath(this._parameters["shader_path"]);
 		this.#renderer.build();
 
 		const viewport = new Vector4(0, 0, innerWidth, innerHeight)
