@@ -76,12 +76,12 @@ export class GUIRenderer extends WebGLRenderer {
 
 		this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.vertex);
 		this._context.vertexAttribPointer(this._attributes.vertex, 2, this._context.FLOAT, false, 0, 0);
-		this._context.bufferData(this._context.ARRAY_BUFFER, new Float32Array([
+		this._context.bufferData(this._context.ARRAY_BUFFER, Float32Array.of(
 			1, 1,
 			0, 1,
 			0, 0,
 			1, 0,
-		]), this._context.STATIC_DRAW);
+		), this._context.STATIC_DRAW);
 
 		this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.textureIndex);
 		this._context.vertexAttribIPointer(this._attributes.textureIndex, 1, this._context.UNSIGNED_BYTE, 0, 0);
@@ -111,8 +111,6 @@ export class GUIRenderer extends WebGLRenderer {
 	}
 
 	/**
-	 * @todo Create typed arrays with .of() instead of new?
-	 * 
 	 * @param {GUIScene} scene
 	 */
 	render(scene) {
