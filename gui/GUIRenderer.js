@@ -163,13 +163,11 @@ export class GUIRenderer extends WebGLRenderer {
 	}
 
 	/**
-	 * @todo Put in the base WebGLRenderer class?
-	 * 
 	 * @param {Vector4} viewport
 	 * @param {Matrix3} projection
 	 */
 	resize(viewport, projection) {
-		this.setViewport(viewport);
+		super.resize(viewport, projection);
 
 		this._context.uniformMatrix3fv(this._uniforms.projection, false, projection);
 	}

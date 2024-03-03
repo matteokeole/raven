@@ -1,5 +1,5 @@
 import {ShaderCompilationError} from "./Error/index.js";
-import {Vector2, Vector4} from "./math/index.js";
+import {Matrix, Vector2, Vector4} from "./math/index.js";
 import {Scene} from "./Scene/Scene.js";
 import {TextureWrapper} from "./wrappers/index.js";
 
@@ -195,6 +195,14 @@ export class WebGLRenderer {
 	 * @param {Scene} scene
 	 */
 	render(scene) {}
+
+	/**
+	 * @param {Vector4} viewport
+	 * @param {Matrix} projection
+	 */
+	resize(viewport, projection) {
+		this.#viewport = viewport;
+	}
 
 	/**
 	 * Warning: this clears the whole canvas; prefer targeting only specific parts when possible.
