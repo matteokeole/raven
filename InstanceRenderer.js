@@ -4,9 +4,16 @@ import {ShaderLoader} from "./Loader/index.js";
 
 export class InstanceRenderer extends WebGLRenderer {
 	/**
+	 * @override
 	 * @type {?HTMLCanvasElement}
 	 */
 	_canvas;
+
+	/**
+	 * @override
+	 * @type {WebGLTexture[]}
+	 */
+	_textures;
 
 	/**
 	 * @type {Number}
@@ -22,6 +29,7 @@ export class InstanceRenderer extends WebGLRenderer {
 		super();
 
 		this._canvas = null;
+		this._textures = [];
 		this.#compositeCount = 0;
 		this.#shaderPath = "";
 	}
