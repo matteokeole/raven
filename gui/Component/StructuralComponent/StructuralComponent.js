@@ -4,9 +4,9 @@ import {Vector2} from "../../../math/index.js";
 /**
  * @typedef {Object} StructuralComponentDescriptor
  * @property {Number} alignment
- * @property {?Vector2} [margin]
+ * @property {Vector2} [margin]
  * @property {Vector2} size
- * @property {?String[]} [events]
+ * @property {String[]} [events]
  * @property {Component[]} children
  */
 

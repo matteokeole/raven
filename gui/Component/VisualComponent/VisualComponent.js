@@ -7,10 +7,10 @@ import {TextureWrapper} from "../../../wrappers/index.js";
 /**
  * @typedef {Object} VisualComponentDescriptor
  * @property {Number} alignment
- * @property {?Vector2} [margin]
+ * @property {Vector2} [margin]
  * @property {Vector2} size
- * @property {?String[]} [events]
- * @property {?TextureWrapper} [texture]
+ * @property {String[]} [events]
+ * @property {TextureWrapper} [texture]
  */
 
 /**

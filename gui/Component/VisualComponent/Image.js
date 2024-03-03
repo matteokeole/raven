@@ -1,5 +1,5 @@
 import {VisualComponent} from "./VisualComponent.js";
-import {Subcomponent} from "../../Subcomponent.js";
+import {Subcomponent} from "../../index.js";
 
 export class Image extends VisualComponent {
 	/**
