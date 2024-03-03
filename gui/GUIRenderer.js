@@ -5,6 +5,7 @@ import {GUIScene} from "../Scene/index.js";
 
 export class GUIRenderer extends WebGLRenderer {
 	/**
+	 * @override
 	 * @type {?OffscreenCanvas}
 	 */
 	_canvas;
