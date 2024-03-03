@@ -69,12 +69,12 @@ export class InstanceRenderer extends WebGLRenderer {
 		this._context.enableVertexAttribArray(this._attributes.vertex);
 		this._context.bindBuffer(this._context.ARRAY_BUFFER, this._buffers.vertex);
 		this._context.vertexAttribPointer(this._attributes.vertex, 2, this._context.FLOAT, false, 0, 0);
-		this._context.bufferData(this._context.ARRAY_BUFFER, new Float32Array([
+		this._context.bufferData(this._context.ARRAY_BUFFER, Float32Array.of(
 			 1,  1,
 			-1,  1,
 			-1, -1,
 			 1, -1,
-		]), this._context.STATIC_DRAW);
+		), this._context.STATIC_DRAW);
 
 		for (let i = 0; i < this.#compositeCount; i++) {
 			this._context.bindTexture(this._context.TEXTURE_2D, this._textures[i] = this._context.createTexture());
