@@ -135,11 +135,10 @@ export class Instance {
 
 	/**
 	 * @param {String} key
-	 * @throws {ReferenceError}
 	 */
 	getParameter(key) {
 		if (!(key in this._parameters)) {
-			throw new ReferenceError(`Undefined parameter key "${key}".`);
+			return undefined;
 		}
 
 		return this._parameters[key];
@@ -148,11 +147,10 @@ export class Instance {
 	/**
 	 * @param {String} key
 	 * @param {*} value
-	 * @throws {ReferenceError}
 	 */
 	setParameter(key, value) {
 		if (!(key in this._parameters)) {
-			throw new ReferenceError(`Undefined parameter key "${key}".`);
+			return;
 		}
 
 		this._parameters[key] = value;
