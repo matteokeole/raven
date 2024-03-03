@@ -127,7 +127,7 @@ export class GUIComposite extends Composite {
 		this._renderer.setProjection(projection);
 		this.#camera.setProjection(projection);
 
-		await this._renderer.build();
+		await this._renderer.build(`${this.getInstance().getParameter("root_path")}shaders/`);
 	}
 
 	/**

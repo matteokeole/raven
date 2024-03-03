@@ -86,6 +86,7 @@ export class Instance {
 		this.#pointer = new Vector2();
 		this._parameters = {
 			current_scale: 1,
+			root_path: "/",
 			font_path: "/",
 			texture_path: "/",
 			resize_delay: 0,
@@ -169,7 +170,7 @@ export class Instance {
 
 	async build() {
 		this.#renderer.setCompositeCount(this.#compositeCount);
-		this.#renderer.build();
+		this.#renderer.build(`${this._parameters["root_path"]}shaders/`);
 
 		const viewport = new Vector4(0, 0, innerWidth, innerHeight)
 			.multiplyScalar(devicePixelRatio)

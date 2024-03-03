@@ -34,7 +34,10 @@ export class InstanceRenderer extends WebGLRenderer {
 		this.#compositeCount = compositeCount;
 	}
 
-	async build() {
+	/**
+	 * @param {String} shaderPath
+	 */
+	async build(shaderPath) {
 		this._canvas = document.createElement("canvas");
 		this._context = this._canvas.getContext("webgl2");
 
@@ -46,7 +49,7 @@ export class InstanceRenderer extends WebGLRenderer {
 		this._context.enable(this._context.BLEND);
 		this._context.blendFunc(this._context.SRC_ALPHA, this._context.ONE_MINUS_SRC_ALPHA);
 
-		const loader = new ShaderLoader("./shaders/");
+		const loader = new ShaderLoader(shaderPath);
 		const vertexShaderSource = await loader.load("instance.vert");
 		const fragmentShaderSource = await loader.load("instance.frag");
 

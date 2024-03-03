@@ -32,8 +32,11 @@ export class GUIRenderer extends WebGLRenderer {
 		this.#projection = projection;
 	}
 
-	async build() {
-		super.build();
+	/**
+	 * @param {String} shaderPath
+	 */
+	async build(shaderPath) {
+		super.build(shaderPath);
 
 		this._canvas = new OffscreenCanvas(0, 0);
 		this._context = this._canvas.getContext("webgl2");
@@ -41,7 +44,7 @@ export class GUIRenderer extends WebGLRenderer {
 		this._context.enable(this._context.BLEND);
 		this._context.blendFunc(this._context.SRC_ALPHA, this._context.ONE_MINUS_SRC_ALPHA);
 
-		const loader = new ShaderLoader("../shaders/");
+		const loader = new ShaderLoader(shaderPath);
 		const vertexShaderSource = await loader.load("gui.vert");
 		const fragmentShaderSource = await loader.load("gui.frag");
 
