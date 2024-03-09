@@ -9,7 +9,7 @@ import {Scene} from "./Scene/Scene.js";
  */
 
 /**
- * @todo Composites shoudn't have access to the instance
+ * @todo Composites should not have access to the instance
  * 
  * @abstract
  */
