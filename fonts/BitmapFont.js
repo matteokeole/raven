@@ -188,7 +188,7 @@ export class BitmapFont extends Font {
 			glyph = this.#glyphs[string[i]].clone();
 			glyph.setOffset(new Vector2(size[0] + this.getTileOffset(string[i]), 0));
 			glyph.setScale(new Vector2(fontSize, fontSize));
-			glyph.setColorMask(colorMask.clone());
+			glyph.setColorMask(new Vector4(colorMask));
 
 			glyphs.push(glyph);
 
@@ -226,7 +226,7 @@ export class BitmapFont extends Font {
 				glyph = this.#glyphs[line[j]].clone();
 				glyph.setOffset(new Vector2(lineWidth + this.getTileOffset(line[j]), size[1]));
 				glyph.setScale(new Vector2(fontSize, fontSize));
-				glyph.setColorMask(colorMask.clone());
+				glyph.setColorMask(new Vector4(colorMask));
 
 				glyphs.push(glyph);
 
