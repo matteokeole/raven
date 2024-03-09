@@ -39,14 +39,30 @@ export class Subcomponent {
 	#colorMask;
 
 	/**
+	 * @overload
 	 * @param {SubcomponentDescriptor} descriptor
+	 * 
+	 * @overload
+	 * @param {Subcomponent} subcomponent
 	 */
-	constructor(descriptor) {
-		this.#offset = descriptor.offset ?? new Vector2();
-		this.#size = descriptor.size;
-		this.#scale = descriptor.scale ?? new Vector2(1, 1);
-		this.#uv = descriptor.uv ?? new Vector2();
-		this.#colorMask = descriptor.colorMask ?? new Vector4(255, 255, 255, 255);
+	constructor() {
+		if (arguments[0] instanceof Subcomponent) {
+			const subcomponent = arguments[0];
+
+			this.#offset = subcomponent.getOffset();
+			this.#size = subcomponent.getSize();
+			this.#scale = subcomponent.getScale();
+			this.#uv = subcomponent.getUV();
+			this.#colorMask = subcomponent.getColorMask();
+		} else {
+			const descriptor = arguments[0];
+
+			this.#offset = descriptor.offset ?? new Vector2();
+			this.#size = descriptor.size;
+			this.#scale = descriptor.scale ?? new Vector2(1, 1);
+			this.#uv = descriptor.uv ?? new Vector2();
+			this.#colorMask = descriptor.colorMask ?? new Vector4(255, 255, 255, 255);
+		}
 	}
 
 	getOffset() {
@@ -104,6 +120,9 @@ export class Subcomponent {
 		this.#colorMask = colorMask;
 	}
 
+	/**
+	 * @deprecated
+	 */
 	clone() {
 		return new Subcomponent({
 			offset: this.#offset,
