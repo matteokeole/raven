@@ -147,7 +147,7 @@ export class GUIComposite extends Composite {
 			.divideScalar(this.getInstance().getParameter("current_scale"));
 
 		for (let i = 0, l = this.#rootComponents.length; i < l; i++) {
-			this.#rootComponents[i].compute(new Vector2(), parentSize.clone());
+			this.#rootComponents[i].compute(new Vector2(), new Vector2(parentSize));
 		}
 	}
 

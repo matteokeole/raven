@@ -120,8 +120,7 @@ export class Component {
 		const marginDisplacement = new Vector2(x & 1, y & 1)
 			.multiplyScalar(-2)
 			.addScalar(1);
-		const margin = this.#margin
-			.clone()
+		const margin = new Vector2(this.#margin)
 			.multiply(marginDisplacement);
 
 		this.#position = initial

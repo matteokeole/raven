@@ -1,6 +1,6 @@
 import {WebGLRenderer} from "../index.js";
 import {ShaderLoader} from "../Loader/index.js";
-import {Matrix3, Vector4} from "../math/index.js";
+import {Matrix3, Vector2, Vector4} from "../math/index.js";
 import {GUIScene} from "../Scene/index.js";
 
 export class GUIRenderer extends WebGLRenderer {
@@ -134,11 +134,11 @@ export class GUIRenderer extends WebGLRenderer {
 				subcomponent = subcomponents[j];
 				size = subcomponent.getSize();
 				world = Matrix3
-					.translation(position.clone().add(subcomponent.getOffset()))
-					.multiply(Matrix3.scale(size.clone().multiply(subcomponent.getScale())));
+					.translation(new Vector2(position).add(subcomponent.getOffset()))
+					.multiply(Matrix3.scale(new Vector2(size).multiply(subcomponent.getScale())));
 				texture = Matrix3
-					.translation(subcomponent.getUV().clone().divide(WebGLRenderer.MAX_TEXTURE_SIZE))
-					.multiply(Matrix3.scale(size.clone().divide(WebGLRenderer.MAX_TEXTURE_SIZE)));
+					.translation(new Vector2(subcomponent.getUV()).divide(WebGLRenderer.MAX_TEXTURE_SIZE))
+					.multiply(Matrix3.scale(new Vector2(size).divide(WebGLRenderer.MAX_TEXTURE_SIZE)));
 
 				worlds.set(world, k * 9);
 				textureIndices.set(textureIndex, k);
