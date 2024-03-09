@@ -136,7 +136,7 @@ export class Instance {
 	 */
 	getParameter(key) {
 		if (!(key in this._parameters)) {
-			return undefined;
+			return;
 		}
 
 		return this._parameters[key];
@@ -167,7 +167,7 @@ export class Instance {
 
 	async build() {
 		this.#renderer.setCompositeCount(this.#compositeCount);
-		this.#renderer.build(`${this._parameters["root_path"]}shaders/`);
+		await this.#renderer.build(`${this._parameters["root_path"]}shaders/`);
 
 		const viewport = new Vector4(0, 0, innerWidth, innerHeight)
 			.multiplyScalar(devicePixelRatio)
@@ -179,7 +179,6 @@ export class Instance {
 			composite = this.#composites[i];
 
 			await composite.build();
-
 			composite.getRenderer().setViewport(viewport);
 		}
 
@@ -302,7 +301,6 @@ export class Instance {
 			try {
 				this.#update(this.#frameIndex);
 				this.#renderer.render();
-				this.#frameIndex++;
 			} catch (error) {
 				console.error(error);
 
@@ -311,6 +309,8 @@ export class Instance {
 				this.#animationFrameRequestId = null;
 				this.#isRunning = false;
 			}
+
+			this.#frameIndex++;
 		}
 	}
 
@@ -332,7 +332,7 @@ export class Instance {
 	 */
 	#onKeyPressAndRepeat(event) {
 		if (this.#currentPressedKeys[event.code]) {
-			// Keyrepeat event
+			// Key repeat event
 			for (let i = 0; i < this.#compositeCount; i++) {
 				this.#composites[i].onKeyRepeat(event);
 			}

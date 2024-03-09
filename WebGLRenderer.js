@@ -112,7 +112,7 @@ export class WebGLRenderer {
 	 * @abstract
 	 * @param {String} shaderPath
 	 */
-	build(shaderPath) {}
+	async build(shaderPath) {}
 
 	/**
 	 * @param {String} vertexShaderSource

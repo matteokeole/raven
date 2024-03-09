@@ -37,7 +37,7 @@ export class GUIRenderer extends WebGLRenderer {
 	 * @param {String} shaderPath
 	 */
 	async build(shaderPath) {
-		super.build(shaderPath);
+		await super.build(shaderPath);
 
 		this._canvas = new OffscreenCanvas(0, 0);
 		this._context = this._canvas.getContext("webgl2");
