@@ -1,9 +1,9 @@
 import {GUIComposite, Layer} from "../../src/gui/index.js";
 import * as Alignment from "../../src/gui/Alignment/index.js";
+import {Group} from "../../src/gui/Component/index.js";
 import {MouseDownEvent} from "../../src/gui/Event/index.js";
 import {Vector2} from "../../src/math/index.js";
 import {Button} from "../Component/Button.js";
-import {Group} from "../Component/Group.js";
 import {Text} from "../Component/Text.js";
 
 export class DemoLayer extends Layer {

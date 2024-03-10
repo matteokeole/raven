@@ -1,16 +1,14 @@
-import {WebGLRenderer} from "../src/index.js";
+import {Instance, InstanceRenderer, WebGLRenderer} from "../src/index.js";
 import {BitmapFont} from "../src/fonts/index.js";
 import {GUIComposite, GUIRenderer} from "../src/gui/index.js";
 import {TextureLoader} from "../src/Loader/index.js";
-import {DemoInstance} from "./DemoInstance.js";
-import {DemoInstanceRenderer} from "./DemoInstanceRenderer.js";
 import {DemoLayer} from "./Layer/DemoLayer.js";
 
-const instanceRenderer = new DemoInstanceRenderer();
-const instance = new DemoInstance(instanceRenderer);
+const instanceRenderer = new InstanceRenderer();
+const instance = new Instance(instanceRenderer);
 
+instance.setParameter("root_path", "src/");
 instance.setParameter("font_path", "assets/fonts/");
-instance.setParameter("shader_path", "assets/shaders/");
 instance.setParameter("texture_path", "assets/textures/");
 
 const guiRenderer = new GUIRenderer();
