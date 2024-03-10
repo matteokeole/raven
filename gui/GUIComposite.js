@@ -235,13 +235,11 @@ export class GUIComposite extends Composite {
 	 * The new components will be rendered on top of the previous ones.
 	 * 
 	 * @param {Layer} layer
-	 * @throws {Error} if the layer didn't return a component
 	 */
 	push(layer) {
 		this.#layerStack.push(layer);
 
 		this._scene.resetSubcomponentCount();
-		// this.#animatedComponents.length = 0;
 
 		// Mark the tree length as the extraction index for this layer
 		this.#lastInsertionIndices.push(this.#tree.length);
