@@ -1,5 +1,5 @@
 import {Composite} from "./Composite.js";
-import {Instance} from "../index.js";
+import {Instance} from "../Instance/index.js";
 import {Camera, OrthographicCamera} from "../Camera/index.js";
 import {BitmapFont} from "../Font/index.js";
 import {Layer} from "../GUI/index.js";

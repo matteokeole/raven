@@ -1,4 +1,4 @@
-import {Instance} from "../index.js";
+import {Instance} from "../Instance/index.js";
 import {Vector4} from "../math/index.js";
 import {WebGLRenderer} from "../Renderer/index.js";
 import {Scene} from "../Scene/Scene.js";
