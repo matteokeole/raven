@@ -119,17 +119,4 @@ export class Subcomponent {
 	setColorMask(colorMask) {
 		this.#colorMask = colorMask;
 	}
-
-	/**
-	 * @deprecated
-	 */
-	clone() {
-		return new Subcomponent({
-			offset: this.#offset,
-			size: this.#size,
-			scale: this.#scale,
-			uv: this.#uv,
-			colorMask: this.#colorMask,
-		});
-	}
 }
