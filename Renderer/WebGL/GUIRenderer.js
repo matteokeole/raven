@@ -1,14 +1,14 @@
-import {WebGLRenderer} from "../WebGLRenderer.js";
-import {ShaderLoader} from "../Loader/index.js";
-import {Matrix3, Vector2, Vector4} from "../math/index.js";
-import {GUIScene} from "../Scene/index.js";
+import {WebGLRenderer} from "../index.js";
+import {ShaderLoader} from "../../Loader/index.js";
+import {Matrix3, Vector2, Vector4} from "../../math/index.js";
+import {GUIScene} from "../../Scene/index.js";
 
 export class GUIRenderer extends WebGLRenderer {
 	/**
 	 * @override
 	 * @type {?OffscreenCanvas}
 	 */
-	_canvas;
+	_canvas = null;
 
 	/**
 	 * @type {Matrix3}

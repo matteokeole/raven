@@ -1,5 +1,5 @@
-import {GUIComposite} from "./index.js";
 import {Component} from "./Component/index.js";
+import {GUIComposite} from "../Composite/index.js";
 import {NotImplementedError} from "../Error/index.js";
 
 /**

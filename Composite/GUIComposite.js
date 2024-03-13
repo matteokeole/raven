@@ -1,11 +1,12 @@
-import {Composite} from "./index.js";
+import {Composite} from "./Composite.js";
 import {Instance} from "../index.js";
 import {Camera, OrthographicCamera} from "../Camera/index.js";
 import {BitmapFont} from "../Font/index.js";
-import {GUIRenderer, Layer} from "../GUI/index.js";
+import {Layer} from "../GUI/index.js";
 import {Component, StructuralComponent, VisualComponent} from "../GUI/Component/index.js";
 import {Event, KeyPressEvent, KeyReleaseEvent, KeyRepeatEvent, MouseDownEvent, MouseMoveEvent} from "../GUI/Event/index.js";
 import {Matrix3, Vector2} from "../math/index.js";
+import {GUIRenderer} from "../Renderer/index.js";
 import {GUIScene} from "../Scene/index.js";
 import {BucketStack} from "../Stack/index.js";
 import {TextureWrapper} from "../Wrapper/index.js";
