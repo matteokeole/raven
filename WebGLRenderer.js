@@ -1,7 +1,7 @@
 import {ShaderCompilationError} from "./Error/index.js";
 import {Matrix, Vector2, Vector4} from "./math/index.js";
 import {Scene} from "./Scene/Scene.js";
-import {TextureWrapper} from "./wrappers/index.js";
+import {TextureWrapper} from "./Wrapper/index.js";
 
 /**
  * @abstract
