@@ -1,12 +1,13 @@
-import {GUIRenderer, Layer} from "./index.js";
-import {Component, Group, StructuralComponent, VisualComponent} from "./Component/index.js";
-import {Event, KeyPressEvent, KeyReleaseEvent, KeyRepeatEvent, MouseDownEvent, MouseMoveEvent} from "./Event/index.js";
-import {Composite, Instance} from "../index.js";
+import {Composite} from "./index.js";
+import {Instance} from "../index.js";
 import {Camera, OrthographicCamera} from "../Camera/index.js";
 import {BitmapFont} from "../Font/index.js";
+import {GUIRenderer, Layer} from "../GUI/index.js";
+import {Component, StructuralComponent, VisualComponent} from "../GUI/Component/index.js";
+import {Event, KeyPressEvent, KeyReleaseEvent, KeyRepeatEvent, MouseDownEvent, MouseMoveEvent} from "../GUI/Event/index.js";
 import {Matrix3, Vector2} from "../math/index.js";
-import {BucketStack} from "../Stack/index.js";
 import {GUIScene} from "../Scene/index.js";
+import {BucketStack} from "../Stack/index.js";
 import {TextureWrapper} from "../Wrapper/index.js";
 
 export class GUIComposite extends Composite {

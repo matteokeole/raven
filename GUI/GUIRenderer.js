@@ -1,4 +1,4 @@
-import {WebGLRenderer} from "../index.js";
+import {WebGLRenderer} from "../WebGLRenderer.js";
 import {ShaderLoader} from "../Loader/index.js";
 import {Matrix3, Vector2, Vector4} from "../math/index.js";
 import {GUIScene} from "../Scene/index.js";

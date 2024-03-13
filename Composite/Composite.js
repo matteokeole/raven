@@ -1,6 +1,6 @@
-import {Instance, WebGLRenderer} from "./index.js";
-import {Vector4} from "./math/index.js";
-import {Scene} from "./Scene/Scene.js";
+import {Instance, WebGLRenderer} from "../index.js";
+import {Vector4} from "../math/index.js";
+import {Scene} from "../Scene/Scene.js";
 
 /**
  * @typedef {Object} CompositeDescriptor
