@@ -107,8 +107,8 @@ export class Component {
 	/**
 	 * Calculates the component absolute position.
 	 * 
-	 * @param {Vector2} initial Cloned parent top left corner
-	 * @param {Vector2} parentSize Cloned parent size
+	 * @param {Vector2} initial Copy of the parent top left corner
+	 * @param {Vector2} parentSize Copy of the parent size
 	 */
 	compute(initial, parentSize) {
 		const x = ((this.#alignment & 0b111000) >> 4) * .5;
