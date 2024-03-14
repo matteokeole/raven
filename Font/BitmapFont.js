@@ -1,5 +1,5 @@
 import {Font} from "./Font.js";
-import {Subcomponent} from "../gui/index.js";
+import {Subcomponent} from "../GUI/index.js";
 import {Vector2, Vector4, max} from "../math/index.js";
 
 /**

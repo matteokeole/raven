@@ -1,4 +1,4 @@
-import {GUIComposite} from "../index.js";
+import {GUIComposite} from "../../Composite/index.js";
 import {Event} from "../Event/index.js";
 import {Matrix3, Vector2} from "../../math/index.js";
 

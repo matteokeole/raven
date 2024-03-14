@@ -1,13 +1,13 @@
-import {WebGLRenderer} from "./WebGLRenderer.js";
-import {NoWebGL2Error} from "./Error/index.js";
-import {ShaderLoader} from "./Loader/index.js";
+import {WebGLRenderer} from "../index.js";
+import {NoWebGL2Error} from "../../Error/index.js";
+import {ShaderLoader} from "../../Loader/index.js";
 
 export class InstanceRenderer extends WebGLRenderer {
 	/**
 	 * @override
 	 * @type {?HTMLCanvasElement}
 	 */
-	_canvas;
+	_canvas = null;
 
 	/**
 	 * @override

@@ -1,21 +1,17 @@
-import {ShaderCompilationError} from "./Error/index.js";
-import {Matrix, Vector2, Vector4} from "./math/index.js";
-import {Scene} from "./Scene/Scene.js";
-import {TextureWrapper} from "./wrappers/index.js";
+import {Renderer} from "./Renderer.js";
+import {ShaderCompilationError} from "../Error/index.js";
+import {Matrix, Vector2, Vector4} from "../math/index.js";
+import {Scene} from "../Scene/Scene.js";
+import {TextureWrapper} from "../Wrapper/index.js";
 
 /**
  * @abstract
  */
-export class WebGLRenderer {
+export class WebGLRenderer extends Renderer {
 	/**
 	 * @type {Vector2}
 	 */
 	static MAX_TEXTURE_SIZE = new Vector2(256, 256);
-
-	/**
-	 * @type {null|HTMLCanvasElement|OffscreenCanvas}
-	 */
-	_canvas;
 
 	/**
 	 * @type {?WebGL2RenderingContext}
@@ -57,6 +53,8 @@ export class WebGLRenderer {
 	_textures;
 
 	constructor() {
+		super();
+
 		this._canvas = null;
 		this._context = null
 		this.#viewport = new Vector4();
@@ -143,7 +141,7 @@ export class WebGLRenderer {
 	}
 
 	/**
-	 * @param {import("./Loader/TextureLoader.js").Image[]} textures
+	 * @param {import("../Loader/TextureLoader.js").Image[]} textures
 	 * @param {Boolean} generateMipmaps
 	 * @throws {RangeError} if a texture is larger than `MAX_TEXTURE_SIZE`
 	 */

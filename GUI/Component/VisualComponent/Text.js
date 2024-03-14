@@ -1,6 +1,6 @@
 import {VisualComponent} from "./VisualComponent.js";
-import {GUIComposite} from "../../index.js";
-import {BitmapFont} from "../../../fonts/index.js";
+import {GUIComposite} from "../../../Composite/index.js";
+import {BitmapFont} from "../../../Font/index.js";
 import {Vector2, Vector4} from "../../../math/index.js";
 
 /**

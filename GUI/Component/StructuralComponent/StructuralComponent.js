@@ -1,4 +1,4 @@
-import {Component} from "../Component.js";
+import {Component} from "../index.js";
 import {Vector2} from "../../../math/index.js";
 
 /**
