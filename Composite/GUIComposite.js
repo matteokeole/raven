@@ -184,9 +184,6 @@ export class GUIComposite extends Composite {
 		 */
 		this._scene.clear();
 
-		/**
-		 * @todo Move updateCompositeTexture() to the instance/instance renderer
-		 */
 		this.getInstance().getRenderer().updateCompositeTexture(
 			this.getIndex(),
 			this._renderer.getCanvas(),
@@ -257,8 +254,6 @@ export class GUIComposite extends Composite {
 	}
 
 	/**
-	 * @todo Render queue unique check
-	 * 
 	 * Registers the component in the render queue.
 	 * 
 	 * @param {Component} component

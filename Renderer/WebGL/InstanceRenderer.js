@@ -95,10 +95,6 @@ export class InstanceRenderer extends WebGLRenderer {
 	 */
 	updateCompositeTexture(index, texture) {
 		this._context.bindTexture(this._context.TEXTURE_2D, this._textures[index]);
-		/**
-		 * @todo Replace by `texStorage2D` (lower memory costs in some implementations,
-		 * according to {@link https://registry.khronos.org/webgl/specs/latest/2.0/#3.7.6})
-		 */
 		this._context.texImage2D(
 			this._context.TEXTURE_2D,
 			0,

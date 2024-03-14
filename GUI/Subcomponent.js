@@ -9,9 +9,6 @@ import {Vector2, Vector4} from "../math/index.js";
  * @property {Vector4} [colorMask]
  */
 
-/**
- * @todo See gl.colorMask
- */
 export class Subcomponent {
 	/**
 	 * @type {Vector2}

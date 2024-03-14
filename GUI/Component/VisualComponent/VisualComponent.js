@@ -60,7 +60,7 @@ export class VisualComponent extends Component {
 	}
 
 	/**
-	 * @todo `yield` instead of `return` to trigger multiple renders cleanly?
+	 * @todo `yield` instead of `return` to trigger multiple renders?
 	 * 
 	 * @abstract
 	 * @param {Composite} context
