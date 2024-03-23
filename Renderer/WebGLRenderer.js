@@ -1,5 +1,5 @@
 import {Renderer} from "./Renderer.js";
-import {ShaderCompilationError} from "../Error/index.js";
+import {ProgramLinkingError, ShaderCompilationError} from "../Error/index.js";
 import {Matrix, Vector2, Vector4} from "../math/index.js";
 import {Scene} from "../Scene/Scene.js";
 import {TextureWrapper} from "../Wrapper/index.js";
@@ -115,27 +115,67 @@ export class WebGLRenderer extends Renderer {
 	/**
 	 * @param {String} vertexShaderSource
 	 * @param {String} fragmentShaderSource
-	 * @throws {ShaderCompilationError} if the program linking was not successful
+	 * @throws {ProgramLinkingError} if the program linking failed
+	 * @throws {ShaderCompilationError} if the vertex shader or fragment shader compilation failed
 	 */
 	_createProgram(vertexShaderSource, fragmentShaderSource) {
+		const vertexShader = this._context.createShader(this._context.VERTEX_SHADER);
+
+		this._context.shaderSource(vertexShader, vertexShaderSource);
+		this._context.compileShader(vertexShader);
+
+		/**
+		 * @type {Boolean}
+		 */
+		let compileStatus = this._context.getShaderParameter(vertexShader, this._context.COMPILE_STATUS);
+
+		if (!compileStatus) {
+			const log = this._context.getShaderInfoLog(vertexShader);
+
+			this._context.deleteShader(vertexShader);
+
+			throw new ShaderCompilationError(this._context.VERTEX_SHADER, log);
+		}
+
+		const fragmentShader = this._context.createShader(this._context.FRAGMENT_SHADER);
+
+		this._context.shaderSource(fragmentShader, fragmentShaderSource);
+		this._context.compileShader(fragmentShader);
+
+		compileStatus = this._context.getShaderParameter(fragmentShader, this._context.COMPILE_STATUS);
+
+		if (!compileStatus) {
+			const log = this._context.getShaderInfoLog(fragmentShader);
+
+			this._context.deleteShader(vertexShader);
+			this._context.deleteShader(fragmentShader);
+
+			throw new ShaderCompilationError(this._context.FRAGMENT_SHADER, log);
+		}
+
 		const program = this._context.createProgram();
-		const vertexShader = this.#createShader(this._context.VERTEX_SHADER, vertexShaderSource);
-		const fragmentShader = this.#createShader(this._context.FRAGMENT_SHADER, fragmentShaderSource);
 
 		this._context.attachShader(program, vertexShader);
 		this._context.attachShader(program, fragmentShader);
-
 		this._context.linkProgram(program);
 
-		if (!this._context.getProgramParameter(program, this._context.LINK_STATUS)) {
-			if (this._context.getShaderInfoLog(vertexShader) !== "") {
-				throw new ShaderCompilationError(this._context.getShaderInfoLog(vertexShader), "VERTEX SHADER");
-			}
+		/**
+		 * @type {Boolean}
+		 */
+		const linkStatus = this._context.getProgramParameter(program, this._context.LINK_STATUS);
 
-			if (this._context.getShaderInfoLog(fragmentShader) !== "") {
-				throw new ShaderCompilationError(this._context.getShaderInfoLog(fragmentShader), "FRAGMENT SHADER");
-			}
+		if (!linkStatus) {
+			const log = this._context.getProgramInfoLog(program);
+
+			this._context.deleteShader(vertexShader);
+			this._context.deleteShader(fragmentShader);
+			this._context.deleteProgram(program);
+
+			throw new ProgramLinkingError(log);
 		}
+
+		this._context.detachShader(program, vertexShader);
+		this._context.detachShader(program, fragmentShader);
 
 		return program;
 	}
@@ -241,18 +281,5 @@ export class WebGLRenderer extends Renderer {
 		this._context.getExtension("WEBGL_lose_context").loseContext();
 		this._context = null;
 		this._canvas = null;
-	}
-
-	/**
-	 * @param {GLint} type
-	 * @param {String} source
-	 */
-	#createShader(type, source) {
-		const shader = this._context.createShader(type);
-
-		this._context.shaderSource(shader, source);
-		this._context.compileShader(shader);
-
-		return shader;
 	}
 }
