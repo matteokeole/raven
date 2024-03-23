@@ -8,20 +8,21 @@ export class WebGLIndexBuffer extends IndexBuffer {
 	_context = null;
 
 	/**
+	 * @override
 	 * @type {GLenum}
 	 */
-	_type = null;
+	_format = null;
 
 	/**
 	 * @param {WebGL2RenderingContext} context
 	 * @param {ArrayBuffer} indices
-	 * @param {GLenum} type
+	 * @param {GLenum} format
 	 */
-	constructor(context, indices, type) {
+	constructor(context, indices, format) {
 		super();
 
 		this._context = context;
-		this._type = type;
+		this._format = format;
 		this._buffer = this._context.createBuffer();
 
 		this.bind();

@@ -7,9 +7,9 @@ export class IndexBuffer extends Buffer {
 	/**
 	 * @type {Object}
 	 */
-	_type;
+	_format;
 
-	getType() {
-		return this._type;
+	getFormat() {
+		return this._format;
 	}
 }
