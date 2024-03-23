@@ -125,7 +125,7 @@ export class WebGLRenderer extends Renderer {
 		this._context.compileShader(vertexShader);
 
 		/**
-		 * @type {Boolean}
+		 * @type {GLboolean}
 		 */
 		let compileStatus = this._context.getShaderParameter(vertexShader, this._context.COMPILE_STATUS);
 
@@ -160,7 +160,7 @@ export class WebGLRenderer extends Renderer {
 		this._context.linkProgram(program);
 
 		/**
-		 * @type {Boolean}
+		 * @type {GLboolean}
 		 */
 		const linkStatus = this._context.getProgramParameter(program, this._context.LINK_STATUS);
 
