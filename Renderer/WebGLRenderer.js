@@ -1,4 +1,6 @@
 import {Renderer} from "./Renderer.js";
+import {IndexBuffer, VertexBuffer} from "../Buffer/index.js";
+import {WebGLIndexBuffer, WebGLVertexBuffer} from "../Buffer/WebGL/index.js";
 import {ProgramLinkingError, ShaderCompilationError} from "../Error/index.js";
 import {Matrix, Vector2, Vector4} from "../math/index.js";
 import {Scene} from "../Scene/Scene.js";
@@ -125,7 +127,7 @@ export class WebGLRenderer extends Renderer {
 		this._context.compileShader(vertexShader);
 
 		/**
-		 * @type {Boolean}
+		 * @type {GLboolean}
 		 */
 		let compileStatus = this._context.getShaderParameter(vertexShader, this._context.COMPILE_STATUS);
 
@@ -160,7 +162,7 @@ export class WebGLRenderer extends Renderer {
 		this._context.linkProgram(program);
 
 		/**
-		 * @type {Boolean}
+		 * @type {GLboolean}
 		 */
 		const linkStatus = this._context.getProgramParameter(program, this._context.LINK_STATUS);
 
@@ -178,6 +180,24 @@ export class WebGLRenderer extends Renderer {
 		this._context.detachShader(program, fragmentShader);
 
 		return program;
+	}
+
+	/**
+	 * Note: Index buffers can only store unsigned bytes.
+	 * 
+	 * @param {ArrayBuffer} indices
+	 * @returns {IndexBuffer}
+	 */
+	_createIndexBuffer(indices) {
+		return new WebGLIndexBuffer(this._context, indices, this._context.UNSIGNED_BYTE);
+	}
+
+	/**
+	 * @param {ArrayBuffer} vertices
+	 * @returns {VertexBuffer}
+	 */
+	_createVertexBuffer(vertices) {
+		return new WebGLVertexBuffer(this._context, vertices);
 	}
 
 	/**
