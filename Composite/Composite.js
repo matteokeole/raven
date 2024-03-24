@@ -1,7 +1,7 @@
 import {Instance} from "../Instance/index.js";
 import {Vector4} from "../math/index.js";
 import {WebGLRenderer} from "../Renderer/WebGL/index.js";
-import {Scene} from "../Scene/Scene.js";
+import {Scene} from "../Scene/index.js";
 
 /**
  * @typedef {Object} CompositeDescriptor
@@ -31,9 +31,9 @@ export class Composite {
 	#instance;
 
 	/**
-	 * @type {?Number}
+	 * @type {Boolean}
 	 */
-	#index;
+	#isDirty;
 
 	/**
 	 * @type {Boolean}
@@ -47,6 +47,7 @@ export class Composite {
 		this._renderer = descriptor.renderer;
 		this._scene = new Scene();
 		this.#instance = descriptor.instance;
+		this.#isDirty = false;
 		this.#isAnimatable = false;
 	}
 
@@ -58,15 +59,15 @@ export class Composite {
 		return this.#instance;
 	}
 
-	getIndex() {
-		return this.#index;
+	isDirty() {
+		return this.#isDirty;
 	}
 
 	/**
-	 * @param {?Number} index
+	 * @param {Boolean} isDirty
 	 */
-	setIndex(index) {
-		this.#index = index;
+	setDirty(isDirty) {
+		this.#isDirty = isDirty;
 	}
 
 	isAnimatable() {
