@@ -1,10 +1,10 @@
-import {Renderer} from "./Renderer.js";
-import {IndexBuffer, VertexBuffer} from "../Buffer/index.js";
-import {WebGLIndexBuffer, WebGLVertexBuffer} from "../Buffer/WebGL/index.js";
-import {ProgramLinkingError, ShaderCompilationError} from "../Error/index.js";
-import {Matrix, Vector2, Vector4} from "../math/index.js";
-import {Scene} from "../Scene/Scene.js";
-import {TextureWrapper} from "../Wrapper/index.js";
+import {Renderer} from "../Renderer.js";
+import {IndexBuffer, VertexBuffer} from "../../Buffer/index.js";
+import {WebGLIndexBuffer, WebGLVertexBuffer} from "../../Buffer/WebGL/index.js";
+import {ProgramLinkingError, ShaderCompilationError} from "../../Error/index.js";
+import {Matrix, Vector2, Vector4} from "../../math/index.js";
+import {Scene} from "../../Scene/Scene.js";
+import {TextureWrapper} from "../../Wrapper/index.js";
 
 /**
  * @abstract

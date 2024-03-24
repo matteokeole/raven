@@ -1,8 +1,8 @@
-import {WebGLRenderer} from "../index.js";
+import {WebGLRenderer} from "./WebGLRenderer.js";
 import {NoWebGL2Error} from "../../Error/index.js";
 import {ShaderLoader} from "../../Loader/index.js";
 
-export class InstanceRenderer extends WebGLRenderer {
+export class WebGLInstanceRenderer extends WebGLRenderer {
 	/**
 	 * @override
 	 * @type {?HTMLCanvasElement}
@@ -13,7 +13,7 @@ export class InstanceRenderer extends WebGLRenderer {
 	 * @override
 	 * @type {WebGLTexture[]}
 	 */
-	_textures;
+	_textures = [];
 
 	/**
 	 * @type {Number}
@@ -23,8 +23,6 @@ export class InstanceRenderer extends WebGLRenderer {
 	constructor() {
 		super();
 
-		this._canvas = null;
-		this._textures = [];
 		this.#compositeCount = 0;
 	}
 

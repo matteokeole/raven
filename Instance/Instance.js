@@ -1,10 +1,10 @@
 import {Composite} from "../Composite/index.js";
 import {Vector2, Vector4} from "../math/index.js";
-import {InstanceRenderer} from "../Renderer/index.js";
+import {WebGLInstanceRenderer} from "../Renderer/WebGL/index.js";
 
 export class Instance {
 	/**
-	 * @type {InstanceRenderer}
+	 * @type {WebGLInstanceRenderer}
 	 */
 	#renderer;
 
@@ -74,7 +74,7 @@ export class Instance {
 	#currentPressedKeys;
 
 	/**
-	 * @param {InstanceRenderer} renderer
+	 * @param {WebGLInstanceRenderer} renderer
 	 */
 	constructor(renderer) {
 		this.#renderer = renderer;

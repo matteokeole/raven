@@ -6,7 +6,7 @@ import {Layer} from "../GUI/index.js";
 import {Component, StructuralComponent, VisualComponent} from "../GUI/Component/index.js";
 import {Event, KeyPressEvent, KeyReleaseEvent, KeyRepeatEvent, MouseDownEvent, MouseMoveEvent} from "../GUI/Event/index.js";
 import {Matrix3, Vector2} from "../math/index.js";
-import {GUIRenderer} from "../Renderer/index.js";
+import {WebGLGUIRenderer} from "../Renderer/WebGL/index.js";
 import {GUIScene} from "../Scene/index.js";
 import {BucketStack} from "../Stack/index.js";
 import {TextureWrapper} from "../Wrapper/index.js";
@@ -56,7 +56,7 @@ export class GUIComposite extends Composite {
 
 	/**
 	 * @param {Object} options
-	 * @param {GUIRenderer} options.renderer
+	 * @param {WebGLGUIRenderer} options.renderer
 	 * @param {Instance} options.instance
 	 * @param {Record.<String, BitmapFont>} options.fonts
 	 */
