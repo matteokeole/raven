@@ -113,9 +113,8 @@ export class Instance {
 	setComposites(composites) {
 		this.#compositeCount = composites.length;
 
-		for (let i = 0, composite; i < this.#compositeCount; i++) {
-			composite = composites[i];
-			composite.setIndex(i);
+		for (let i = 0; i < this.#compositeCount; i++) {
+			const composite = composites[i];
 
 			this.#composites.push(composite);
 		}
@@ -320,11 +319,24 @@ export class Instance {
 	 */
 	#update(frameIndex) {
 		for (let i = 0; i < this.#compositeCount; i++) {
-			if (!this.#composites[i].isAnimatable()) {
-				continue;
+			const composite = this.#composites[i];
+
+			if (composite.isAnimatable()) {
+				composite.update(frameIndex);
 			}
 
-			this.#composites[i].update(frameIndex);
+			if (composite.isDirty()) {
+				/**
+				 * @todo Either remove OffscreenCanvas renderers or make an OffscreenRenderer that guarantees using an OffscreenCanvas
+				 * 
+				 * @type {OffscreenCanvas}
+				 */
+				const canvas = composite.getRenderer().getCanvas();
+
+				this.#renderer.updateCompositeTexture(i, canvas);
+
+				composite.setDirty(false);
+			}
 		}
 	}
 

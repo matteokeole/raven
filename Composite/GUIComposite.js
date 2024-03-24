@@ -11,6 +11,13 @@ import {GUIScene} from "../Scene/index.js";
 import {BucketStack} from "../Stack/index.js";
 import {TextureWrapper} from "../Wrapper/index.js";
 
+/**
+ * @typedef {Object} GUICompositeDescriptor
+ * @property {WebGLGUIRenderer} renderer
+ * @property {Instance} instance
+ * @property {Record.<String, BitmapFont>} fonts
+ */
+
 export class GUIComposite extends Composite {
 	/**
 	 * @type {Camera}
@@ -55,15 +62,12 @@ export class GUIComposite extends Composite {
 	#fonts;
 
 	/**
-	 * @param {Object} options
-	 * @param {WebGLGUIRenderer} options.renderer
-	 * @param {Instance} options.instance
-	 * @param {Record.<String, BitmapFont>} options.fonts
+	 * @param {GUICompositeDescriptor} descriptor
 	 */
-	constructor({renderer, instance, fonts}) {
-		super({renderer, instance});
+	constructor(descriptor) {
+		super(descriptor);
 
-		this._renderer = renderer;
+		this._renderer = descriptor.renderer;
 
 		// This contains the visual components registered for the next render
 		this._scene = new GUIScene();
@@ -79,7 +83,7 @@ export class GUIComposite extends Composite {
 		this.#tree = [];
 		this.#lastInsertionIndices = [];
 		this.#eventListeners = {};
-		this.#fonts = fonts;
+		this.#fonts = descriptor.fonts;
 	}
 
 	/**
@@ -184,10 +188,7 @@ export class GUIComposite extends Composite {
 		 */
 		this._scene.clear();
 
-		this.getInstance().getRenderer().updateCompositeTexture(
-			this.getIndex(),
-			this._renderer.getCanvas(),
-		);
+		this.setDirty(true);
 	}
 
 	/**
