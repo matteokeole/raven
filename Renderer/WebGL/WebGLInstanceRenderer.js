@@ -48,6 +48,8 @@ export class WebGLInstanceRenderer extends WebGLRenderer {
 			throw new NoWebGL2Error();
 		}
 
+		this.#writeUserInfo();
+
 		this._context.pixelStorei(this._context.UNPACK_FLIP_Y_WEBGL, true);
 		this._context.enable(this._context.BLEND);
 		this._context.blendFunc(this._context.SRC_ALPHA, this._context.ONE_MINUS_SRC_ALPHA);
@@ -101,5 +103,13 @@ export class WebGLInstanceRenderer extends WebGLRenderer {
 			this._context.UNSIGNED_BYTE,
 			texture,
 		);
+	}
+
+	#writeUserInfo() {
+		const renderer = this._context.getParameter(this._context.RENDERER);
+		const vendor = this._context.getParameter(this._context.VENDOR);
+		const version = this._context.getParameter(this._context.VERSION);
+
+		console.info(`User info: ${vendor} ${renderer} ${version}`);
 	}
 }
