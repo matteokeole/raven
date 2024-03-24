@@ -1,9 +1,9 @@
-import {WebGLRenderer} from "../index.js";
+import {WebGLRenderer} from "./WebGLRenderer.js";
 import {ShaderLoader} from "../../Loader/index.js";
 import {Matrix3, Vector2, Vector4} from "../../math/index.js";
 import {GUIScene} from "../../Scene/index.js";
 
-export class GUIRenderer extends WebGLRenderer {
+export class WebGLGUIRenderer extends WebGLRenderer {
 	/**
 	 * @override
 	 * @type {?OffscreenCanvas}
@@ -18,7 +18,6 @@ export class GUIRenderer extends WebGLRenderer {
 	constructor() {
 		super();
 
-		this._canvas = null;
 		this.#projection = Matrix3.identity();
 	}
 
